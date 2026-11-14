@@ -1,10 +1,11 @@
 """Run the Waterline agent on a building: a three-turn session on one thread, traced as AgentEvents.
 
-    python -m app.agent.run building-e --depth 1 --new-depth 4 --approve
+    python -m app.agent.run building-e --depth 1 --new-depth 4 --approve [--positions 12]
 
-Turn 1: assess the building at --depth (plan, site, interior survey with re-looks, value, scenario, fixes).
-Turn 2: the user moves the slider to --new-depth: re-plan, re-price, re-rank, draft documents, ask to send.
-Turn 3: a person approves (or rejects) the send.
+Turn 1 (assess): memory, plan, site, interior survey within a position budget, value, scenario, fixes at --depth.
+Turn 2 (replan): the user moves the slider to --new-depth: re-plan, re-price, re-rank only.
+Turn 3 (send): draft the report and playbook, then send_playbook, which pauses for a person.
+Turn 4 (approval): a person approves (or rejects) the send.
 The trace is saved to data/cache/agent/traces/<id>/<run_id>.json (and latest.json, which GET /events replays);
 run stats (model calls, tokens, cost, time) to data/cache/agent/runs/<id>/<run_id>.json.
 """
@@ -26,23 +27,25 @@ RUNS = CACHE / "agent" / "runs"
 
 
 class Session:
-    def __init__(self, bid: str, echo: bool = True, cached_positions_only: bool = True):
+    def __init__(self, bid: str, echo: bool = True, cached_positions_only: bool = False, positions: int = 12):
         self.bid = bid
         self.run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:6]
         self.trace = events.Trace(bid, self.run_id, echo=echo)
         self.cb = orchestrator.SpendCallback(orchestrator.model_name())
-        self.agent = orchestrator.build_agent(bid, self.cb)
+        self.sub_cb = orchestrator.SpendCallback(orchestrator.subagent_model_name())
+        tools.reset(bid)
+        tools.SETTINGS.update(cached_positions_only=cached_positions_only, max_positions=positions)
+        self.agent = orchestrator.build_agent(bid, self.cb, sub_cb=self.sub_cb)
         self.config = {"configurable": {"thread_id": f"{bid}-{self.run_id}"}, "recursion_limit": 300}
         self.spend_start = spend.summary()["total_usd"]
         self.t0 = time.time()
         self.turns: list[dict] = []
         self.depth = None
-        tools.SETTINGS["cached_positions_only"] = cached_positions_only
 
     def _stream(self, inp, label: str) -> dict:
         events.activate(self.trace)
         t = time.time()
-        calls0, cost0 = self.cb.calls, self.cb.cost_usd
+        calls0, cost0 = self.calls(), self.cost()
         interrupted = False
         try:
             for ns, chunk in self.agent.stream(inp, self.config, stream_mode="updates", subgraphs=True):
@@ -52,11 +55,17 @@ class Session:
         finally:
             events.activate(None)
         self._save_dossier()
-        turn = {"turn": label, "seconds": round(time.time() - t, 1), "model_calls": self.cb.calls - calls0,
-                "cost_usd": round(self.cb.cost_usd - cost0, 4), "interrupted": interrupted}
+        turn = {"turn": label, "seconds": round(time.time() - t, 1), "model_calls": self.calls() - calls0,
+                "cost_usd": round(self.cost() - cost0, 4), "interrupted": interrupted}
         self.turns.append(turn)
         self._save_stats()
         return turn
+
+    def calls(self) -> int:
+        return self.cb.calls + self.sub_cb.calls
+
+    def cost(self) -> float:
+        return self.cb.cost_usd + self.sub_cb.cost_usd
 
     def _save_dossier(self) -> None:
         state = self.agent.get_state(self.config)
@@ -73,16 +82,22 @@ class Session:
 
     def _save_stats(self) -> None:
         write_json(RUNS / self.bid / f"{self.run_id}.json", {
-            "building_id": self.bid, "run_id": self.run_id, "model": self.cb.model_name, "turns": self.turns,
-            "model_calls": self.cb.calls, "input_tokens": self.cb.input_tokens, "output_tokens": self.cb.output_tokens,
-            "cost_usd": round(self.cb.cost_usd, 4), "seconds": round(time.time() - self.t0, 1),
+            "building_id": self.bid, "run_id": self.run_id, "model": self.cb.model_name,
+            "subagent_model": self.sub_cb.model_name, "turns": self.turns, "model_calls": self.calls(),
+            "by_model": {c.model_name if c is self.cb else f"{c.model_name} (subagents)":
+                         {"calls": c.calls, "input_tokens": c.input_tokens, "output_tokens": c.output_tokens,
+                          "cost_usd": round(c.cost_usd, 4)} for c in (self.cb, self.sub_cb)},
+            "input_tokens": self.cb.input_tokens + self.sub_cb.input_tokens,
+            "output_tokens": self.cb.output_tokens + self.sub_cb.output_tokens,
+            "cost_usd": round(self.cost(), 4), "seconds": round(time.time() - self.t0, 1),
             "events": len(self.trace.events), "trace": str(self.trace.path.relative_to(CACHE)),
             "spend_total_usd": spend.summary()["total_usd"]})
 
     def assess(self, depth: float) -> dict:
         self.depth = depth
-        msg = (f"Assess {self.bid} for {depth:g} ft of interior water. Survey the site and the interior, price the loss "
-               f"and rank the fixes at {depth:g} ft. Do not draft or send documents yet; finish with a five-line summary.")
+        msg = (f"Assess {self.bid} for {depth:g} ft of interior water: site, interior (the surveyor has a budget of "
+               f"{tools.SETTINGS['max_positions']} scan positions), value, loss and ranked fixes at {depth:g} ft. "
+               "Do not draft or send documents yet.")
         return self._stream({"messages": [{"role": "user", "content": msg}], "files": orchestrator.skill_files()},
                             "assess")
 
@@ -92,10 +107,13 @@ class Session:
         self.trace.emit("orchestrator", "observation", f"The user moved the depth slider from {old:g} ft to {new_depth:g} ft.",
                         data={"from_ft": old, "to_ft": new_depth})
         msg = (f"The user moved the depth slider from {old:g} ft to {new_depth:g} ft. Re-plan, re-price and re-rank at "
-               f"{new_depth:g} ft and say how the priority list changed. Then have communications draft the report and "
-               f"playbook at {new_depth:g} ft. Finally call send_playbook(building_id='{self.bid}', recipient='{recipient}', "
-               f"depth_ft={new_depth:g}); it pauses until a person approves.")
+               f"{new_depth:g} ft and say how the priority list changed.")
         return self._stream({"messages": [{"role": "user", "content": msg}]}, "replan")
+
+    def request_send(self, recipient: str) -> dict:
+        msg = (f"Draft the report and playbook at {self.depth:g} ft, then call send_playbook(building_id='{self.bid}', "
+               f"recipient='{recipient}', depth_ft={self.depth:g}).")
+        return self._stream({"messages": [{"role": "user", "content": msg}]}, "send")
 
     def decide(self, approve: bool, note: str = "") -> dict:
         self.trace.emit("orchestrator", "decision",
@@ -111,16 +129,18 @@ def main() -> None:
     ap.add_argument("--depth", type=float, default=1.0)
     ap.add_argument("--new-depth", type=float, default=4.0)
     ap.add_argument("--approve", action="store_true")
-    ap.add_argument("--live-positions", action="store_true", help="offer uncached scan positions too (costs calls)")
+    ap.add_argument("--positions", type=int, default=12, help="scan-position budget for the interior surveyor")
+    ap.add_argument("--cached-only", action="store_true", help="offer only positions with cached vision answers")
     a = ap.parse_args()
     recipient = next((r.strip() for r in os.environ.get("ALLOWED_RECIPIENTS", "").split(",") if r.strip()), "")
-    s = Session(a.building, cached_positions_only=not a.live_positions)
+    s = Session(a.building, cached_positions_only=a.cached_only, positions=a.positions)
     print(f"run {s.run_id}: model {s.cb.model_name}; spend before ${s.spend_start:.4f}", flush=True)
     for step in (lambda: s.assess(a.depth), lambda: s.change_depth(a.new_depth, recipient),
+                 lambda: s.request_send(recipient),
                  lambda: s.decide(a.approve, "" if a.approve else "Rejected from the command line.")):
         turn = step()
         print(f"--- turn {turn}", flush=True)
-        if turn["turn"] == "replan" and not turn["interrupted"]:
+        if turn["turn"] == "send" and not turn["interrupted"]:
             print("no approval interrupt reached; stopping before the approval turn", flush=True)
             break
     st = json.loads((RUNS / s.bid / f"{s.run_id}.json").read_text())

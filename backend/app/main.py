@@ -7,6 +7,7 @@ Run: uvicorn app.main:app --host 127.0.0.1 --port 8000
 """
 import json
 import mimetypes
+from datetime import datetime, timezone
 import os
 import re
 
@@ -17,6 +18,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Streamin
 from app import buildings, corrections, fixtures
 from app.actions import playbook as playbook_html
 from app.actions import report as report_html
+from app.actions import send as send_action
 from app.agent import events as agent_events
 from app.agent import service as agent_service
 from app.agent.replay import replay
@@ -150,6 +152,11 @@ def delete_asset(bid: str, asset_id: str, body: dict | None = Body(default=None)
     return _correct(bid, asset_id, "delete", body or {}, depth_ft)
 
 
+def agent_tools_dossier():
+    from app.config import CACHE
+    return CACHE / "agent" / "dossier"
+
+
 def _sse(gen):
     return StreamingResponse(gen, media_type="text/event-stream",
                              headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
@@ -180,11 +187,23 @@ def run(bid: str, body: dict | None = Body(default=None)):
 
 @app.post("/buildings/{bid}/depth")
 def change_depth(bid: str, body: dict = Body(...)):
-    """The user moved the slider during a session: the agent re-plans, re-prices, re-ranks, drafts the documents
-    and asks to send (turn 2). Body: {"depth_ft": 4, "recipient": optional, must be in ALLOWED_RECIPIENTS}."""
+    """The user moved the slider during a session: the agent re-plans, re-prices and re-ranks (turn 2).
+    Body: {"depth_ft": 4}."""
     _real(bid)
     try:
         return agent_service.change_depth(bid, float(body["depth_ft"]), _recipient(body))
+    except KeyError:
+        raise HTTPException(409, "no agent session for this building: POST /run first")
+    except agent_service.Busy as e:
+        raise HTTPException(409, str(e))
+
+
+@app.post("/buildings/{bid}/request_send")
+def request_send(bid: str, body: dict | None = Body(default=None)):
+    """The agent drafts the report and playbook and calls send_playbook, which waits for POST /send (turn 3)."""
+    _real(bid)
+    try:
+        return agent_service.request_send(bid, _recipient(body or {}))
     except KeyError:
         raise HTTPException(409, "no agent session for this building: POST /run first")
     except agent_service.Busy as e:
@@ -226,22 +245,42 @@ def playbook(bid: str, depth_ft: float = Query(2, ge=0, le=8)):
 
 
 @app.post("/buildings/{bid}/send")
-def send(bid: str, body: dict = Body(...)):
-    """Requires {"approved": true, "recipient": "<address in ALLOWED_RECIPIENTS>"}. Nothing is sent before Phase 5B."""
+def send(bid: str, body: dict = Body(...), depth_ft: float = Query(2, ge=0, le=8)):
+    """{"approved": true, "recipient": "<in ALLOWED_RECIPIENTS>"}. With an agent waiting for approval this resumes it
+    (false rejects); otherwise it sends the playbook directly. Email goes out over SMTP when SMTP_* and EMAIL_FROM are
+    set; otherwise the status is "draft_only" (draft only, not sent)."""
     if bid != FIX:
         _real(bid)
     if bid != FIX and agent_service.waiting_for_approval(bid) and body.get("approved") is False:
         return agent_service.decide(bid, False, str(body.get("note") or ""))
     if body.get("approved") is not True:
         raise HTTPException(400, 'sending requires {"approved": true}')
-    allowed = {a.strip().lower() for a in os.environ.get("ALLOWED_RECIPIENTS", "").split(",") if a.strip()}
     recipient = str(body.get("recipient", "")).strip().lower()
-    if recipient not in allowed:
+    if recipient not in send_action.allowed():
         raise HTTPException(403, "recipient is not in ALLOWED_RECIPIENTS")
     if bid != FIX and agent_service.waiting_for_approval(bid):
-        return agent_service.decide(bid, True)      # resumes the agent; send_playbook records the approved send
-    return {"status": "not_sent", "building_id": bid, "recipient": recipient,
-            "reason": "Sending is built in Phase 5B. Approval was recorded; nothing was sent."}
+        return agent_service.decide(bid, True)      # resumes the agent; its send_playbook tool sends
+    html = fixtures.playbook_html() if bid == FIX else playbook_html.render(
+        _real(bid), buildings.get_assets(bid), buildings.get_entry_points(bid), depth_ft)
+    return send_action.send_playbook(bid, recipient, depth_ft, html, approved=True)
+
+
+@app.get("/buildings/{bid}/dossier")
+def dossier(bid: str):
+    """The agent's dossier for a building: every file it wrote (notes, inventory, scenarios, mitigations, report,
+    playbook, send log) with its contents."""
+    if bid != FIX:
+        _real(bid)
+    root = agent_tools_dossier() / bid
+    files = []
+    if root.exists():
+        for f in sorted(root.rglob("*")):
+            if f.is_file():
+                st = f.stat()
+                files.append({"path": f"/dossier/{bid}/{f.relative_to(root)}", "bytes": st.st_size,
+                              "modified": datetime.fromtimestamp(st.st_mtime, timezone.utc).isoformat(timespec="seconds"),
+                              "content": f.read_text(errors="replace")})
+    return {"building_id": bid, "files": files}
 
 
 # ---------------------------------------------------------------- media

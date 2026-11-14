@@ -25,6 +25,7 @@ from app.sources.cache import write_json
 
 VIEWS = ("ortho", "oblique-north", "oblique-south", "oblique-east", "oblique-west")
 UPLOAD_PX = 1536
+DISCREPANCY_FACTOR = 0.8   # confidence multiplier for a kind of opening whose aerial count disagrees with CoStar
 KIND_ORDER = {"drive_in": 0, "door": 1, "garage": 2, "ramp": 3, "other": 4, "dock": 5}
 WHY = {"drive_in": "grade-level drive-in door: wide and at ground level, so water walks straight in",
        "door": "personnel door at grade: the threshold is the only barrier",
@@ -108,7 +109,7 @@ def scout(bid: str, cache_only: bool = False) -> tuple[list[dict], dict]:
     found = {"drive_in": sum(1 for o in rows if o["kind"] == "drive_in"),
              "dock": sum(1 for o in rows if o["kind"] == "dock")}
     costar = {"drive_in": b.get("drive_in_bays"), "dock": b.get("loading_docks_external")}
-    check = {}
+    check, discrepancies = {}, []
     for k in ("drive_in", "dock"):
         if costar[k] is None:
             check[k] = f"CoStar has no {k.replace('_', '-')} count; images show {found[k]}"
@@ -116,6 +117,16 @@ def scout(bid: str, cache_only: bool = False) -> tuple[list[dict], dict]:
             check[k] = f"matches CoStar ({costar[k]})"
         else:
             check[k] = f"images show {found[k]}, CoStar says {costar[k]}"
+            discrepancies.append({
+                "kind": k, "aerial": found[k], "costar": costar[k],
+                "text": f"The aerial images show {found[k]} {k.replace('_', '-')} door{'s' if found[k] != 1 else ''} but "
+                        f"CoStar records {costar[k]}. Neither source is taken as right: "
+                        + ("a door may be hidden by trucks, trees or the viewing angle, or sit on a wall no view shows"
+                           if found[k] < costar[k] else "CoStar's count may be out of date or count a different building")
+                        + f". Confidence of every {k.replace('_', '-')} entry point lowered by {round((1 - DISCREPANCY_FACTOR) * 100)}%."})
+    for o in rows:
+        if any(d["kind"] == o["kind"] for d in discrepancies):
+            o["confidence"] *= DISCREPANCY_FACTOR
     eps = []
     for n, o in enumerate(rows, 1):
         note = check.get(o["kind"])
@@ -130,7 +141,8 @@ def scout(bid: str, cache_only: bool = False) -> tuple[list[dict], dict]:
     log = {"building_id": bid, "at": datetime.now(timezone.utc).isoformat(), "model": res["model"],
            "cached": bool(res.get("cached")), "views": views, "model_counts":
            {"drive_in": r.get("drive_in_count"), "dock": r.get("dock_count")}, "listed_counts": found,
-           "costar_counts": costar, "count_check": check, "views_without_building": r.get("views_without_building"),
+           "costar_counts": costar, "count_check": check,
+           "discrepancies": discrepancies, "views_without_building": r.get("views_without_building"),
            "ranking_rule": "drive-in and personnel doors at grade first, then ramps, then dock-high doors; "
                            "then by confidence"}
     write_json(BUILDINGS / bid / "entry_points.json", eps)

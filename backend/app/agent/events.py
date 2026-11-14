@@ -38,6 +38,7 @@ class Trace:
         self.delegated: list[str] = []  # subagents in the order they were given work (attribution of their files)
         self.task_ids: dict[str, str] = {}  # task() tool-call id -> subagent, so parallel reports are attributed right
         self.files: set[str] = set()
+        self.skills: set[tuple[str, str]] = set()
         self.listeners: list = []
 
     def emit(self, agent: str, type_: str, text: str, refs=(), data=None) -> dict:
@@ -133,6 +134,13 @@ def translate(trace: Trace, namespace: tuple, chunk: dict) -> None:
                             trace.task_ids[call["id"]] = sub
                         trace.emit("orchestrator", "decision", f"Delegate to {sub}: {args.get('description', '')}",
                                    data={"tool": "task", "subagent": sub})
+                    elif name == "read_file" and "/skills/" in str(args.get("file_path") or args.get("path") or ""):
+                        path = str(args.get("file_path") or args.get("path"))
+                        skill = path.rstrip("/").split("/")[-2] if path.endswith("SKILL.md") else path
+                        if (who, skill) not in trace.skills:
+                            trace.skills.add((who, skill))
+                            trace.emit(who, "tool_call", f"Loaded skill {skill} on demand ({path})", refs=[path],
+                                       data={"tool": "read_file", "skill": skill, "path": path})
                     elif name in ("write_file", "edit_file"):
                         path = args.get("file_path") or args.get("path") or ""
                         if path.startswith("/dossier/") or path.startswith("/memories/"):

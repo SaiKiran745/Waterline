@@ -18,9 +18,11 @@ from datetime import datetime, timezone
 from app.config import CACHE
 
 LEDGER = CACHE / "spend.json"
-PRICES_PER_M = {"gemini-3.6-flash": {"input": 0.75, "output": 3.75}}
-PRICE_SOURCE = "https://aistudio.google.com/docs/pricing (Standard tier, checked 2026-11-14, valid to 2026-12-31)"
+PRICES_PER_M = {"gemini-3.6-flash": {"input": 0.75, "output": 3.75},          # valid to 2026-12-31
+                "gemini-3.5-flash-lite": {"input": 0.30, "output": 2.50}}     # no date condition listed
+PRICE_SOURCE = "https://aistudio.google.com/docs/pricing (Standard tier, checked 2026-11-14)"
 DEFAULT_BUDGET_USD = 3.0
+DEFAULT_WARN_USD = None
 FIRST_CALL_ESTIMATE_USD = 0.02     # used by check() until a real call has been priced
 
 
@@ -30,6 +32,11 @@ class BudgetExceeded(RuntimeError):
 
 def budget() -> float:
     return float(os.environ.get("GEMINI_BUDGET_USD") or DEFAULT_BUDGET_USD)
+
+
+def warn_at() -> float | None:
+    v = os.environ.get("GEMINI_WARN_USD")
+    return float(v) if v else DEFAULT_WARN_USD
 
 
 @contextmanager
@@ -86,9 +93,18 @@ def record(tag: str, model: str, usage: dict) -> float:
                            "output_tokens": usage.get("candidatesTokenCount") or 0,
                            "thoughts_tokens": usage.get("thoughtsTokenCount") or 0,
                            "cost_usd": round(c, 6)})
+        before = d["total_usd"]
         d["total_usd"] = round(d["total_usd"] + c, 6)
         d["budget_usd"] = budget()
+        w = warn_at()
+        crossed = w is not None and before < w <= d["total_usd"] and not d.get("warned_at")
+        if crossed:
+            d["warned_at"] = {"ts": datetime.now(timezone.utc).isoformat(), "total_usd": d["total_usd"], "warn_usd": w}
         _write(d)
+    if crossed:
+        import sys
+        print(f"WARNING: Gemini spend ${d['total_usd']:.2f} passed the ${w:.2f} warning level "
+              f"(budget ${budget():.2f})", file=sys.stderr, flush=True)
     return c
 
 

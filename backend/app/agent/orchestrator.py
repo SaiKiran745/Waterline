@@ -34,21 +34,22 @@ SKILLS_DIR = Path(__file__).parent / "skills"
 CHECKPOINTS = CACHE / "agent" / "checkpoints.sqlite"
 
 SYSTEM = """You are Waterline's orchestrator for building {bid}, a commercial building in Houston.
-Goal: find where flood water gets in, inventory what a flood would damage, price the loss at the user's water depth,
-rank the fixes, draft the report and pre-storm playbook, and get a person's approval before anything is sent.
+Goal: where flood water gets in, what a flood would damage, the loss at the user's depth, the fixes ranked, the
+documents drafted, and a person's approval before anything is sent.
 
-How you work:
-1. Memory first: call get_corrections for {bid}. Human corrections are your long-term memory. If it lists
-   propagate_candidates, apply each with apply_correction_to_similar and give the reason.
-2. Plan before acting: write a short plan (5 to 7 steps) with write_todos. Mark steps done as you go.
-3. Delegate with task(), one subagent per call, giving the building id and the depth: site-scout, interior-surveyor,
-   market-analyst, scenario-builder, mitigation-planner, communications. Do not do their work yourself.
-4. Keep the dossier: write your decisions in a few lines to /dossier/{bid}/orchestrator.md.
-5. Sending needs a person: when asked to send, you must call the send_playbook tool (never just ask in text).
-   The call pauses until a person approves or rejects it.
-6. When the user changes the depth: re-plan with write_todos (say what changes), have scenario-builder and
-   mitigation-planner redo their work at the new depth, and say how the priority list changed and why.
-Be brief. Every dollar figure is a low-high range; the depth is a scenario, not a forecast."""
+Rules:
+1. Memory first: call get_corrections. If it lists apply_to_similar, call apply_correction_to_similar for each,
+   with the reason, before surveying.
+2. Plan before acting: write_todos with 4 to 6 short steps. Update it only when the plan changes.
+3. Delegate with task(), one subagent per call, building id and depth in the description. Run independent work in
+   parallel: site-scout, interior-surveyor and market-analyst together; then scenario-builder and mitigation-planner
+   together. Do not do their work yourself.
+4. Details live in /dossier/{bid}/ (the tools write them). Keep your messages short; never paste tables.
+5. When the user changes the depth: re-plan with write_todos, then only scenario-builder and mitigation-planner at
+   the new depth (tell the planner the old depth). Say in 3 lines how the priority list changed.
+6. Sending needs a person: when asked to send, have communications draft first, then you must call send_playbook
+   (never just ask in text). It pauses until a person approves or rejects it.
+Every dollar figure is a low-high range; the depth is a scenario, not a forecast. Final answers: at most 5 lines."""
 
 
 class SpendCallback(BaseCallbackHandler):
@@ -81,12 +82,16 @@ class SpendCallback(BaseCallbackHandler):
                 self.output_tokens += out
 
 
-def model_name() -> str:
-    spec = os.environ.get("AGENT_MODEL") or "google_genai:gemini-3.6-flash"
+def model_name(var: str = "AGENT_MODEL", default: str = "google_genai:gemini-3.6-flash") -> str:
+    spec = os.environ.get(var) or default
     provider, _, name = spec.partition(":")
     if provider != "google_genai":
-        raise ValueError(f"AGENT_MODEL {spec}: only google_genai is wired")
+        raise ValueError(f"{var} {spec}: only google_genai is wired")
     return name
+
+
+def subagent_model_name() -> str:
+    return model_name("AGENT_SUBAGENT_MODEL", os.environ.get("AGENT_MODEL") or "google_genai:gemini-3.6-flash")
 
 
 def build_model(cb: SpendCallback) -> ChatGoogleGenerativeAI:
@@ -101,15 +106,16 @@ def checkpointer() -> SqliteSaver:
     return SqliteSaver(sqlite3.connect(CHECKPOINTS, check_same_thread=False))
 
 
-def build_agent(bid: str, cb: SpendCallback, model=None):
-    """model: pass a test double to build the graph without calling Gemini."""
+def build_agent(bid: str, cb: SpendCallback, model=None, sub_cb: SpendCallback | None = None):
+    """model: pass a test double to build the graph without calling Gemini (subagents then use it too)."""
     m = model if model is not None else build_model(cb)
+    sub = model if model is not None else (build_model(sub_cb) if sub_cb else None)
     backend = CompositeBackend(default=StateBackend(), routes={memory.ROUTE: memory.backend()})
     return create_deep_agent(
         model=m,
         tools=ORCHESTRATOR_TOOLS,
         system_prompt=SYSTEM.format(bid=bid),
-        subagents=subagents.build(bid, []),
+        subagents=subagents.build(bid, sub),
         middleware=[TodoListMiddleware(), ModelCallLimitMiddleware(run_limit=40, exit_behavior="end")],
         skills=["/skills/survey/", "/skills/loss/"],
         backend=backend,

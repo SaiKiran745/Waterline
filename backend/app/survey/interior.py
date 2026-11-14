@@ -267,6 +267,7 @@ def survey_position(bid, mesh, mp, pos, log, cache_only: bool = False) -> list[d
             flags[f"{pano['id']}/face{f}"] = {"clear": not flagged, "reasons": flagged, "model": res["model"],
                                               "checked_at": res.get("fetched_at")}
             room_types[f] = fr.get("room_type") or ""
+    log["calls"][-1]["room_types"] = sorted({v.strip().lower() for v in room_types.values() if v and v.strip()})
     floor_z = floor_z_below(mesh, pano["position"])
     out = []
     for a in res["data"].get("assets", []):
@@ -467,6 +468,11 @@ def run(bid: str, max_positions: int, max_relooks: int, cached_positions_only: b
             break
         flags.update(f)
         dets += got
+        log["positions"][-1].update(
+            room_types=log["calls"][-1].get("room_types") or [],
+            contents=[d["label"] for d in got if d["value_class"] not in ("A-FIN", "V-VEHICLE")],
+            contents_value_high=sum(classes.value_class(d["value_class"])["high"] for d in got),
+            vehicles=sum(1 for d in got if d["value_class"] == "V-VEHICLE"))
         write_json(BUILDINGS / bid / "screening.json", flags)
         print(f"  [{k}/{len(positions)}] {pos['reason']}: {len(got)} items ({log['calls'][-1]['model']}"
               f"{', cached' if log['calls'][-1].get('cached') else ''})", flush=True)

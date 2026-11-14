@@ -24,6 +24,11 @@ def isolated(tmp_path, monkeypatch):
     monkeypatch.setattr(memory, "MEMORY_DB", tmp_path / "mem.sqlite")
     memory.store.cache_clear()
     monkeypatch.setattr(tools, "DOSSIER", tmp_path / "dossier")
+    from app.actions import send as send_action
+    monkeypatch.setattr(send_action, "LOG_DIR", tmp_path / "dossier")
+    for k in send_action.SETTINGS:
+        monkeypatch.delenv(k, raising=False)
+    tools.reset(BID)
     monkeypatch.setattr(events, "TRACES", tmp_path / "traces")
     monkeypatch.setenv("ALLOWED_RECIPIENTS", "ops@example.com")
     yield tmp_path
@@ -54,7 +59,7 @@ def test_send_waits_for_approval_then_runs(isolated):
     finally:
         events.activate(None)
     sent = json.loads((isolated / "dossier" / BID / "sends.json").read_text())
-    assert sent[0]["approved"] and sent[0]["status"] == "not_sent"           # delivery is Phase 5B
+    assert sent[0]["approved"] and sent[0]["status"] == "draft_only"         # no SMTP settings: draft only
     for e in trace.events:
         buildings.validate("agent_event", e)
 
@@ -73,17 +78,30 @@ def test_translate_plan_then_replan_and_delegation(isolated):
     assert t.events[1]["text"].startswith("Delegate to site-scout")
 
 
+def _call(t, **args):
+    """Invoke a tool the way the agent does (tools that write dossier files need a tool-call id)."""
+    out = t.invoke({"type": "tool_call", "id": "tc1", "name": t.name, "args": args})
+    if hasattr(out, "update"):                                    # Command: short message + dossier files
+        return json.loads(out.update["messages"][0].content), out.update.get("files", {})
+    return json.loads(out.content if hasattr(out, "content") else out), {}
+
+
 def test_tools_run_on_cached_data(isolated):
     events.activate(events.Trace(BID, "t3"))
     try:
-        ctx = json.loads(tools.get_site_context.invoke({"building_id": BID}))
-        assert ctx["in_mapped_flood_zone"] is False
-        pos = json.loads(tools.list_scan_positions.invoke({"building_id": BID}))
-        assert sum(len(v) for v in pos["rooms"].values()) >= 3 and "cached" in pos["note"]
-        sc = json.loads(tools.run_scenario.invoke({"building_id": BID, "depth_ft": 2}))
-        assert sc["contents_usd"][0] <= sc["contents_usd"][1]
-        rk = json.loads(tools.rank_mitigations.invoke({"building_id": BID, "depth_ft": 2}))
-        assert rk["ranked"] and rk["ranked"][0]["rank"] == 1
+        ctx, _ = _call(tools.get_site_context, building_id=BID)
+        assert ctx["in_1pct_zone"] is False
+        pos, _ = _call(tools.list_scan_positions, building_id=BID)
+        assert len(pos["positions"]) >= 20 and pos["budget_left"] == tools.SETTINGS["max_positions"]
+        assert all("near" in p and "area" in p for p in pos["positions"])
+        sc, files = _call(tools.run_scenario, building_id=BID, depth_ft=2)
+        assert sc["details"] in files and "Contents" in files[sc["details"]]["content"]
+        rk, files = _call(tools.rank_mitigations, building_id=BID, depth_ft=2)
+        assert rk["top"][0].startswith("1. ") and rk["details"] in files
+        ep, files = _call(tools.find_entry_points, building_id=BID)
+        assert ep["discrepancies"] and "CoStar records 4" in ep["discrepancies"][0]
+        types = [e["type"] for e in events.current().events]
+        assert types.count("artifact") == 3                           # one per dossier file written
     finally:
         events.activate(None)
 

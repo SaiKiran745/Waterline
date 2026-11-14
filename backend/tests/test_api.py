@@ -66,12 +66,47 @@ def test_run_report_playbook():
     assert "FIXTURE" in local.get(f"/buildings/{FIX}/playbook").text
 
 
-def test_send_requires_approval_and_allowed_recipient(monkeypatch):
+def test_send_requires_approval_and_allowed_recipient(monkeypatch, tmp_path):
+    from app.actions import send as send_action
+    monkeypatch.setattr(send_action, "LOG_DIR", tmp_path)
     monkeypatch.setenv("ALLOWED_RECIPIENTS", "ops@example.com")
+    for k in send_action.SETTINGS:
+        monkeypatch.delenv(k, raising=False)
     assert local.post(f"/buildings/{FIX}/send", json={"approved": False, "recipient": "ops@example.com"}).status_code == 400
     assert local.post(f"/buildings/{FIX}/send", json={"approved": True, "recipient": "x@example.com"}).status_code == 403
     ok = local.post(f"/buildings/{FIX}/send", json={"approved": True, "recipient": "ops@example.com"}).json()
-    assert ok["status"] == "not_sent"
+    assert ok["status"] == "draft_only" and ok["detail"].startswith("draft only, not sent")
+
+
+def test_send_over_smtp_when_configured(monkeypatch, tmp_path):
+    from app.actions import send as send_action
+    sent = []
+
+    class FakeSMTP:
+        def __init__(self, host, port, timeout=None):
+            sent.append(("connect", host, port))
+        def __enter__(self):
+            return self
+        def __exit__(self, *a):
+            return False
+        def starttls(self, context=None):
+            sent.append(("starttls",))
+        def login(self, user, password):
+            sent.append(("login", user))
+        def send_message(self, msg):
+            sent.append(("send", msg["To"], msg["Subject"]))
+    monkeypatch.setattr(send_action.smtplib, "SMTP", FakeSMTP)
+    monkeypatch.setattr(send_action, "LOG_DIR", tmp_path)
+    monkeypatch.setenv("ALLOWED_RECIPIENTS", "ops@example.com")
+    for k, v in {"SMTP_HOST": "smtp.example.com", "SMTP_PORT": "587", "SMTP_USER": "u", "SMTP_PASSWORD": "p",
+                 "EMAIL_FROM": "waterline@example.com"}.items():
+        monkeypatch.setenv(k, v)
+    out = send_action.send_playbook(FIX, "ops@example.com", 4, "<p>playbook</p>", approved=True)
+    assert out["status"] == "sent" and ("send", "ops@example.com", "Waterline pre-storm playbook (4 ft scenario)") in sent
+    assert send_action.send_playbook(FIX, "x@example.com", 4, "", approved=True)["status"] == "refused"
+    assert send_action.send_playbook(FIX, "ops@example.com", 4, "", approved=False)["status"] == "refused"
+    log = (tmp_path / FIX / "sends.json").read_text()
+    assert "SMTP_PASSWORD" not in log and '"p"' not in log
 
 
 def test_cors_allows_frontend_origin():

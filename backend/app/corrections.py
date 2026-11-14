@@ -6,6 +6,7 @@ and can be undone by removing its record. Every correction is also written to th
 (app.agent.memory) so the agent can apply the same correction to similar assets and say so.
 """
 import json
+import math
 import uuid
 from datetime import datetime, timezone
 
@@ -51,11 +52,38 @@ def _patched(asset: dict, changes: dict, rec: dict) -> dict:
     return a
 
 
+def _match(rec: dict, out: dict) -> str | None:
+    """The asset a correction refers to. Ids change when a building is surveyed again, so a correction also matches
+    by fingerprint: same value class within 0.5 m (mesh position), else same label seen from the same scan position."""
+    if rec["asset_id"] in out and (not rec.get("fingerprint") or
+                                   out[rec["asset_id"]]["label"] == rec["fingerprint"].get("label")):
+        return rec["asset_id"]
+    fp = rec.get("fingerprint") or {}
+    p = fp.get("position")
+    best, dist = None, 0.5
+    for aid, a in out.items():
+        if a["value_basis"] != fp.get("value_basis") and a["category"] != fp.get("category"):
+            continue
+        q = a.get("position")
+        if p and q:
+            d = math.dist((p["x"], p["y"], p["z"]), (q["x"], q["y"], q["z"]))
+            if d < dist:
+                best, dist = aid, d
+        elif a["label"] == fp.get("label") and a["location_id"] == fp.get("location_id"):
+            return aid
+    if best is None:
+        best = next((aid for aid, a in out.items() if a["label"] == fp.get("label")
+                     and a["location_id"] == fp.get("location_id")), None)
+    return best
+
+
 def apply(bid: str, assets: list[dict]) -> list[dict]:
     out = {a["id"]: a for a in assets}
     for rec in load(bid):
-        if rec["asset_id"] not in out:
+        aid = _match(rec, out)
+        if aid is None:
             continue
+        rec = {**rec, "asset_id": aid}
         if rec["action"] == "delete":
             del out[rec["asset_id"]]
         else:
@@ -114,7 +142,8 @@ def record(bid: str, current: list[dict], asset_id: str, action: str, changes: d
            "asset_id": asset_id, "action": action, "by": by, "note": (note or "").strip()[:500] or None,
            "propagated_from": propagated_from,
            "before": {k: asset.get(k) for k in ("label", "category", "room", "height_ft_low", "height_ft_high",
-                                                 "confidence", "value_basis")}}
+                                                 "confidence", "value_basis")},
+           "fingerprint": {k: asset.get(k) for k in ("label", "value_basis", "category", "location_id", "position")}}
     if action == "patch":
         rec["changes"] = _validate_changes(asset, changes or {})
         from app.buildings import validate          # the corrected asset must still match contracts/

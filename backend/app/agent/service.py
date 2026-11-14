@@ -51,6 +51,14 @@ def change_depth(bid: str, depth_ft: float, recipient: str) -> dict:
     return status(bid)
 
 
+def request_send(bid: str, recipient: str) -> dict:
+    s = _sessions.get(bid)
+    if s is None:
+        raise KeyError(bid)
+    _run(bid, lambda: s.request_send(recipient))
+    return status(bid)
+
+
 def decide(bid: str, approve: bool, note: str = "") -> dict:
     s = _sessions.get(bid)
     if s is None or not waiting_for_approval(bid):
