@@ -320,6 +320,13 @@ data/cache/costar/, matterport/, vexcel/, public/   Phase 0 discovery files
   - 3.6 answered an image call in 2.2 s.
   - Text calls took 53–60 s.
   - One request hung for 582 s despite a 150 s read timeout. The client now enforces a 180 s wall-clock deadline and skips an overloaded model for 10 minutes.
+- **Quota and billing (Building H survey, 09:19–09:51 UTC):**
+  - 35 HTTP attempts: 14 answered (all by `gemini-3.6-flash`), 11 × 503 (3.8: 6, 3.7: 5), 1 timeout (3.8), 2 × 429, 7 × 402.
+  - **429:** `quotaId GenerateRequestsPerDayPerProjectPerModel-FreeTier`, `quotaValue 20`, model `gemini-3.8-flash`, with a retry delay of 81,012 s (until midnight Pacific). 503 responses appear to count against this daily limit.
+  - The client now treats any retry delay over 90 s as a spent quota and moves to the next model instead of sleeping.
+  - **402** on 3.6: "Your prepayment credits are depleted" (`RESOURCE_EXHAUSTED`). This is a billing stop, not a rate limit; it needs credits added in AI Studio.
+  - Connection resets (`httpx.ReadError`) also happened. They are retried twice, then the next model is tried.
+  - Every attempt is in `data/cache/gemini_calls.jsonl`, and every answered response is cached. `DEMO_MODE=1 python -m app.survey.interior <id>` rebuilds assets from cache with no calls.
 - **LangChain** (docs-langchain MCP server, `https://docs.langchain.com/mcp`):
   - `create_deep_agent(model="google_genai:<model>")`, or `init_chat_model(...)` with the `langchain-google-genai` package.
   - The integration reads `GOOGLE_API_KEY`, so pass our `GEMINI_API_KEY` explicitly.

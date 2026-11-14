@@ -26,3 +26,13 @@ def test_gemini_demo_mode_miss_fails_loudly(monkeypatch, tmp_path):
     monkeypatch.setattr(gemini.httpx, "post", lambda *a, **k: pytest.fail("no network in DEMO_MODE"))
     with pytest.raises(cache.CacheMiss):
         gemini.generate_json(["hello", b"\xff\xd8fake"], {"type": "OBJECT"}, tag="t")
+
+
+def test_building_fabric_is_not_priced_as_contents():
+    from app.survey.interior import is_fabric
+    for label in ("wall power outlet", "wall electrical outlets", "wall-mounted electrical outlet box",
+                  "light switch", "kitchen lower cabinet base", "duplex receptacle"):
+        assert is_fabric(label), label
+    for label in ("wall-mounted electrical subpanel and disconnect equipment", "main switchgear",
+                  "ground-mounted electrical cabinet unit", "server rack", "row of 6 desks", "filing cabinets"):
+        assert not is_fabric(label), label

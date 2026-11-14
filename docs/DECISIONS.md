@@ -92,6 +92,10 @@ H is the story building outside the mapped flood zone, and the first building su
   - The mesh ceiling is within 1 cm of Matterport's own room ceiling heights at the median (office 2.755 m against 2.745 m).
   - Door heads read within about ±5 cm: H's office doors are full height to the 2.74 m ceiling and read 2.69–2.78 m, and its one standard steel exit door reads 2.21 m at the wall just above its frame.
 - Asset heights are "measured from mesh" when the mesh and the visual estimate agree, with ±0.15 ft plus the measured box-edge spread. Otherwise they're an estimated range at lower confidence.
+- **Building fabric is not contents.** The vision model also reports wall outlets, switches and fixed cabinetry.
+  - They stay in the inventory, so the water visibly reaches them.
+  - They are classed `finishes` (A-FIN, $0) because the Hazus structure curve already prices them (`interior.FABRIC`, tested).
+  - Without this, eight outlets on H were priced at A-ELEC $3,000–25,000 each.
 
 ## D9. Structure loss curves
 

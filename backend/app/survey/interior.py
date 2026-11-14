@@ -17,6 +17,7 @@ import argparse
 import io
 import json
 import math
+import re
 from datetime import datetime, timezone
 
 import numpy as np
@@ -26,7 +27,7 @@ from app.buildings import validate
 from app.config import BUILDINGS, MEDIA
 from app.loss import model as loss_model
 from app.sources import gemini
-from app.sources.cache import write_json
+from app.sources.cache import CacheMiss, write_json
 from app.survey.geometry import CONVENTION as CONV, cast_pixel, floor_z_below, mesh_for
 
 FACE_PX = 2048
@@ -34,6 +35,17 @@ SIDE_FACES = (1, 2, 3, 4)
 UPLOAD_PX = 1024
 FT = 0.3048
 LOW_CONF = 0.6
+# Wall outlets, switches and fixed cabinetry are part of the building: the Hazus structure curve already prices them.
+# They stay in the inventory (water visibly reaches them) but as "finishes" at $0, so they are not counted twice.
+FABRIC = re.compile(r"\b(outlets?|receptacles?|switch(?!gear|board)\w*|sockets?|cover plates?|"
+                    r"(kitchen |lower |base |built-in )cabinet\w*|casework|countertops?)\b", re.I)
+
+
+FABRIC_NOTE = " Building fabric: priced by the structure curve, not as contents (A-FIN)."
+
+
+def is_fabric(label: str) -> bool:
+    return bool(FABRIC.search(label or ""))
 MESH_TOL_FT = 0.15          # geometry error (about +/-5 cm) on top of the measured box-edge spread
 CATEGORIES = ["electrical", "it", "hvac", "inventory", "equipment", "furniture", "other"]
 
@@ -177,7 +189,7 @@ def survey_position(bid, mesh, mp, pos, log) -> list[dict]:
     for f in SIDE_FACES:
         parts += [f"Face {f}:", jpeg(face_image(bid, pano["id"], f))]
     res = gemini.generate_json(parts, ASSET_SCHEMA, tag=f"{bid}/survey/{pano['id']}")
-    log["calls"].append({"kind": "survey", "pano": pano["id"], "model": res["model"],
+    log["calls"].append({"kind": "survey", "pano": pano["id"], "model": res["model"], "cached": bool(res.get("cached")),
                          "tokens": (res.get("usage") or {}).get("totalTokenCount")})
     flags, room_types = {}, {}
     for fr in res["data"].get("faces", []):
@@ -252,6 +264,7 @@ def relook(bid, mesh, mp, group, log, flags) -> dict | None:
                                RELOOK_SCHEMA, tag=f"{bid}/relook/{nb['id']}/{best['label'][:30]}")
     r = res["data"]
     log["calls"].append({"kind": "relook", "pano": nb["id"], "model": res["model"], "found": r.get("found"),
+                         "cached": bool(res.get("cached")),
                          "tokens": (res.get("usage") or {}).get("totalTokenCount")})
     reasons = [k for k in ("people_identifiable", "childrens_space", "personal_documents") if r.get(k)]
     if reasons:
@@ -284,7 +297,12 @@ def run(bid: str, max_positions: int, max_relooks: int) -> list[dict]:
     dets = []
     for k, pos in enumerate(positions, 1):
         log["positions"].append({"location_id": pos["location"]["id"], "reason": pos["reason"]})
-        got, f = survey_position(bid, mesh, mp, pos, log)
+        try:
+            got, f = survey_position(bid, mesh, mp, pos, log)
+        except (gemini.GeminiError, CacheMiss) as e:  # every model failed (or cache-only miss): record it, move on
+            log["positions"][-1]["error"] = str(e)[:300]
+            print(f"  [{k}/{len(positions)}] {pos['reason']}: FAILED ({str(e)[:120]})", flush=True)
+            continue
         flags.update(f)
         dets += got
         write_json(BUILDINGS / bid / "screening.json", flags)
@@ -295,7 +313,11 @@ def run(bid: str, max_positions: int, max_relooks: int) -> list[dict]:
         if relooked >= max_relooks or g[0]["confidence"] >= LOW_CONF:
             continue
         before = g[0]["confidence"]
-        r = relook(bid, mesh, mp, g, log, flags)
+        try:
+            r = relook(bid, mesh, mp, g, log, flags)
+        except (gemini.GeminiError, CacheMiss) as e:
+            log["relooks"].append({"label": g[0]["label"], "error": str(e)[:300]})
+            continue
         relooked += 1
         if r:
             g.insert(0, r) if r["confidence"] > before else g.append(r)
@@ -307,16 +329,18 @@ def run(bid: str, max_positions: int, max_relooks: int) -> list[dict]:
         best = g[0]
         room = rooms.get(best["room_id"]) or {}
         label = room.get("label") or (best["room_type"].strip().title() if best["room_type"] else "Unlabelled room")
-        va = loss_model.asset_assumption(best["category"])
+        fabric = is_fabric(best["label"])
+        category = "finishes" if fabric else best["category"]
+        va = loss_model.asset_assumption(category)
         asset = {"id": f"{bid}-a{n}", "building_id": bid, "matterport_model_id": mp["model_id"],
                  "floor_id": (best["location"].get("floor") or {}).get("id"),
                  "room_id": best["room_id"] if best["room_id"] != "none" else None, "room": label,
-                 "location_id": best["location"]["id"], "category": best["category"], "label": best["label"],
+                 "location_id": best["location"]["id"], "category": category, "label": best["label"],
                  "height_ft_low": best["height_ft_low"], "height_ft_high": best["height_ft_high"],
                  "confidence": round(best["confidence"], 2), "value_usd_low": va["low"], "value_usd_high": va["high"],
                  "value_basis": va["id"],
                  "position": {k: round(v, 3) for k, v in best["position"].items()} if best["position"] else None,
-                 "evidence": f"{best['evidence']} Height {best['how']}.",
+                 "evidence": f"{best['evidence']} Height {best['how']}." + (FABRIC_NOTE if fabric else ""),
                  "image_ref": image_ref(bid, best["pano"]["id"], best["face"], best["box"]),
                  "observations": [observation(bid, d) for d in g], "source": "vision"}
         validate("asset", asset)

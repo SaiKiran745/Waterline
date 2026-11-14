@@ -1,7 +1,9 @@
 """Gemini vision client (REST generateContent). Key only in the x-goog-api-key header, never in a URL or log.
 
 - Model: GEMINI_MODEL, then GEMINI_FALLBACK_MODELS, used only on 503 / 5xx / timeout (overload, not refusal).
-- 429: waits for the server's RetryInfo delay when given, else exponential backoff.
+- 429: waits for the server's RetryInfo delay when given (else exponential backoff); a delay over MAX_WAIT_S
+  means a spent quota, so that model is skipped until it resets. The quota id and limit are logged.
+- Connection resets and other transport errors: retried twice with backoff, then the next model.
 - Every response is cached by (prompt, schema, image hashes, model list); images themselves are not stored.
 - Every attempt is appended to data/cache/gemini_calls.jsonl (model, status, latency) for rate-limit reporting.
 """
@@ -26,6 +28,7 @@ CACHE_DIR = CACHE / "http" / "gemini"
 
 DEADLINE_S = 180           # wall-clock limit per attempt (httpx's timeout is per read, not per request)
 COOLDOWN_S = 600           # skip a model for this long after a timeout or 5xx
+MAX_WAIT_S = 90            # a 429 asking for a longer wait means the quota is spent: move to the next model
 _cooldown: dict[str, float] = {}
 _pool = concurrent.futures.ThreadPoolExecutor(max_workers=4)
 
@@ -63,6 +66,15 @@ def _retry_delay(body: dict) -> float | None:
     return None
 
 
+def _quota(body: dict) -> list[dict]:
+    """The QuotaFailure violations of a 429 (quota id, metric, limit value): no secrets in them."""
+    out = []
+    for d in (body.get("error") or {}).get("details") or []:
+        for v in d.get("violations") or []:
+            out.append({k: v.get(k) for k in ("quotaMetric", "quotaId", "quotaValue", "quotaDimensions") if k in v})
+    return out
+
+
 def generate_json(prompt_parts: list, schema: dict, *, tag: str, thinking: str = "low") -> dict:
     """prompt_parts: list of str (text) or bytes (JPEG). Returns {"data": parsed JSON, "model": model used, ...}."""
     img_hashes = [hashlib.sha256(p).hexdigest() for p in prompt_parts if isinstance(p, bytes)]
@@ -71,7 +83,7 @@ def generate_json(prompt_parts: list, schema: dict, *, tag: str, thinking: str =
                                     sort_keys=True).encode()).hexdigest()[:32]
     path = CACHE_DIR / f"{key}.json"
     if path.exists():
-        return json.loads(path.read_text())
+        return {**json.loads(path.read_text()), "cached": True}
     if demo_mode():
         raise CacheMiss(f"DEMO_MODE=1: no cached Gemini response for {tag} (key {key})")
     parts = [{"text": p} if isinstance(p, str) else {"inline_data": {"mime_type": "image/jpeg",
@@ -93,11 +105,23 @@ def generate_json(prompt_parts: list, schema: dict, *, tag: str, thinking: str =
                 errors.append(f"{model}: timeout")
                 _cooldown[model] = time.time() + COOLDOWN_S
                 break                                    # overloaded: next model
+            except httpx.TransportError as e:            # connection reset / dropped: retry, then next model
+                _log(tag=tag, model=model, status="transport", error=type(e).__name__,
+                     latency_s=round(time.time() - t0, 1))
+                errors.append(f"{model}: {type(e).__name__}")
+                if attempt < 2:
+                    time.sleep(5 * 2 ** attempt)
+                    continue
+                break
             latency = round(time.time() - t0, 1)
             j = r.json() if r.headers.get("content-type", "").startswith("application/json") else {}
             if r.status_code == 429:
                 wait = _retry_delay(j) or min(60, 5 * 2 ** attempt)
-                _log(tag=tag, model=model, status=429, latency_s=latency, retry_after_s=wait)
+                _log(tag=tag, model=model, status=429, latency_s=latency, retry_after_s=wait, quota=_quota(j))
+                if wait > MAX_WAIT_S:                    # quota exhausted (e.g. daily): skip this model until it resets
+                    errors.append(f"{model}: 429 quota, retry in {wait:.0f}s")
+                    _cooldown[model] = time.time() + wait
+                    break
                 time.sleep(wait)
                 continue
             if r.status_code >= 500:

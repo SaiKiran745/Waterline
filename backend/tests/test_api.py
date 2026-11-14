@@ -98,7 +98,10 @@ def test_real_buildings_match_contract_and_media():
     for b in listed:
         buildings.validate("building", b)
         d = local.get(f"/buildings/{b['id']}").json()
-        assert d["entry_points"] == [] and d["assets"] == []
+        for kind, rows in (("entry_point", d["entry_points"]), ("asset", d["assets"])):
+            for row in rows:
+                buildings.validate(kind, row)
+                assert row["building_id"] == b["id"]
         assert local.get(f"/media/{b['id']}/manifest.json").status_code == 200
         assert local.get(f"/media/{b['id']}/mesh/mesh_50k.obj").status_code == 200
     bid = listed[0]["id"]

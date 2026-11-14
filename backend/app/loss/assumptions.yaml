@@ -1,6 +1,7 @@
 # Waterline loss assumptions. Every number used in a loss or mitigation figure has an id here and is shown in the UI.
 # placeholder: true means a team assumption with no cited source; the UI and report label it PLACEHOLDER.
-# Building finishes (drywall, flooring, doors) are NOT surveyed as assets: the Hazus structure curve covers them.
+# Building finishes (drywall, flooring, doors, wall outlets, switches, fixed cabinetry) are covered by the Hazus structure
+# curve: if the survey reports them they are kept as category finishes (A-FIN, $0) so they are not counted twice.
 
 structure:
   - id: S-VALUE-BASIS
