@@ -60,7 +60,7 @@ Waterline is an AI agent for a commercial building's owner, manager, lender or i
 
 - Replace the assumed value ranges with sourced replacement costs and let owners upload their own asset lists.
 - Measure door thresholds and slab height from the 3D scan, so the depth inside is tied to water outside.
-- Survey the remaining scan positions on the six partly surveyed buildings and add more cities.
+- Survey the remaining scan positions on the four partly surveyed buildings and add more cities.
 - Connect the playbook to calendar and email so each step becomes an assigned task.
 
 ## Built with

@@ -138,6 +138,15 @@ H is the story building outside the mapped flood zone, and the first building su
 - **Layer cross-check.** When the aerial door count disagrees with CoStar, the site scout reports a discrepancy and lowers confidence by 20%. On E: 3 drive-in doors seen, 4 recorded. On B: 2 seen, 4 recorded.
 - **Email.** `actions/send.py` sends over SMTP to `ALLOWED_RECIPIENTS` only, after approval. With no SMTP settings (as now) it records "draft only, not sent".
 
+## D17. Demo replays for G, B and D; batch survey fix (2026-11-14)
+
+- **Replays.** In demo mode only E had a saved run, so "Run agent" failed on other buildings. After a demo reset, one live run each was recorded for G, B and D (1 ft, then 4 ft, then draft, then approve) and pinned (see `docs/DEMO_FACTS.md`).
+  - Because the agent reads every scan position, these runs completed G's survey (15 → 27 of 27) and D's (15 → 33 of 33). Two of B's re-looks raised confidence on a press and a lathe.
+  - The demo baseline was retaken after the runs, so a reset keeps the larger surveys and each replay's figures match the data. The old baseline is kept in `data/cache/demo/baseline_before_gbd/`.
+- **Bug fixed.** Each survey batch read the first positions of the session instead of its own (the session's choices were truncated to the batch size). E and G were unaffected, because every position their later batches named was already in the stored survey, which is re-read on every batch. D's first recording claimed 3 positions it had not read; it was discarded and D re-recorded.
+  - Batch text now counts only positions actually read and names any that could not be read.
+  - A test checks that each batch reads its own positions.
+
 ## D16. Demo readiness (2026-11-14, human decisions)
 
 - **Quick scan is development-only.** `--quick-scan N` stays on the command line. The API ignores `quick_scan`, and the agent's prompt and skill no longer mention it. The finding is kept as one line under Limitations and in DEVPOST's "what we learned".

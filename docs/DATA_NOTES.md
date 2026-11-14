@@ -357,9 +357,9 @@ data/cache/costar/, matterport/, vexcel/, public/   Phase 0 discovery files
   | | Ours, 2 ft | Hazus-style, 2 ft | Ours, 4 ft | Hazus-style, 4 ft |
   |---|---|---|---|---|
   | E (49 of 49 positions) | $43,493–295,480 | $188,332 | $74,078–407,562 | $341,788 |
-  | B (11 of 11 positions) | $108,969–635,048 | $84,806 | $188,403–885,700 | $153,907 |
+  | B (11 of 11 positions) | $104,942–628,382 | $84,806 | $180,403–885,700 | $153,907 |
 
   - **E:** our range contains the Hazus-style figure (0.2–1.6 times it).
-  - **B:** a dense machine shop with a low assessed improvement value. Our range is 1.3–7.5 times the Hazus-style figure; the middle of the range (geometric mean) is about 3 times.
+  - **B:** a dense machine shop with a low assessed improvement value. Our range is 1.2–7.4 times the Hazus-style figure; the middle of the range (geometric mean) is about 3 times.
   - So the middle of our range sits within a factor of about 3 of Hazus. B's high end does not.
   - The Hazus curves are not used in the numbers.

@@ -154,3 +154,23 @@ def test_stored_survey_never_shrinks(isolated, monkeypatch):
         events.activate(None)
         for f, b in keep.items():
             (d / f).write_bytes(b)
+
+
+def test_each_batch_reads_its_own_positions(isolated, monkeypatch):
+    """Batch 2 must read batch 2's positions (it once re-read the start of batch 1 instead)."""
+    from app.survey import interior
+    seen = []
+
+    def fake_run(bid, max_positions, max_relooks, cached_only=False, chosen=None, keep_stored=True):
+        seen.append((max_positions, [c["location_id"] for c in chosen]))
+        return buildings.get_survey_assets(bid)
+    monkeypatch.setattr(interior, "run", fake_run)
+    events.activate(events.Trace(BID, "t7"))
+    try:
+        areas = {a["id"]: {l["id"] for l in a["locs"]} for a in tools._area_table(BID, tools._mp(BID))}
+        _call(tools.survey_area, building_id=BID, area_ids=["A1"], reason="largest first")
+        _call(tools.survey_area, building_id=BID, area_ids=["A2"], reason="next")
+    finally:
+        events.activate(None)
+    assert set(seen[0][1]) == areas["A1"] and seen[0][0] == len(areas["A1"])
+    assert set(seen[1][1]) == areas["A2"] and seen[1][0] == len(areas["A2"])

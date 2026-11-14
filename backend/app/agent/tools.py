@@ -278,7 +278,9 @@ def survey_area(building_id: str, area_ids: list[str], reason: str,
                                                             "positions": len(new)})
     st["chosen"] += new
     try:
-        assets = interior.run(building_id, len(new), 0, SETTINGS["cached_positions_only"], chosen=st["chosen"])
+        # This batch's own positions; everything read earlier (earlier batches, earlier runs) comes back through
+        # the stored survey (keep_stored), so it is re-read from cache, not dropped.
+        assets = interior.run(building_id, len(new), 0, SETTINGS["cached_positions_only"], chosen=new)
     except interior.Stop as e:
         events.emit("interior-surveyor", "observation", f"Survey stopped: {e}")
         return _reply("interior-surveyor", tool_call_id, {"stopped": str(e)[:200]}, {})
@@ -290,13 +292,17 @@ def survey_area(building_id: str, area_ids: list[str], reason: str,
     for a in picked:
         ids = [c["location_id"] for c in new if c["location_id"] in {l["id"] for l in a["locs"]}]
         items = [x for i in ids for x in (per.get(i, {}).get("contents") or [])]
-        live = sum(1 for i in ids if not calls.get(i, {}).get("cached"))
+        unread = [i for i in ids if i not in per or per[i].get("error")]
+        live = sum(1 for i in ids if i not in unread and not calls.get(i, {}).get("cached"))
+        ids = [i for i in ids if i not in unread]
         row = {"id": a["id"], "was": a["name"], "seen_as": after[a["id"]]["name"], "positions_read": len(ids),
+               "not_read": len(unread),
                "contents_sightings": len(items), "examples": sorted(set(items), key=items.count, reverse=True)[:4],
                "vehicles": sum(per.get(i, {}).get("vehicles", 0) for i in ids)}
         batch.append(row)
         events.emit("interior-surveyor", "observation",
-                    f"Batch {k}, {a['name']}: {_n(len(ids), 'position')} ({len(ids) - live} from cache, {live} live); "
+                    f"Batch {k}, {a['name']}: {_n(len(ids), 'position')} read ({len(ids) - live} from cache, {live} live"
+                    + (f", {len(unread)} could not be read" if unread else "") + "); "
                     f"seen as {'an' if row['seen_as'][:1].lower() in 'aeiou' else 'a'} {row['seen_as']}; "
                     f"{_n(len(items), 'contents sighting')}"
                     + (f" ({', '.join(row['examples'])})" if row["examples"] else "")
@@ -337,10 +343,12 @@ def finish_survey(building_id: str) -> str:
     contents = [a for a in assets if a["value_basis"] not in ("A-FIN", "V-VEHICLE")]
     value = [sum(a["value_usd_low"] for a in contents), sum(a["value_usd_high"] for a in contents)]
     low = [a for a in contents if a["confidence"] < interior.LOW_CONF]
+    stored = {p["location_id"] for p in interior.stored_read(building_id)}
+    ok = [c for c in st["chosen"] if c["location_id"] in stored]          # chosen this run and actually read
     left = [f"{a['name']} ({a['to_read'] - len(a['read'])})" for a in _area_table(building_id, mp)
             if a["to_read"] > len(a["read"])]
     out = {"stored_survey": _stored(building_id, mp), "mode": _mode(),
-           "read_this_run": f"{len(st['chosen'])} positions in {st.get('batches', 0)} batch{'' if st.get('batches', 0) == 1 else 'es'}",
+           "read_this_run": f"{len(ok)} positions in {st.get('batches', 0)} batch{'' if st.get('batches', 0) == 1 else 'es'}",
            "contents_assets": len(contents), "contents_value_usd": _usd(value),
            "vehicles": sum(1 for a in assets if a["value_basis"] == "V-VEHICLE"),
            "still_low_confidence": len(low), "inventory": f"/dossier/{building_id}/inventory.md"}

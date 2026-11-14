@@ -163,12 +163,12 @@ All responses follow `contracts/`. CORS allows `http://localhost:3000`. The buil
 ## Limitations
 
 - **Scanned area only.** Contents loss counts only items visible from the scan positions read. Structure loss is scaled to the scanned share of the building (`scan_coverage`).
-  - E and B are fully surveyed (49 of 49 and 11 of 11 positions). The other six read 13 to 15 positions each, so their contents loss is a floor, not an estimate of the whole building.
+  - B, D, E and G are fully surveyed (11 of 11, 33 of 33, 49 of 49 and 27 of 27 positions). A, C, F and H read 13 to 15 positions each, so their contents loss is a floor, not an estimate of the whole building.
   - Every building shows "N of M positions read".
 - **Value ranges are assumptions.** All 15 value classes and all 5 mitigation costs are team-set, shown as "assumed range, editable" with their id. A person can correct any asset's value or height, and the correction is remembered.
 - **Comparison with Hazus.** FEMA Hazus 6.1 contents curves (COM2) are a sanity check only; they are not used in the numbers.
   - For E (49 positions), our contents loss range contains the Hazus-style figure (0.2 to 1.6 times it).
-  - For B, a dense machine shop with a low assessed value, our range is 1.3 to 7.5 times the Hazus-style figure; the middle of the range is about 3 times.
+  - For B, a dense machine shop with a low assessed value, our range is 1.2 to 7.4 times the Hazus-style figure; the middle of the range is about 3 times.
   - So the centre of our range is within a factor of about 2 to 3 of Hazus, and B's high end is not.
   - Our curve is steeper than Hazus because the survey lists only low items, while Hazus averages over all contents (`docs/DATA_NOTES.md` section 15).
 - **A partial "quick scan" was no better than random** (development option only): on E, 12 positions split by area size found 28–34% of the full survey's contents value; random sets of 12 averaged 27–31%. Every building's survey therefore reads every position it covers.
