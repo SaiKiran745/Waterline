@@ -176,11 +176,11 @@ export function getDossier(buildingId: string) {
   return api<Dossier>(`/buildings/${encodeURIComponent(buildingId)}/dossier`);
 }
 
-export function runAgent(buildingId: string, depthFt: number, quickScan?: number) {
+export function runAgent(buildingId: string, depthFt: number) {
   return api<AgentActionResult>(`/buildings/${encodeURIComponent(buildingId)}/run`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ depth_ft: depthFt, live: true, ...(quickScan ? { quick_scan: quickScan } : {}) }),
+    body: JSON.stringify({ depth_ft: depthFt, live: true }),
   });
 }
 

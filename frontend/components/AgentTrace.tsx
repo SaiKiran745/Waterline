@@ -43,8 +43,6 @@ export function AgentTrace({ buildingId, fixtureEvents, dataSource, session, dep
   const [events, setEvents] = useState<AgentEvent[]>([]);
   const [state, setState] = useState<"idle" | "connecting" | "open" | "replay" | "error" | "ended">(dataSource === "api" ? "idle" : "connecting");
   const [replayRun, setReplayRun] = useState<ReplayRun | null>(session.replay);
-  const [quickScanEnabled, setQuickScanEnabled] = useState(false);
-  const [positionBudget, setPositionBudget] = useState(6);
   const runIdRef = useRef("");
 
   useEffect(() => {
@@ -72,7 +70,7 @@ export function AgentTrace({ buildingId, fixtureEvents, dataSource, session, dep
     events.forEach((event) => grouped.set(event.agent, [...(grouped.get(event.agent) ?? []), event]));
     return [...grouped.entries()];
   }, [events]);
-  const start = async () => { setReplayRun(null); try { await session.start(depth, quickScanEnabled ? positionBudget : undefined); } catch { /* Error is rendered verbatim. */ } };
+  const start = async () => { setReplayRun(null); try { await session.start(depth); } catch { /* Error is rendered verbatim. */ } };
   const replay = async () => { try { await session.playReplay(); } catch { /* Error is rendered verbatim. */ } };
   const recordedAt = replayRun?.recorded_at ?? session.latestRun?.recorded_at;
   const visibleState = replayRun ? "replay" : state;
@@ -82,11 +80,9 @@ export function AgentTrace({ buildingId, fixtureEvents, dataSource, session, dep
       <div className="tab-heading trace-heading"><div><span className="eyebrow">LIVE AGENT FLOW</span><h2>Agent activity</h2></div><span className={`stream-state ${visibleState}`}>{visibleState === "replay" ? "REPLAY" : visibleState.toUpperCase()}</span></div>
       <div className="agent-run-controls">
         <div><button className="run-agent-button" disabled={session.busy || dataSource !== "api"} onClick={() => void start()}>{session.action === "run" ? "STARTING…" : "RUN AGENT"}</button><span className={`agent-status ${session.statusLabel.toLowerCase().replaceAll(" ", "-")}`}>{session.statusLabel}</span></div>
-        <label className="quick-scan-control"><input type="checkbox" checked={quickScanEnabled} onChange={(event) => setQuickScanEnabled(event.target.checked)} /><span>QUICK SCAN (PARTIAL SURVEY)</span>{quickScanEnabled ? <input aria-label="Quick scan position budget" type="number" min="1" max="100" value={positionBudget} onChange={(event) => setPositionBudget(Math.max(1, Number(event.target.value)))} /> : null}</label>
-        <button className="replay-button" disabled={session.busy || !session.latestRun} onClick={() => void replay()}>REPLAY LAST RUN{session.latestRun ? ` · ${new Date(session.latestRun.recorded_at).toLocaleString()}` : ""}</button>
+        <button className="replay-button" disabled={session.busy || dataSource !== "api"} onClick={() => void replay()}>REPLAY LAST RUN{session.latestRun ? ` · ${new Date(session.latestRun.recorded_at).toLocaleString()}` : ""}</button>
       </div>
       {replayRun ? <div className="replay-banner"><b>REPLAY · NOT LIVE</b><span>{replayRun.label}</span></div> : null}
-      {session.quickScan ? <div className="quick-scan-banner">QUICK SCAN (PARTIAL SURVEY) · POSITION BUDGET {session.quickScan}</div> : null}
       {session.error ? <PanelState kind="error" title="Agent endpoint error" detail={session.error} /> : null}
       {state === "error" && events.length === 0 ? <PanelState kind="error" title="Event stream disconnected" detail={`GET ${session.eventsUrl ?? `/buildings/${buildingId}/events`} → event stream disconnected`} /> : null}
       {events.length === 0 && state !== "error" ? <PanelState kind={state === "idle" ? "empty" : "loading"} title={state === "idle" ? "Agent has not run" : "Waiting for agent events"} detail={state === "idle" ? "Run the agent live, or replay the saved run with its timestamp." : "Plans, survey decisions, and artifacts will appear here."} /> : (

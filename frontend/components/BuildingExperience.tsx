@@ -25,6 +25,7 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(bundle.assets[0]?.id ?? null);
   const [assumptionsOpen, setAssumptionsOpen] = useState(false);
   const [fallbackNotice, setFallbackNotice] = useState("");
+  const [fallbackDetail, setFallbackDetail] = useState("");
   const [insideRequest, setInsideRequest] = useState(0);
   const [correctionState, setCorrectionState] = useState<{ kind: "idle" | "saving" | "success" | "error"; message: string }>({ kind: "idle", message: "" });
   const scenario = useMemo(() => scenarioFromTable(scenarioTable, depth), [scenarioTable, depth]);
@@ -34,16 +35,19 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
   const selectedAsset = assets.find((asset) => asset.id === selectedAssetId) ?? null;
   const session = useAgentSession(bundle.building.id, dataSource === "api");
   const lastAgentDepth = useRef(depth);
-  const memoryCorrections = assets.filter((asset) => asset.source === "human").length;
+  const memoryCorrections = session.status?.memory.active_human_corrections ?? assets.filter((asset) => asset.source === "human").length;
+  const memoryAppliedAssetIds = useMemo(() => new Set(session.status?.memory.applied_this_session_asset_ids ?? []), [session.status?.memory.applied_this_session_asset_ids]);
   const currentBundle = useMemo(() => ({ ...bundle, assets, scenarioTable, mitigations }), [assets, bundle, mitigations, scenarioTable]);
 
   const handlePhotoFailure = useCallback((message: string) => {
-    setFallbackNotice(`Photo-real view unavailable: ${message} Offline 3D model restored.`);
+    setFallbackNotice("Photo-real unavailable — offline 3D restored.");
+    setFallbackDetail(message);
     setView("model");
   }, []);
 
   const retryPhotoReal = useCallback(() => {
     setFallbackNotice("");
+    setFallbackDetail("");
     setView("photo");
   }, []);
 
@@ -59,6 +63,7 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
       setAssets(refreshed.assets);
       setScenarioTable(refreshed.scenarioTable);
       setMitigations(refreshed.mitigations);
+      await session.refresh();
       if (method === "DELETE") setSelectedAssetId(refreshed.assets[0]?.id ?? null);
       setCorrectionState({ kind: "success", message: `Scenario table and mitigations refreshed · portfolio rank at ${refreshed.rankDepth} ft ${refreshed.rank == null ? "pending" : `#${refreshed.rank}`}${refreshed.similarCount ? ` · ${refreshed.similarCount} similar assets flagged` : ""}.` });
     } catch (error) {
@@ -91,7 +96,6 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
           <span className={`source-badge ${dataSource}`}>{dataSource === "fixture" ? "FIXTURE" : "LIVE"}</span>
           <span className="survey-progress"><small>SURVEY</small><b>{bundle.triage ? `${bundle.triage.positions_read} of ${bundle.triage.scan_positions} positions read` : "Position count unavailable"}</b></span>
           <span className="agent-memory"><small>AGENT MEMORY</small><b>{memoryCorrections} corrections</b></span>
-          {session.quickScan ? <span className="quick-scan-header">QUICK SCAN (PARTIAL SURVEY)</span> : null}
         </div>
       </header>
 
@@ -101,11 +105,11 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
           <div className="viewer-toolbar">
             <div className="view-toggle" role="group" aria-label="Interior view">
               <button className={view === "model" ? "active" : ""} onClick={() => setView("model")}>3D MODEL</button>
-              <button className={view === "photo" ? "active" : ""} disabled={dataSource !== "api" || !bundle.building.matterport_model_id} onClick={() => { setFallbackNotice(""); setView("photo"); }}>PHOTO-REAL</button>
+              <button className={view === "photo" ? "active" : ""} disabled={dataSource !== "api" || !bundle.building.matterport_model_id} onClick={() => { setFallbackNotice(""); setFallbackDetail(""); setView("photo"); }}>PHOTO-REAL</button>
               <button className={view === "rooms" ? "active" : ""} onClick={() => setView("rooms")}>ROOM SAFETY VIEW</button>
             </div>
-            <div className="scenario-status"><span className="scenario-label">{fallbackNotice || "SCENARIO · NOT A PREDICTION"}</span>{fallbackNotice ? <button className="retry-photo-real" onClick={retryPhotoReal}>RETRY PHOTO-REAL</button> : null}</div>
-            {selectedAsset ? <button className="view-selected-inside" onClick={() => { setFallbackNotice(""); setView("photo"); setInsideRequest((value) => value + 1); }}>VIEW SELECTED INSIDE</button> : null}
+            <div className="scenario-status"><span className="scenario-label" title={fallbackDetail}>{fallbackNotice || "SCENARIO · NOT A PREDICTION"}</span>{fallbackNotice ? <button className="retry-photo-real" onClick={retryPhotoReal}>RETRY PHOTO-REAL</button> : null}</div>
+            {selectedAsset ? <button className="view-selected-inside" onClick={() => { setFallbackNotice(""); setFallbackDetail(""); setView("photo"); setInsideRequest((value) => value + 1); }}>VIEW SELECTED INSIDE</button> : null}
           </div>
           <div className={`viewer-stage ${view === "model" ? "dual-view" : ""}`}>
             {view === "model" ? (
@@ -135,7 +139,7 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
             </button>
           </div>
         </section>
-        <DetailTabs bundle={currentBundle} scenario={scenario} damageByAsset={damageByAsset} dataSource={dataSource} selectedAssetId={selectedAssetId} onSelectAsset={handleAssetSelect} onCorrect={handleCorrection} correctionState={correctionState} session={session} />
+        <DetailTabs bundle={currentBundle} scenario={scenario} damageByAsset={damageByAsset} dataSource={dataSource} selectedAssetId={selectedAssetId} memoryAppliedAssetIds={memoryAppliedAssetIds} onSelectAsset={handleAssetSelect} onCorrect={handleCorrection} correctionState={correctionState} session={session} />
       </section>
       <AssumptionsDrawer open={assumptionsOpen} onClose={() => setAssumptionsOpen(false)} assumptions={scenarioTable.assumptions} />
     </main>

@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   decideAgentSend,
-  getDossier,
   getAgentStatus,
   getLatestRun,
   postAgentDepth,
@@ -11,19 +10,15 @@ import {
   requestAgentSend,
   runAgent,
 } from "@/lib/data";
-import type { AgentActionResult, AgentStatus, ReplayRun } from "@/lib/contracts";
+import type { AgentActionResult, AgentDelivery, AgentStatus, ReplayRun } from "@/lib/contracts";
 
 type ActionName = "idle" | "run" | "replay" | "depth" | "draft" | "approve" | "reject";
 
-async function latestDeliveryResult(buildingId: string) {
-  const dossier = await getDossier(buildingId);
-  const sendLog = dossier.files.find((file) => file.path.endsWith("/sends.json"));
-  if (!sendLog?.content) return "";
-  const entries = JSON.parse(sendLog.content) as Array<{ status?: string; recipient?: string }>;
-  const latest = entries.at(-1);
-  if (latest?.status === "sent") return `sent to ${latest.recipient ?? "approved recipient"}`;
-  if (latest?.status === "draft_only") return "draft only, not sent";
-  return "";
+function deliveryMessage(delivery: AgentDelivery | null | undefined) {
+  if (!delivery) return "";
+  if (delivery.status === "sent") return `sent to ${delivery.recipient}`;
+  if (delivery.status === "draft_only") return delivery.detail || "draft only, not sent";
+  return delivery.detail || `delivery ${delivery.status}`;
 }
 
 export function useAgentSession(buildingId: string, enabled: boolean) {
@@ -34,7 +29,6 @@ export function useAgentSession(buildingId: string, enabled: boolean) {
   const [eventsUrl, setEventsUrl] = useState<string | null>(null);
   const [streamVersion, setStreamVersion] = useState(0);
   const [replay, setReplay] = useState<ReplayRun | null>(null);
-  const [quickScan, setQuickScan] = useState<number | null>(null);
   const [sendResult, setSendResult] = useState("");
 
   const refresh = useCallback(async () => {
@@ -42,10 +36,10 @@ export function useAgentSession(buildingId: string, enabled: boolean) {
     try {
       const next = await getAgentStatus(buildingId);
       setStatus(next);
+      setSendResult(deliveryMessage(next.last_delivery));
       if (next.run_id && next.events_url) setEventsUrl(next.events_url);
       setError((current) => current.includes("→ 409") && next.run_id ? "" : current);
       if (!next.running && next.turns?.at(-1)?.turn === "approval") {
-        latestDeliveryResult(buildingId).then((message) => { if (message) setSendResult(message); }).catch(() => undefined);
         getLatestRun(buildingId).then(setLatestRun).catch(() => undefined);
       }
       return next;
@@ -59,10 +53,6 @@ export function useAgentSession(buildingId: string, enabled: boolean) {
     if (!enabled) return;
     const timer = window.setTimeout(() => {
       void refresh();
-      getLatestRun(buildingId).then(setLatestRun).catch((caught) => {
-        const message = caught instanceof Error ? caught.message : String(caught);
-        if (!message.includes("→ 404")) setError(message);
-      });
     }, 0);
     return () => window.clearTimeout(timer);
   }, [buildingId, enabled, refresh]);
@@ -84,7 +74,10 @@ export function useAgentSession(buildingId: string, enabled: boolean) {
     setError("");
     try {
       const result = await operation();
-      setStatus(result);
+      if ("memory" in result) {
+        setStatus(result);
+        setSendResult(deliveryMessage(result.last_delivery));
+      }
       return result;
     } catch (caught) {
       const message = caught instanceof Error ? caught.message : String(caught);
@@ -95,9 +88,8 @@ export function useAgentSession(buildingId: string, enabled: boolean) {
     }
   }, []);
 
-  const start = useCallback(async (depthFt: number, positionBudget?: number) => {
-    const result = await perform("run", () => runAgent(buildingId, depthFt, positionBudget));
-    setQuickScan(positionBudget ?? null);
+  const start = useCallback(async (depthFt: number) => {
+    const result = await perform("run", () => runAgent(buildingId, depthFt));
     setSendResult("");
     beginStream(result);
   }, [beginStream, buildingId, perform]);
@@ -135,7 +127,7 @@ export function useAgentSession(buildingId: string, enabled: boolean) {
       if (record.status === "sent") setSendResult(`sent to ${String(record.recipient ?? "approved recipient")}`);
       if (record.status === "draft_only") setSendResult("draft only, not sent");
     }
-    const message = await latestDeliveryResult(buildingId).catch(() => "");
+    const message = deliveryMessage(next?.last_delivery);
     if (message) setSendResult(message);
     const latest = await getLatestRun(buildingId).catch(() => null);
     if (latest) setLatestRun(latest);
@@ -160,7 +152,6 @@ export function useAgentSession(buildingId: string, enabled: boolean) {
     eventsUrl,
     streamVersion,
     replay,
-    quickScan,
     sendResult,
     active,
     busy,

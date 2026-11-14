@@ -181,6 +181,29 @@ export type AgentTurn = {
   interrupted: boolean;
 };
 
+export type AgentCorrection = {
+  id: string;
+  asset_id: string;
+  action: "patch" | "delete";
+  changes: Record<string, unknown>;
+  note: string;
+  at: string;
+};
+
+export type AgentMemory = {
+  active_human_corrections: number;
+  human_corrections: AgentCorrection[];
+  applied_this_session: number;
+  applied_this_session_asset_ids: string[];
+};
+
+export type AgentDelivery = {
+  status: "sent" | "draft_only" | "refused" | "failed";
+  recipient: string;
+  at: string;
+  detail: string;
+};
+
 export type AgentStatus = {
   building_id: string;
   session?: null;
@@ -192,6 +215,8 @@ export type AgentStatus = {
   error?: string | null;
   events_url?: string;
   status?: string;
+  memory: AgentMemory;
+  last_delivery: AgentDelivery | null;
 };
 
 export type ReplayRun = {
@@ -221,7 +246,7 @@ export type Dossier = {
   files: DossierFile[];
 };
 
-export type AgentActionResult = AgentStatus & Partial<ReplayRun> & {
+export type AgentActionResult = (AgentStatus | ReplayRun) & {
   result?: Record<string, unknown> | null;
   recipient?: string;
   message?: string;

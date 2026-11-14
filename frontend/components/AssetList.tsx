@@ -14,7 +14,7 @@ function measuredFromMesh(asset: Asset) {
   return [asset.evidence, ...asset.observations.map((item) => item.evidence)].some((text) => text.toLowerCase().includes("measured from mesh"));
 }
 
-export function AssetList({ assets, scenario, damageByAsset, selectedAssetId, onSelectAsset, onCorrect, correctionState, correctionsEnabled }: { assets: Asset[]; scenario: ScenarioResult; damageByAsset: Map<string, AssetDamage>; selectedAssetId: string | null; onSelectAsset: (assetId: string) => void; onCorrect: (assetId: string, method: "PATCH" | "DELETE", changes: Record<string, unknown>) => Promise<void>; correctionState: { kind: "idle" | "saving" | "success" | "error"; message: string }; correctionsEnabled: boolean }) {
+export function AssetList({ assets, scenario, damageByAsset, selectedAssetId, memoryAppliedAssetIds, onSelectAsset, onCorrect, correctionState, correctionsEnabled }: { assets: Asset[]; scenario: ScenarioResult; damageByAsset: Map<string, AssetDamage>; selectedAssetId: string | null; memoryAppliedAssetIds: Set<string>; onSelectAsset: (assetId: string) => void; onCorrect: (assetId: string, method: "PATCH" | "DELETE", changes: Record<string, unknown>) => Promise<void>; correctionState: { kind: "idle" | "saving" | "success" | "error"; message: string }; correctionsEnabled: boolean }) {
   if (assets.length === 0) return <PanelState kind="empty" title="Survey pending" detail="The building is live, but its interior asset survey has not landed yet." />;
   const movableAssets = assets.filter((asset) => damageByAsset.get(asset.id)?.movable);
   const contentsAssets = assets.filter((asset) => !damageByAsset.get(asset.id)?.movable);
@@ -36,9 +36,9 @@ export function AssetList({ assets, scenario, damageByAsset, selectedAssetId, on
       {selectedAsset && correctionsEnabled ? <CorrectionPanel key={selectedAsset.id} asset={selectedAsset} state={correctionState} onCorrect={onCorrect} /> : null}
       <div className="asset-list">
         {movableAssets.length > 0 ? <div className="movable-heading"><span className="vehicle-marker">◆</span><div><b>Movable assets at risk</b><small>Road vehicles are excluded from loss totals.</small></div></div> : null}
-        {movableAssets.map((asset) => <AssetRow key={asset.id} asset={asset} damage={damageByAsset.get(asset.id)} selected={asset.id === selectedAssetId} movable onSelect={onSelectAsset} />)}
+        {movableAssets.map((asset) => <AssetRow key={asset.id} asset={asset} damage={damageByAsset.get(asset.id)} selected={asset.id === selectedAssetId} memoryApplied={memoryAppliedAssetIds.has(asset.id)} movable onSelect={onSelectAsset} />)}
         {movableAssets.length > 0 ? <div className="contents-heading">CONTENTS INCLUDED IN LOSS</div> : null}
-        {sorted.map((asset) => <AssetRow key={asset.id} asset={asset} damage={damageByAsset.get(asset.id)} selected={asset.id === selectedAssetId} onSelect={onSelectAsset} />)}
+        {sorted.map((asset) => <AssetRow key={asset.id} asset={asset} damage={damageByAsset.get(asset.id)} selected={asset.id === selectedAssetId} memoryApplied={memoryAppliedAssetIds.has(asset.id)} onSelect={onSelectAsset} />)}
       </div>
     </div>
   );
@@ -73,7 +73,7 @@ function CorrectionPanel({ asset, state, onCorrect }: { asset: Asset; state: { k
   );
 }
 
-function AssetRow({ asset, damage, selected, movable = false, onSelect }: { asset: Asset; damage?: AssetDamage; selected: boolean; movable?: boolean; onSelect: (assetId: string) => void }) {
+function AssetRow({ asset, damage, selected, memoryApplied, movable = false, onSelect }: { asset: Asset; damage?: AssetDamage; selected: boolean; memoryApplied: boolean; movable?: boolean; onSelect: (assetId: string) => void }) {
   const status = damage?.status ?? "clear";
   const fraction = damage?.fractionHigh ?? 0;
   const observations = asset.observations;
@@ -81,14 +81,14 @@ function AssetRow({ asset, damage, selected, movable = false, onSelect }: { asse
   const after = observations[observations.length - 1];
   const style = { "--damage-color": damageColour(fraction) } as CSSProperties;
   return (
-    <button style={style} className={`asset-row ${status} ${movable ? "movable" : ""} ${selected ? "selected" : ""} ${asset.source !== "vision" ? "memory-applied" : ""}`} onClick={() => onSelect(asset.id)}>
+    <button style={style} className={`asset-row ${status} ${movable ? "movable" : ""} ${selected ? "selected" : ""} ${asset.source !== "vision" || memoryApplied ? "memory-applied" : ""}`} onClick={() => onSelect(asset.id)}>
       <div className="asset-status">{movable ? <i className="vehicle-shape">◆</i> : <i />}<span>{movable ? "MOVE" : `${Math.round(fraction * 100)}%`}</span></div>
       <div className="asset-main">
         <span className="asset-room">{asset.room} · {asset.category}</span>
         <b>{asset.label}</b>
         <small>{asset.height_ft_low}–{asset.height_ft_high} ft vulnerable height · {Math.round(asset.confidence * 100)}% confidence</small>
         {measuredFromMesh(asset) ? <span className="mesh-measured-badge">MEASURED FROM MESH</span> : null}
-        {asset.source !== "vision" ? <span className="memory-applied-badge">AGENT MEMORY · CORRECTION {asset.source === "human-propagated" ? "APPLIED" : "RECORDED"}</span> : null}
+        {asset.source !== "vision" || memoryApplied ? <span className="memory-applied-badge">AGENT MEMORY · CORRECTION {memoryApplied || asset.source === "human-propagated" ? "APPLIED" : "RECORDED"}</span> : null}
         {selected && observations.length > 1 ? (
           <span className="relook-comparison">
             <span><em>RE-LOOK BEFORE</em>{before.height_ft_low}–{before.height_ft_high} ft · {Math.round(before.confidence * 100)}%</span>
