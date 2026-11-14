@@ -162,7 +162,13 @@ def record(bid: str, current: list[dict], asset_id: str, action: str, changes: d
 
 
 def similar(assets: list[dict], asset: dict) -> list[dict]:
-    """Assets the same correction plausibly applies to: same category and a shared label word (agent tool)."""
-    words = {w for w in asset["label"].lower().replace("-", " ").split() if len(w) > 3}
+    """Candidates for the same correction: same category and a shared specific noun (generic words such as
+    "with", "floor" or "supplies" do not count). The agent still judges each one against the person's note."""
+    from app.survey.interior import nouns
+    mine = nouns(asset["label"]) - WEAK_NOUNS
     return [a for a in assets if a["id"] != asset["id"] and a["category"] == asset["category"]
-            and words & set(a["label"].lower().replace("-", " ").split())]
+            and mine & (nouns(a["label"]) - WEAK_NOUNS)]
+
+
+WEAK_NOUNS = {"supplie", "supply", "item", "thing", "stuff", "floor", "wall", "room", "area", "office", "warehouse",
+              "storage", "stored", "boxe", "box", "container", "tub", "bin"}

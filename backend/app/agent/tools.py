@@ -91,7 +91,7 @@ def get_site_context(building_id: str) -> str:
     return json.dumps(out)
 
 
-@tool(parse_docstring=True, return_direct=True)
+@tool(parse_docstring=True)
 def find_entry_points(building_id: str, tool_call_id: Annotated[str, InjectedToolCallId]) -> Command:
     """Site context (FEMA zone, CoStar door counts) and where water gets in from the Vexcel aerial images, ranked and cross-checked.
 
@@ -276,7 +276,7 @@ def survey_positions(building_id: str, choices: list[dict],
         "inventory": f"/dossier/{building_id}/inventory.md"}, {f"/dossier/{building_id}/inventory.md": "\n".join(doc)})
 
 
-@tool(parse_docstring=True, return_direct=True)
+@tool(parse_docstring=True)
 def finish_survey(building_id: str) -> str:
     """Finish the interior survey and report its exact results to the orchestrator. Call this last.
 
@@ -334,7 +334,7 @@ def relook_asset(building_id: str, asset_id: str) -> str:
 
 # ------------------------------------------------------------------ market-analyst
 
-@tool(parse_docstring=True, return_direct=True)
+@tool(parse_docstring=True)
 def get_building_value(building_id: str) -> str:
     """CoStar building data behind the loss: type, size, year built, assessor improvement value, scan coverage.
 
@@ -356,7 +356,7 @@ def get_building_value(building_id: str) -> str:
 
 # ------------------------------------------------------------------ scenario-builder
 
-@tool(parse_docstring=True, return_direct=True)
+@tool(parse_docstring=True)
 def run_scenario(building_id: str, depth_ft: float, tool_call_id: Annotated[str, InjectedToolCallId]) -> Command:
     """Price the loss at a water depth above the ground-floor slab (0 to 8 ft): contents, structure, assets hit.
 
@@ -393,7 +393,7 @@ def run_scenario(building_id: str, depth_ft: float, tool_call_id: Annotated[str,
 
 # ------------------------------------------------------------------ mitigation-planner
 
-@tool(parse_docstring=True, return_direct=True)
+@tool(parse_docstring=True)
 def rank_mitigations(building_id: str, depth_ft: float, tool_call_id: Annotated[str, InjectedToolCallId],
                      previous_depth_ft: float | None = None) -> Command:
     """Rank the fixes at a depth by avoided loss per dollar; with previous_depth_ft, also say what moved and why.
@@ -443,7 +443,7 @@ def rank_mitigations(building_id: str, depth_ft: float, tool_call_id: Annotated[
 
 # ------------------------------------------------------------------ communications
 
-@tool(parse_docstring=True, return_direct=True)
+@tool(parse_docstring=True)
 def draft_documents(building_id: str, depth_ft: float, tool_call_id: Annotated[str, InjectedToolCallId]) -> Command:
     """Render the resilience report and the room-by-room pre-storm playbook for a depth.
 
@@ -543,7 +543,9 @@ def apply_correction_to_similar(building_id: str, correction_id: str, asset_ids:
             continue
     events.emit("orchestrator", "decision",
                 f"Applied human correction {correction_id} ({', '.join(f'{k} -> {v}' for k, v in src['changes'].items())}) "
-                f"to {len(done)} similar assets: {reason}", refs=done, data={"correction_id": correction_id})
+                f"to {len(done)} similar asset{'s' if len(done) != 1 else ''}"
+                + (f" ({', '.join(done)})" if done else "") + f": {reason}", refs=done,
+                data={"correction_id": correction_id, "applied_to": done})
     return json.dumps({"applied_to": done})
 
 
@@ -556,3 +558,6 @@ ROLE_TOOLS = {
     "communications": [draft_documents],
 }
 ORCHESTRATOR_TOOLS = [get_corrections, apply_correction_to_similar, send_playbook]
+# A subagent's job ends with one of these; its exact result becomes the subagent's reply (subagents.EchoFinalTool).
+FINAL_TOOLS = {"find_entry_points", "get_building_value", "run_scenario", "rank_mitigations", "draft_documents",
+               "finish_survey"}

@@ -118,7 +118,7 @@ def test_rerank_explains_what_moved_without_the_model(isolated):
     try:
         rk, _ = _call(tools.rank_mitigations, building_id=BID, depth_ft=4, previous_depth_ft=1)
         assert rk["changed_since_previous_depth"], rk
-        assert tools.rank_mitigations.return_direct and tools.finish_survey.return_direct
+        assert {"rank_mitigations", "finish_survey"} <= tools.FINAL_TOOLS
         assert any(e["type"] == "decision" and e["text"].startswith("Priority change 1 -> 4 ft")
                    for e in events.current().events)
     finally:
