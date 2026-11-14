@@ -272,3 +272,55 @@ data/cache/media/<id>/aerial/*.jpg             Vexcel ortho and obliques, with *
 data/cache/pull_report.json                   last pull summary
 data/cache/costar/, matterport/, vexcel/, public/   Phase 0 discovery files
 ```
+
+## 12. Panorama geometry (VERIFIED, `backend/app/survey/geometry.py`)
+
+**What the Model API says** (introspection descriptions):
+- `PanoramicImageLocation.position` is "the position of the centroid within the model for rendering the panorama".
+- `rotation` is "the vector describing the directionality and rotation of the camera".
+- A skybox is "6 faces: front, back, left, right, up, down", fetched as `<face>` 0–5.
+- The index order is not documented.
+
+**What the data shows:**
+- Cameras sit 1.29–1.47 m above their floor anchors.
+- Rotations are rotations about world z.
+- The mesh is z-up.
+
+**Measured convention** (`python -m app.survey.calibrate <building>`, multi-view photo-consistency):
+- `world = R(q) · local`.
+- Face 0 is up, face 1 is local +x, face 2 local −y, face 3 local −x, face 4 local +y, and face 5 is down.
+- Side faces have image-down = −z and image-right = dir × up.
+- Building H: NCC 0.884 against 0.622 for the next-best of 32 candidates. Building D: 0.693 against 0.252.
+
+**Checks:**
+- Down-face centre rays hit the floor at a median z of −0.019 m (H) and −0.002 m (D), worst 0.11 m.
+- The mesh ceiling above the cameras matches Matterport's room `ceiling.maxHeight` with a median difference of +0.7 cm.
+- Door heads read within about ±5 cm. H's office doors are full height to the 2.74 m ceiling and read 2.69–2.78 m. Its standard steel exit door reads 2.21 m at the wall just above the frame. Its head-pixel ray misses because the exterior opening is a hole in the mesh.
+
+**Ray caster:** brute-force Möller–Trumbore over about 30k triangles, 2,000 rays in about 2.3 s.
+
+## 13. Structure damage curves (VERIFIED source, `backend/app/loss/curves.yaml`)
+
+- **Source:** FEMA Hazus 6.1 flood structure damage functions (`HazusFloodDamageFunctions_Hazus61.xlsx`, a FEMA Hazus team extract). The structural sheet is published as CSV in NHERI SimCenter's Damage and Loss Model Library (892 functions) and cached at `data/cache/public/hazus/`.
+- **Columns:** `BldgDmgFnID`, `Default`, `Occupancy`, `Source`, `Description`, `ft04m` … `ft24`, giving % damage by depth above the first finished floor.
+- **Defaults** (all USACE Galveston), % damage at 1/2/4/8 ft:
+  - COM1 (217): 9 / 14 / 18 / 30
+  - COM2 (341): 5 / 8 / 13 / 25
+  - IND2 (559): 9 / 14 / 22 / 35
+- **Range:** the 25th–75th percentile of the USACE Galveston functions for each occupancy. Mixing all sources gave implausibly wide ranges, with COM1's 75th percentile at 78% at 2 ft.
+
+## 14. Gemini and LangChain (VERIFIED)
+
+- **Models list:** `GET https://generativelanguage.googleapis.com/v1beta/models` with the `x-goog-api-key` header returned 64 models; the list is cached at `data/cache/http/gemini/models_list.json`.
+- **Stable Flash models by the rule:** `gemini-2.5-flash`, `gemini-3.5-flash`, `gemini-3.6-flash`, `gemini-3.7-flash`, `gemini-3.8-flash`. Chosen: `gemini-3.8-flash`.
+- **Calls:** `POST …/models/{model}:generateContent` with `responseMimeType: application/json`, `responseSchema`, and `thinkingConfig.thinkingLevel: low`.
+- **Box format** (Google docs): `box_2d = [ymin, xmin, ymax, xmax]` normalised to 0–1000. Several images can go in one request.
+- **Availability on 2026-11-14:**
+  - 3.8 and 3.7 returned 503 "high demand" and timeouts on image calls.
+  - 3.6 answered an image call in 2.2 s.
+  - Text calls took 53–60 s.
+  - One request hung for 582 s despite a 150 s read timeout. The client now enforces a 180 s wall-clock deadline and skips an overloaded model for 10 minutes.
+- **LangChain** (docs-langchain MCP server, `https://docs.langchain.com/mcp`):
+  - `create_deep_agent(model="google_genai:<model>")`, or `init_chat_model(...)` with the `langchain-google-genai` package.
+  - The integration reads `GOOGLE_API_KEY`, so pass our `GEMINI_API_KEY` explicitly.
+  - The MCP server is configured for this project but was not loaded into the Claude Code session, so it was queried directly over HTTP.

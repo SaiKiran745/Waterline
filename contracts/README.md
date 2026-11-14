@@ -1,6 +1,6 @@
 # Contracts
 
-**FROZEN: version 1.0.0, 2026-11-14.** Change these files only when a human says both agents (Claude Code on `backend/`, Codex on `frontend/`) have been told.
+**FROZEN: version 1.1.0, 2026-11-14.** Change these files only when a human says both agents (Claude Code on `backend/`, Codex on `frontend/`) have been told.
 
 This folder is the source of truth for data shapes. Where it differs from the sketch in AGENTS.md section 8, this folder wins.
 
@@ -54,3 +54,16 @@ Fixtures are fake ("FIXTURE, not real data") and contain no sponsor data. Phase 
 
 **AgentEvent**
 - Added `id` (sequence number), `building_id` and `data`.
+
+## Changelog
+
+### 1.1.0 (2026-11-14, approved by the human; both agents told)
+
+- **`Building.id` is a slug**, for example `building-a` or `fixture-1`. It must match `^[a-z0-9]+(-[a-z0-9]+)*$`, and every `building_id` field in the other schemas uses the same pattern.
+- **`Building.costar_property_id` is removed.** The CoStar PropertyId stays in the server's git-ignored mapping (`data/cache/shortlist.json`). It never appears in API responses, URLs, the UI or committed files.
+- **`Building.value_source`** carries no CoStar ids.
+- **`Building.scan_coverage` is added:** `min(scan_area_sqft / size_sqft, 1)`. It is capped at 1 because a scan can measure more floor than CoStar's GBA (covered outdoor areas, mezzanines, or an out-of-date GBA). Interior loss covers the scanned area only, and structure loss is scaled by this share.
+
+### 1.0.0 (2026-11-14)
+
+First frozen version.

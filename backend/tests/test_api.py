@@ -1,4 +1,5 @@
 """API behaviour on the fixture building, plus real buildings when the cache has them."""
+import re
 import time
 
 import pytest
@@ -26,12 +27,30 @@ def test_scenario_fast_and_valid():
     assert local.get(f"/buildings/{FIX}/scenario", params={"depth_ft": 9}).status_code == 422
 
 
+def test_unscreened_panorama_faces_are_refused():
+    idx = buildings.building_ids()
+    if not idx:
+        return
+    bid = sorted(idx)[0]
+    man = local.get(f"/buildings/{bid}/media").json()
+    import json
+    from app.config import BUILDINGS
+    pano = json.loads((BUILDINGS / bid / "media_index.json").read_text())["panos"][0]
+    scr = json.loads((BUILDINGS / bid / "screening.json").read_text()) if (BUILDINGS / bid / "screening.json").exists() else {}
+    if not scr.get(f"{pano['id']}/face1", {}).get("clear"):
+        assert local.get(pano["faces"][1]).status_code == 403
+
+
 def test_mitigations_rerank_with_depth():
     at1 = local.get(f"/buildings/{FIX}/mitigations", params={"depth_ft": 1}).json()
     at4 = local.get(f"/buildings/{FIX}/mitigations", params={"depth_ft": 4}).json()
     for m in at1 + at4:
         buildings.validate("mitigation", m)
-    assert at1[0]["kind"] == "entry_barrier" and at4[-1]["kind"] == "entry_barrier"
+    assert at1[0]["kind"] == "entry_barrier"
+    bar4 = next(m for m in at4 if m["kind"] == "entry_barrier")
+    assert bar4["avoided_loss_usd_high"] == 0 and all(bar4["rank"] > m["rank"] for m in at4 if m["avoided_loss_usd_high"] > 0)
+    assert sorted(m["id"] for m in at1) == sorted(m["id"] for m in at4)   # stable ids across depths
+    assert {m["depth_ft"] for m in local.get(f"/buildings/{FIX}/mitigations", params={"depth_ft": 3.3}).json()} == {3.3}
 
 
 def test_sse_replay_streams_whole_trace():
@@ -81,4 +100,13 @@ def test_real_buildings_match_contract_and_media():
         d = local.get(f"/buildings/{b['id']}").json()
         assert d["entry_points"] == [] and d["assets"] == []
         assert local.get(f"/media/{b['id']}/manifest.json").status_code == 200
-    assert local.get(f"/buildings/{listed[0]['id']}/scenario", params={"depth_ft": 1}).status_code == 501
+        assert local.get(f"/media/{b['id']}/mesh/mesh_50k.obj").status_code == 200
+    bid = listed[0]["id"]
+    assert re.fullmatch(r"[a-z0-9]+(-[a-z0-9]+)*", bid) and "costar_property_id" not in listed[0]
+    buildings.validate("scenario_result", local.get(f"/buildings/{bid}/scenario", params={"depth_ft": 1.5}).json())
+    for m in local.get(f"/buildings/{bid}/mitigations", params={"depth_ft": 3.3}).json():
+        buildings.validate("mitigation", m)
+    for path in ("report", "playbook"):
+        assert local.get(f"/buildings/{bid}/{path}").status_code == 200
+    man = local.get(f"/buildings/{bid}/media").json()
+    assert "ortho" in man["aerial"] and man["mesh"]["url"].startswith(f"/media/{bid}/")

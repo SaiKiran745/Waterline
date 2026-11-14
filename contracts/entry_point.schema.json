@@ -5,28 +5,101 @@
   "description": "A place where flood water would get into the building, found in Vexcel imagery.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["id", "building_id", "kind", "lat", "lng", "image_ref", "image_kind", "image_xy",
-               "threshold_elevation_ft", "elevation_source", "confidence", "evidence"],
+  "required": [
+    "id",
+    "building_id",
+    "kind",
+    "lat",
+    "lng",
+    "image_ref",
+    "image_kind",
+    "image_xy",
+    "threshold_elevation_ft",
+    "elevation_source",
+    "confidence",
+    "evidence"
+  ],
   "properties": {
-    "id": {"type": "string"},
-    "building_id": {"type": "string"},
+    "id": {
+      "type": "string"
+    },
+    "building_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Building slug (Building.id)."
+    },
     "kind": {
       "type": "string",
-      "enum": ["door", "dock", "drive_in", "ramp", "garage", "other"],
+      "enum": [
+        "door",
+        "dock",
+        "drive_in",
+        "ramp",
+        "garage",
+        "other"
+      ],
       "description": "dock = dock-high loading door; drive_in = grade-level drive-in bay door (CoStar distinguishes the two)."
     },
-    "lat": {"type": ["number", "null"], "description": "Null when the image position cannot be converted to a map position."},
-    "lng": {"type": ["number", "null"]},
-    "image_ref": {"type": "string", "description": "Cache path or id of the Vexcel image the marker sits on."},
-    "image_kind": {"type": "string", "enum": ["ortho", "oblique-north", "oblique-south", "oblique-east", "oblique-west"]},
+    "lat": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "Null when the image position cannot be converted to a map position."
+    },
+    "lng": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "image_ref": {
+      "type": "string",
+      "description": "Cache path or id of the Vexcel image the marker sits on."
+    },
+    "image_kind": {
+      "type": "string",
+      "enum": [
+        "ortho",
+        "oblique-north",
+        "oblique-south",
+        "oblique-east",
+        "oblique-west"
+      ]
+    },
     "image_xy": {
-      "type": ["array", "null"],
-      "items": {"type": "number"}, "minItems": 2, "maxItems": 2,
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": "number"
+      },
+      "minItems": 2,
+      "maxItems": 2,
       "description": "Pixel [x, y] of the marker in image_ref, origin top-left."
     },
-    "threshold_elevation_ft": {"type": ["number", "null"], "description": "Null unless measured. Ground elevation at the point is not a threshold elevation."},
-    "elevation_source": {"type": ["string", "null"]},
-    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
-    "evidence": {"type": "string", "description": "What in the image supports this."}
+    "threshold_elevation_ft": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "Null unless measured. Ground elevation at the point is not a threshold elevation."
+    },
+    "elevation_source": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "evidence": {
+      "type": "string",
+      "description": "What in the image supports this."
+    }
   }
 }

@@ -20,6 +20,10 @@ python3.14 -m venv .venv                         # any Python 3.11+
 
 .venv/bin/python -m app.sources.shortlist        # pick the shortlist -> data/cache/shortlist.json
 .venv/bin/python -m app.sources.pull             # pull and cache every layer for it (about 2 GB)
+.venv/bin/python -m app.loss.build_curves        # Hazus 6.1 structure curves -> app/loss/curves.yaml
+.venv/bin/python -m app.survey.calibrate building-h   # measure the panorama face convention (already recorded)
+.venv/bin/python -m app.survey.interior building-h    # vision survey of one building (Gemini)
+.venv/bin/python -m app.loss.rank                # precompute loss at 1, 2, 4 ft for the triage map
 .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
 
 .venv/bin/python -m pytest -q                    # tests
@@ -33,18 +37,19 @@ All responses follow `contracts/`. CORS allows `http://localhost:3000`.
 
 | Endpoint | Returns |
 |---|---|
-| `GET /buildings` | Building list (shortlist in letter order). `?fixture=1` returns the FIXTURE building |
-| `GET /buildings/{id}` | `{"building", "entry_points", "assets"}` (real buildings: lists empty until Phases 3-4) |
-| `GET /buildings/{id}/scenario?depth_ft=` | ScenarioResult |
-| `GET /buildings/{id}/mitigations?depth_ft=` | Mitigation list, ranked |
+| `GET /buildings` | Building list, ranked by precomputed loss at 2 ft. `?fixture=1` returns the FIXTURE building |
+| `GET /buildings/{id}` | `{"building", "entry_points", "assets"}`; ids are slugs such as `building-h` |
+| `GET /buildings/{id}/scenario?depth_ft=` | ScenarioResult at any depth from 0 to 8 ft |
+| `GET /buildings/{id}/mitigations?depth_ft=` | Mitigations ranked at exactly that depth; ids are stable across depths |
+| `GET /buildings/{id}/media` | Media manifest: mesh, aerial images, and panorama faces cleared by the privacy screen |
 | `POST /buildings/{id}/run` | Starts the agent (fixture: trace replay) |
 | `GET /buildings/{id}/events?speed=` | SSE stream of AgentEvent (`event: agent_event`, then `event: end`) |
-| `GET /buildings/{id}/report`, `/playbook` | HTML |
+| `GET /buildings/{id}/report?depth_ft=`, `/playbook?depth_ft=` | HTML |
 | `POST /buildings/{id}/send` | Needs `{"approved": true, "recipient": "<in ALLOWED_RECIPIENTS>"}`; nothing is sent before Phase 5B |
-| `GET /media/{id}/manifest.json` | Mesh, panorama and aerial image URLs for a building (localhost only) |
-| `GET /media/{id}/...` | The cached files themselves (localhost only) |
+| `GET /media/{id}/manifest.json` | Same manifest (localhost only) |
+| `GET /media/{id}/...` | The cached files themselves (localhost only). Panorama faces are served only when the privacy screen cleared them |
 
-The building `fixture-1` (FIXTURE, not real data) supports every endpoint. For real buildings, scenario, mitigation, agent and report endpoints answer 501 until their phase is built.
+The building `fixture-1` (FIXTURE, not real data) supports every endpoint. For real buildings, `run` and `events` answer 501 until the live agent exists (Phase 5).
 
 ## Frontend
 

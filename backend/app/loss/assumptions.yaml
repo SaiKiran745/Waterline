@@ -1,0 +1,25 @@
+# Waterline loss assumptions. Every number used in a loss or mitigation figure has an id here and is shown in the UI.
+# placeholder: true means a team assumption with no cited source; the UI and report label it PLACEHOLDER.
+# Building finishes (drywall, flooring, doors) are NOT surveyed as assets: the Hazus structure curve covers them.
+
+structure:
+  - id: S-VALUE-BASIS
+    text: "Structure value basis = assessor improvement value (buildings only, no land) from the CoStar sale comp, scaled by scan coverage, because only the scanned area is assessed."
+    source: "CoStar sale comp, deed-level assessment matched by APN"
+    placeholder: false
+
+assets:   # replacement value per surveyed item or group, USD
+  - {id: A-ELEC,  category: electrical, low: 3000, high: 25000, text: "Electrical gear: panel, switchgear, transformer, charger, per item", source: "team assumption", placeholder: true}
+  - {id: A-IT,    category: it,         low: 1000, high: 15000, text: "IT equipment: server rack, network cabinet, computers, per item or group", source: "team assumption", placeholder: true}
+  - {id: A-HVAC,  category: hvac,       low: 2000, high: 15000, text: "HVAC and plumbing equipment: air handler, water heater, condensing unit, per item", source: "team assumption", placeholder: true}
+  - {id: A-INV,   category: inventory,  low: 5000, high: 50000, text: "Stored inventory, per floor or rack zone", source: "team assumption", placeholder: true}
+  - {id: A-EQUIP, category: equipment,  low: 1000, high: 20000, text: "Equipment and machinery: forklift, compressor, appliance, tools, per item", source: "team assumption", placeholder: true}
+  - {id: A-FURN,  category: furniture,  low: 500,  high: 5000,  text: "Furniture, per room group", source: "team assumption", placeholder: true}
+  - {id: A-FIN,   category: finishes,   low: 0,    high: 0,     text: "Finishes are covered by the structure curve, not valued as assets", source: "Waterline method", placeholder: false}
+  - {id: A-OTHER, category: other,      low: 250,  high: 3000,  text: "Other vulnerable items, per item", source: "team assumption", placeholder: true}
+
+mitigations:   # cost per action unit, USD, and the height the action moves things to
+  - {id: M-PLATFORM,   kind: raise_asset,    low: 800,  high: 4000,  unit: item, raise_by_ft: 3.0, text: "Raise an item onto a 3 ft platform or wall mount", source: "team assumption", placeholder: true}
+  - {id: M-ELEC-RAISE, kind: relocate_asset, low: 4000, high: 15000, unit: item, target_ft: 5.0, text: "Electrician relocates electrical gear so its lowest live part is above 5 ft", source: "team assumption", placeholder: true}
+  - {id: M-MOVE-INV,   kind: move_inventory, low: 500,  high: 3000,  unit: room, target_ft: 4.0, text: "Pre-storm labour to move floor-level inventory onto racking above 4 ft", source: "team assumption", placeholder: true}
+  - {id: M-BARRIER,    kind: entry_barrier,  low: 1500, high: 6000,  unit: opening, rating_ft: 2.0, text: "Deployable 2 ft flood barrier at every ground-level opening; keeps water out only up to its rating", source: "team assumption", placeholder: true}

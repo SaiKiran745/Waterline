@@ -1,16 +1,22 @@
-"""Pick the demo shortlist and write data/cache/shortlist.json (git-ignored: it holds CoStar ids).
+"""Pick the demo shortlist and write data/cache/shortlist.json (git-ignored: it maps slugs to CoStar ids).
 
-    python -m app.sources.shortlist            # print the table and write the shortlist
+    python -m app.sources.shortlist            # revise the shortlist under the current rules and write it
     python -m app.sources.shortlist --dry-run  # print only
 
-Rules (human decision, 2026-11-14):
-  single-storey Houston retail/industrial/flex (every scan is on the ground floor),
-  assessor improvement value present (structure loss needs it; no placeholders),
-  best scan coverage (scan areaFloor / CoStar GBA), aiming for 40% or more,
-  at least 2 outside the FEMA 1% annual-chance area, including the 96-position industrial
-  building if it qualifies. Buildings are referred to by letter in committed files.
+Rules (human decisions, 2026-11-14):
+  - single-storey Houston retail/industrial/flex, so every scan is on the ground floor
+  - no children's spaces (day care, school and similar subtypes)
+  - assessor improvement value present, and its value per sq ft within VALUE_BAND of the candidate-pool
+    median (structure loss scales with it, so an implausible value would distort the ranking)
+  - scan coverage (scan areaFloor / CoStar GBA, capped at 100%) of 40% or more, best first
+  - scans attached to more than one CoStar property are not used
+  - at least MIN_OUTSIDE buildings outside the FEMA 1% annual-chance area
+  - replacements prefer a named current tenant
+Retained buildings keep their letter; replacements take the freed letters. API ids are slugs ("building-a").
+The CoStar property id stays in this git-ignored mapping and never leaves the server.
 """
 import math
+import statistics
 import sys
 
 from app.config import SHORTLIST
@@ -20,10 +26,11 @@ from app.sources.cache import write_json
 MIN_POSITIONS = 8
 MAX_GEO_DIST_M = 150
 MIN_COVERAGE = 0.40
-MAX_COVERAGE = 1.10          # above this the scan likely includes outdoor or double-counted area
 TARGET_COUNT = 8
-MIN_OUTSIDE = 2
-MUST_CONSIDER_POSITIONS = 96  # "the 96-position industrial one"
+MIN_OUTSIDE = 3
+VALUE_BAND = (0.4, 2.5)     # x the pool median improvement value per sq ft
+CHILD_SUBTYPE_WORDS = ("daycare", "school", "child", "nursery", "kindergarten", "preschool")
+LETTERS = "ABCDEFGH"
 
 MODEL_FRAGMENT = """{ id state dimensions(units: imperial) { areaFloor } locations { id }
   assets { meshes { resolution status } } geocoordinates { latitude longitude } }"""
@@ -55,10 +62,11 @@ def dist_m(a, b) -> float | None:
 
 def build_table() -> list[dict]:
     cands = costar.houston_ground_floor_candidates()
-    values = costar.assessor_values(c["id"] for c in cands)
+    ids = [c["id"] for c in cands]
+    values = costar.assessor_values(ids)
+    records = costar.property_records(ids)
+    tenants = costar.current_tenants(ids)
     facts = model_facts([m for c in cands for m in c["models"]])
-    # A model attached to several CoStar properties (for example one scan filed on every building of a park)
-    # cannot be tied to one building, so it is not used.
     owners: dict[str, int] = {}
     for c in cands:
         for mid in c["models"]:
@@ -73,55 +81,85 @@ def build_table() -> list[dict]:
                 continue
             if f["positions"] >= MIN_POSITIONS and f["mesh"] and f["area_sqft"] and d is not None and d <= MAX_GEO_DIST_M:
                 usable.append((mid, f, d))
-        if not usable:
+        if not usable or not c["gba"]:
             continue
         mid, f, d = max(usable, key=lambda t: t[1]["area_sqft"])
-        cov = f["area_sqft"] / c["gba"] if c["gba"] else None
-        rows.append({"costar_property_id": c["id"], "type": c["type"], "gba": c["gba"], "model": mid,
-                     "positions": f["positions"], "scan_area_sqft": round(f["area_sqft"]), "coverage": cov,
-                     "geo_dist_m": round(d), "value": values.get(c["id"]), "lat": c["lat"], "lng": c["lng"]})
+        v = values.get(c["id"])
+        rows.append({"costar_property_id": c["id"], "type": c["type"],
+                     "subtype": costar.decode("PropertySubtype", records[c["id"]].get("propertySubtype")),
+                     "gba": c["gba"], "model": mid, "positions": f["positions"],
+                     "scan_area_sqft": round(f["area_sqft"]), "coverage_raw": f["area_sqft"] / c["gba"],
+                     "coverage": min(f["area_sqft"] / c["gba"], 1.0), "geo_dist_m": round(d), "value": v,
+                     "value_per_sqft": v["improvement_value_usd"] / c["gba"] if v else None,
+                     "named_tenants": len({t["name"] for t in tenants[c["id"]] if t.get("name")}),
+                     "lat": c["lat"], "lng": c["lng"]})
     for r in rows:
         if r["value"]:
             r["fema"] = fema.flood_zone(r["lat"], r["lng"])
     return rows
 
 
-def select(rows: list[dict]) -> list[dict]:
-    ok = [r for r in rows if r["value"] and r["coverage"] and MIN_COVERAGE <= r["coverage"] <= MAX_COVERAGE]
-    inside = sorted([r for r in ok if r["fema"]["in_mapped_flood_zone"]], key=lambda r: -r["coverage"])
-    outside = sorted([r for r in ok if r["fema"]["in_mapped_flood_zone"] is False], key=lambda r: -r["coverage"])
-    must = [r for r in outside if r["type"] == "Industrial" and r["positions"] == MUST_CONSIDER_POSITIONS]
-    picked = must + [r for r in outside if r not in must][:max(0, MIN_OUTSIDE - len(must))]
-    for r in inside + [r for r in outside if r not in picked]:   # then every in-zone qualifier, then best coverage
-        if len(picked) >= TARGET_COUNT:
-            break
-        if r not in picked:
-            picked.append(r)
-    picked.sort(key=lambda r: (not r["fema"]["in_mapped_flood_zone"], -r["coverage"]))
-    for letter, r in zip("ABCDEFGH", picked):
-        r["letter"] = letter
-    return picked
+def eligible(rows: list[dict]) -> tuple[list[dict], float]:
+    valued = [r for r in rows if r["value"]]
+    median = statistics.median(r["value_per_sqft"] for r in valued)
+    lo, hi = VALUE_BAND[0] * median, VALUE_BAND[1] * median
+    ok = [r for r in valued
+          if r["coverage"] >= MIN_COVERAGE
+          and lo <= r["value_per_sqft"] <= hi
+          and not any(w in (r["subtype"] or "").lower() for w in CHILD_SUBTYPE_WORDS)]
+    return ok, median
+
+
+def revise(rows: list[dict], current: list[dict]) -> list[dict]:
+    ok, _ = eligible(rows)
+    by_id = {r["costar_property_id"]: r for r in ok}
+    picked = {e["letter"]: by_id[e["costar_property_id"]] for e in current if e["costar_property_id"] in by_id}
+    pool = sorted([r for r in ok if r not in picked.values()],
+                  key=lambda r: (r["named_tenants"] == 0, -r["coverage"]))
+    for letter in LETTERS[:TARGET_COUNT]:
+        if letter in picked or not pool:
+            continue
+        outside = sum(1 for r in picked.values() if r["fema"]["in_mapped_flood_zone"] is False)
+        free = sum(1 for x in LETTERS[:TARGET_COUNT] if x not in picked)
+        need_outside = outside + free <= MIN_OUTSIDE
+        choice = next((r for r in pool if not need_outside or r["fema"]["in_mapped_flood_zone"] is False), None)
+        if choice:
+            picked[letter] = choice
+            pool.remove(choice)
+    return [dict(r, letter=k) for k, r in sorted(picked.items())]
 
 
 def main() -> None:
     rows = build_table()
-    with_value = [r for r in rows if r["value"]]
-    print(f"usable single-storey candidates: {len(rows)} | with assessor improvement value: {len(with_value)}")
-    print(f"{'type':14s} {'sfha':5s} {'cov':>5s} {'pos':>4s} value")
-    for r in sorted(with_value, key=lambda r: -(r["coverage"] or 0)):
-        print(f"{r['type']:14s} {str(r['fema']['in_mapped_flood_zone']):5s} {r['coverage']:5.0%} {r['positions']:4d} "
-              f"{r['value']['value_as_of']}")
-    picked = select(rows)
+    ok, median = eligible(rows)
+    current = []
+    if SHORTLIST.exists():
+        import json
+        current = json.loads(SHORTLIST.read_text())
+    print(f"usable candidates {len(rows)} | eligible {len(ok)} | pool median improvement value ${median:.0f}/sq ft "
+          f"(band ${VALUE_BAND[0] * median:.0f}-{VALUE_BAND[1] * median:.0f})")
+    for e in current:
+        r = next((x for x in rows if x["costar_property_id"] == e["costar_property_id"]), None)
+        why = "kept" if r in ok else "dropped: " + ", ".join(filter(None, [
+            "children's space" if r and any(w in (r["subtype"] or "").lower() for w in CHILD_SUBTYPE_WORDS) else "",
+            f"value ${r['value_per_sqft']:.0f}/sq ft outside band" if r and r["value_per_sqft"] is not None and not (
+                VALUE_BAND[0] * median <= r["value_per_sqft"] <= VALUE_BAND[1] * median) else ""]))
+        print(f"  {e['letter']}: {why}")
+    picked = revise(rows, current)
     print(f"\npicked {len(picked)}:")
     for r in picked:
-        print(f"  {r['letter']} {r['type']:14s} sfha={r['fema']['in_mapped_flood_zone']!s:5s} zone={r['fema']['flood_zone']} "
-              f"cov={r['coverage']:.0%} pos={r['positions']}")
+        print(f"  {r['letter']} {r['subtype'] or r['type']:30s} sfha={r['fema']['in_mapped_flood_zone']!s:5s} "
+              f"cov={r['coverage']:.0%}{' (capped from %.0f%%)' % (100 * r['coverage_raw']) if r['coverage_raw'] > 1 else ''} "
+              f"pos={r['positions']} tenants={r['named_tenants']} ${r['value_per_sqft']:.0f}/sq ft")
     if "--dry-run" not in sys.argv:
-        out = [{"letter": r["letter"], "building_id": str(r["costar_property_id"]),
+        out = [{"letter": r["letter"], "building_id": f"building-{r['letter'].lower()}",
                 "costar_property_id": r["costar_property_id"], "matterport_model_id": r["model"],
-                "type": r["type"], "positions": r["positions"], "scan_area_sqft": r["scan_area_sqft"],
-                "gba": r["gba"], "coverage": round(r["coverage"], 3), "in_mapped_flood_zone": r["fema"]["in_mapped_flood_zone"],
-                "flood_zone": r["fema"]["flood_zone"], "lat": r["lat"], "lng": r["lng"]} for r in picked]
+                "type": r["type"], "subtype": r["subtype"], "positions": r["positions"],
+                "scan_area_sqft": r["scan_area_sqft"], "gba": r["gba"], "coverage": round(r["coverage"], 3),
+                "coverage_raw": round(r["coverage_raw"], 3), "named_tenants": r["named_tenants"],
+                "value_per_sqft": round(r["value_per_sqft"], 1),
+                "in_mapped_flood_zone": r["fema"]["in_mapped_flood_zone"], "flood_zone": r["fema"]["flood_zone"],
+                "lat": r["lat"], "lng": r["lng"]} for r in picked]
         write_json(SHORTLIST, out)
         print(f"wrote {SHORTLIST}")
 

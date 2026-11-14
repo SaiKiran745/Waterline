@@ -26,9 +26,9 @@ def assemble(bid: str) -> dict:
     c, mp, vx, fz = parts["costar"], parts["matterport"], parts["vexcel"], parts["fema"]
     value = c.get("value") or {}
     ortho = vx["images"].get("ortho") or {}
+    scan_area = round(mp["scan_area_sqft"], 1) if mp.get("scan_area_sqft") else None
     building = {
         "id": bid,
-        "costar_property_id": int(bid),
         "name": c["name"],
         "address": c["address"],
         "lat": c["lat"], "lng": c["lng"],
@@ -39,12 +39,13 @@ def assemble(bid: str) -> dict:
         "value_usd": value.get("value_usd"),
         "improvement_value_usd": value.get("improvement_value_usd"),
         "value_as_of": value.get("value_as_of"),
-        "value_source": f"CoStar sale comp {value['sale_comp_id']}, {value['basis']}" if value else None,
+        "value_source": f"CoStar sale comp, {value['basis']}" if value else None,
         "loading_docks_external": c["loading_docks_external"],
         "drive_in_bays": c["drive_in_bays"],
         "matterport_model_id": mp["model_id"],
         "matterport_model_ids": c["matterport_model_ids"],
-        "scan_area_sqft": round(mp["scan_area_sqft"], 1) if mp.get("scan_area_sqft") else None,
+        "scan_area_sqft": scan_area,
+        "scan_coverage": round(min(scan_area / c["size_sqft"], 1.0), 3) if scan_area and c["size_sqft"] else None,
         "in_mapped_flood_zone": fz["in_mapped_flood_zone"],
         "flood_zone": fz["flood_zone"],
         "flood_zone_subtype": fz["flood_zone_subtype"],
@@ -57,6 +58,16 @@ def assemble(bid: str) -> dict:
     validate("building", building)
     write_json(BUILDINGS / bid / "building.json", building)
     return building
+
+
+def get_assets(bid: str) -> list[dict]:
+    path = BUILDINGS / bid / "assets.json"
+    return json.loads(path.read_text()) if path.exists() else []
+
+
+def get_entry_points(bid: str) -> list[dict]:
+    path = BUILDINGS / bid / "entry_points.json"
+    return json.loads(path.read_text()) if path.exists() else []
 
 
 def get_building(bid: str) -> dict:

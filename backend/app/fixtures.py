@@ -55,13 +55,31 @@ def scenario(depth_ft: float) -> dict:
     }
 
 
+FIXTURE_PARAMS = {"move_inventory": {"target_ft": 3.0}, "raise_asset": {"raise_by_ft": 3.0},
+                  "relocate_asset": {"target_ft": 4.0}, "entry_barrier": {"rating_ft": 2.0}}
+
+
+def mitigation_specs() -> list[dict]:
+    """The 5 fixture actions (stable ids m1-m5) as engine specs; avoided loss is recomputed at any depth."""
+    seen, specs = set(), []
+    for m in load("mitigations.json"):
+        if m["id"] in seen:
+            continue
+        seen.add(m["id"])
+        specs.append({"id": m["id"], "kind": m["kind"], "action": m["action"], "targets": m["targets"],
+                      "cost": (m["cost_usd_low"], m["cost_usd_high"]), "basis": m["basis"], **FIXTURE_PARAMS[m["kind"]]})
+    return specs
+
+
 def mitigations(depth_ft: float) -> list[dict]:
-    """Fixture mitigations were evaluated at 1, 2 and 4 ft; return the set for the nearest depth at or below
-    the request (each record carries its own depth_ft)."""
-    rows = load("mitigations.json")
-    depths = sorted({m["depth_ft"] for m in rows})
-    pick = max([d for d in depths if d <= depth_ft], default=depths[0])
-    return sorted([m for m in rows if m["depth_ft"] == pick], key=lambda m: m["rank"])
+    from app.loss import mitigations as engine
+    from app.loss.model import contents_loss
+
+    def loss(assets, depth):
+        c_lo, c_hi = contents_loss(assets, depth)
+        s = scenario(depth)
+        return c_lo, c_hi, s["structure_loss_usd_low"], s["structure_loss_usd_high"]
+    return engine.ranked(FIXTURE_ID, mitigation_specs(), load("assets.json"), depth_ft, loss)
 
 
 def report_html() -> str:

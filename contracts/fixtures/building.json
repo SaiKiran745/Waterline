@@ -1,17 +1,19 @@
 {
   "id": "fixture-1",
-  "costar_property_id": 999999001,
   "name": "FIXTURE, not real data: Example Distribution Center",
   "address": "100 Example Way, Houston, TX 77000",
   "lat": 29.75,
-  "lng": -95.40,
+  "lng": -95.4,
   "property_type": "Industrial",
   "property_subtype": "Industrial_Warehouse",
   "size_sqft": 60000,
   "size_basis": "GBA",
   "year_built": 1985,
   "stories": 1,
-  "tenants": ["FIXTURE Tenant A", "FIXTURE Tenant B"],
+  "tenants": [
+    "FIXTURE Tenant A",
+    "FIXTURE Tenant B"
+  ],
   "value_usd": 4200000,
   "improvement_value_usd": 3100000,
   "value_as_of": "2021-06-30",
@@ -19,8 +21,11 @@
   "loading_docks_external": 6,
   "drive_in_bays": 2,
   "matterport_model_id": "FIXTURE0001",
-  "matterport_model_ids": ["FIXTURE0001"],
+  "matterport_model_ids": [
+    "FIXTURE0001"
+  ],
   "scan_area_sqft": 18000,
+  "scan_coverage": 0.3,
   "in_mapped_flood_zone": true,
   "flood_zone": "AE",
   "flood_zone_subtype": null,

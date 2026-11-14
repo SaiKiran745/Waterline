@@ -5,16 +5,71 @@
   "description": "One step of the agent, streamed over SSE and saved for replay.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["id", "building_id", "ts", "agent", "type", "text", "refs", "data"],
+  "required": [
+    "id",
+    "building_id",
+    "ts",
+    "agent",
+    "type",
+    "text",
+    "refs",
+    "data"
+  ],
   "properties": {
-    "id": {"type": "integer", "minimum": 0, "description": "Sequence number within one run, for ordering and replay."},
-    "building_id": {"type": "string"},
-    "ts": {"type": "string", "format": "date-time"},
-    "agent": {"type": "string", "enum": ["orchestrator", "site-scout", "interior-surveyor", "market-analyst",
-                                         "scenario-builder", "mitigation-planner", "communications"]},
-    "type": {"type": "string", "enum": ["plan", "tool_call", "observation", "decision", "replan", "artifact", "awaiting_approval"]},
-    "text": {"type": "string"},
-    "refs": {"type": "array", "items": {"type": "string"}, "description": "Ids of assets, entry points, scan positions or artifacts."},
-    "data": {"type": ["object", "null"], "description": "Optional structured payload, for example plan steps or tool arguments."}
+    "id": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Sequence number within one run, for ordering and replay."
+    },
+    "building_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Building slug (Building.id)."
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "agent": {
+      "type": "string",
+      "enum": [
+        "orchestrator",
+        "site-scout",
+        "interior-surveyor",
+        "market-analyst",
+        "scenario-builder",
+        "mitigation-planner",
+        "communications"
+      ]
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "plan",
+        "tool_call",
+        "observation",
+        "decision",
+        "replan",
+        "artifact",
+        "awaiting_approval"
+      ]
+    },
+    "text": {
+      "type": "string"
+    },
+    "refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Ids of assets, entry points, scan positions or artifacts."
+    },
+    "data": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Optional structured payload, for example plan steps or tool arguments."
+    }
   }
 }

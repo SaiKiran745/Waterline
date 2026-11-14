@@ -181,7 +181,7 @@ def main(letters: list[str]) -> None:
         parts = {"letter": e["letter"], "costar": c, "fema": flood, "usgs_ground_elevation_ft": elev,
                  "matterport": mp, "vexcel": vx}
         write_json(BUILDINGS / bid / "parts.json", parts)
-        write_json(MEDIA / bid / "manifest.json", {
+        write_json(BUILDINGS / bid / "media_index.json", {
             "building_id": bid, "mesh": mp["mesh"], "panos": mp["panos"], "floors": mp["floors"],
             "rooms": mp["rooms"], "locations": mp["locations"], "aerial": vx["images"],
             "notes": ["face0 of each skybox was observed to be the up face; the order of faces 1-5 is not documented",
@@ -193,7 +193,7 @@ def main(letters: list[str]) -> None:
                        "aerial": len(vx["images"]), "parcel": vx["parcel_found"],
                        "value": building["improvement_value_usd"] is not None,
                        "fema": f"{building['flood_zone']}{' (1%)' if building['in_mapped_flood_zone'] else ''}",
-                       "coverage": round(building["scan_area_sqft"] / building["size_sqft"], 2)})
+                       "coverage": building["scan_coverage"]})
         print(f"  {e['letter']}: done {report[-1]}", flush=True)
     write_json(CACHE / "pull_report.json", report)
 

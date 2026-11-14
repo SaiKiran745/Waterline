@@ -2,50 +2,266 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "waterline/contracts/building.schema.json",
   "title": "Building",
-  "description": "One commercial building. Source fields are named in each description; see docs/DATA_NOTES.md.",
+  "description": "One commercial building (contract v1.1.0). Source fields are named in each description; see docs/DATA_NOTES.md.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["id", "costar_property_id", "name", "address", "lat", "lng", "property_type", "property_subtype",
-               "size_sqft", "size_basis", "year_built", "stories", "tenants", "value_usd", "improvement_value_usd",
-               "value_as_of", "value_source", "loading_docks_external", "drive_in_bays", "matterport_model_id",
-               "matterport_model_ids", "scan_area_sqft", "in_mapped_flood_zone", "flood_zone", "flood_zone_subtype",
-               "flood_zone_source", "ground_elevation_ft", "ground_elevation_source", "aerial_collection",
-               "aerial_capture_date"],
+  "required": [
+    "id",
+    "name",
+    "address",
+    "lat",
+    "lng",
+    "property_type",
+    "property_subtype",
+    "size_sqft",
+    "size_basis",
+    "year_built",
+    "stories",
+    "tenants",
+    "value_usd",
+    "improvement_value_usd",
+    "value_as_of",
+    "value_source",
+    "loading_docks_external",
+    "drive_in_bays",
+    "matterport_model_id",
+    "matterport_model_ids",
+    "scan_area_sqft",
+    "scan_coverage",
+    "in_mapped_flood_zone",
+    "flood_zone",
+    "flood_zone_subtype",
+    "flood_zone_source",
+    "ground_elevation_ft",
+    "ground_elevation_source",
+    "aerial_collection",
+    "aerial_capture_date"
+  ],
   "properties": {
-    "id": {"type": "string", "description": "Waterline id: the CoStar PropertyId as a string."},
-    "costar_property_id": {"type": "integer", "description": "CoStar commercial-property `id` (PropertyId)."},
-    "name": {"type": ["string", "null"], "description": "CoStar `buildingName`; often null, so the UI falls back to `address`."},
-    "address": {"type": "string", "description": "Built from CoStar `primaryAddress` (streetNumber, streetName, streetType, city, state, postcode)."},
-    "lat": {"type": "number", "minimum": -90, "maximum": 90, "description": "CoStar `primaryAddress.latitude`."},
-    "lng": {"type": "number", "minimum": -180, "maximum": 180, "description": "CoStar `primaryAddress.longitude`."},
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Waterline slug, for example 'building-a' or 'fixture-1'. The CoStar PropertyId is never exposed: it stays in the server's git-ignored mapping (data/cache/shortlist.json)."
+    },
+    "name": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "CoStar `buildingName`; often null, so the UI falls back to `address`."
+    },
+    "address": {
+      "type": "string",
+      "description": "Built from CoStar `primaryAddress` (streetNumber, streetName, streetType, city, state, postcode)."
+    },
+    "lat": {
+      "type": "number",
+      "minimum": -90,
+      "maximum": 90,
+      "description": "CoStar `primaryAddress.latitude`."
+    },
+    "lng": {
+      "type": "number",
+      "minimum": -180,
+      "maximum": 180,
+      "description": "CoStar `primaryAddress.longitude`."
+    },
     "property_type": {
       "type": "string",
-      "enum": ["Unknown", "Hospitality", "Industrial", "Land", "Office", "GeneralRetail", "Flex", "SportsAndEntertainment",
-               "MixedUse", "Specialty", "Multifamily", "Healthcare", "PropertyTypeUnknown", "Residential", "Homes"],
+      "enum": [
+        "Unknown",
+        "Hospitality",
+        "Industrial",
+        "Land",
+        "Office",
+        "GeneralRetail",
+        "Flex",
+        "SportsAndEntertainment",
+        "MixedUse",
+        "Specialty",
+        "Multifamily",
+        "Healthcare",
+        "PropertyTypeUnknown",
+        "Residential",
+        "Homes"
+      ],
       "description": "CoStar `propertyType`, decoded with schemas/enums.json PropertyType."
     },
-    "property_subtype": {"type": ["string", "null"], "description": "CoStar `propertySubtype`, decoded with enums.json PropertySubtype (for example Industrial_Warehouse)."},
-    "size_sqft": {"type": ["number", "null"], "minimum": 0, "description": "CoStar `grossBuildingAreaSquareFeet` (GBA)."},
-    "size_basis": {"const": "GBA", "description": "Always GBA: filled on every Houston retail, industrial and flex record."},
-    "year_built": {"type": ["integer", "null"], "description": "Latest `constructionEvents[].year` with eventType 2 (ConstructionComplete); can be approximate."},
-    "stories": {"type": ["integer", "null"], "minimum": 0, "description": "CoStar `numStoriesAboveGrade`. 1 means every scan of the building is on the ground floor."},
-    "tenants": {"type": "array", "items": {"type": "string"}, "description": "Names of current tenants: location-occupancy rows with null `toDate`, joined on `tenantLocationId` to company-detail `id`. May be out of date."},
-    "value_usd": {"type": ["integer", "null"], "minimum": 0, "description": "Assessor total value (`assessment.totalValue`) from the most recent CoStar sale comp on this property; null when there is none. Not a market value."},
-    "improvement_value_usd": {"type": ["integer", "null"], "minimum": 0, "description": "Assessor improvement value (`assessment.improvedValue`, buildings only, no land) from the same sale comp. Basis for structure loss when present."},
-    "value_as_of": {"type": ["string", "null"], "format": "date", "description": "`soldDate` of the sale comp the values come from."},
-    "value_source": {"type": ["string", "null"], "description": "Plain-text citation, for example 'CoStar sale comp <id>, assessment'."},
-    "loading_docks_external": {"type": ["integer", "null"], "minimum": 0, "description": "CoStar `propertyIndustrial|propertyFlex|propertyRetail.numExternalLoadingDocks`."},
-    "drive_in_bays": {"type": ["number", "null"], "minimum": 0, "description": "CoStar `propertyIndustrial|propertyFlex.driveInBays.numDriveInBays` (grade-level doors)."},
-    "matterport_model_id": {"type": ["string", "null"], "description": "The Matterport model used for the interior survey (a `videoKey` on a property attachment with videoExternalReferenceType 36 or 234)."},
-    "matterport_model_ids": {"type": "array", "items": {"type": "string"}, "description": "All Matterport model ids on the property (commercial-properties.csv MatterportModelId)."},
-    "scan_area_sqft": {"type": ["number", "null"], "minimum": 0, "description": "Matterport `model.dimensions(units: imperial).areaFloor` of `matterport_model_id`. Often far below size_sqft: a scan may cover only part of the building."},
-    "in_mapped_flood_zone": {"type": ["boolean", "null"], "description": "FEMA NFHL layer 28 `SFHA_TF` == 'T' (inside the 1% annual-chance Special Flood Hazard Area). Shaded zone X (0.2%) is false. Null when there is no NFHL coverage."},
-    "flood_zone": {"type": ["string", "null"], "description": "FEMA NFHL `FLD_ZONE`, for example AE, AO, X."},
-    "flood_zone_subtype": {"type": ["string", "null"], "description": "FEMA NFHL `ZONE_SUBTY`, for example FLOODWAY, '0.2 PCT ANNUAL CHANCE FLOOD HAZARD', 'AREA OF MINIMAL FLOOD HAZARD'."},
-    "flood_zone_source": {"type": ["string", "null"], "description": "For example 'FEMA NFHL, panel <FIRM_PAN>, effective <EFF_DATE>'."},
-    "ground_elevation_ft": {"type": ["number", "null"], "description": "Ground elevation at (lat, lng) in feet. Vertical datum not stated by the source; do not compare with FEMA BFE."},
-    "ground_elevation_source": {"type": ["string", "null"], "description": "'USGS EPQS' (default) or 'Vexcel ground-elevation.value'. On the shortlist Vexcel is 1.1 ft below to 3.8 ft above USGS."},
-    "aerial_collection": {"type": ["string", "null"], "description": "Vexcel collection of the aerial image shown, from the image XMP `Vexcel:collection`."},
-    "aerial_capture_date": {"type": ["string", "null"], "format": "date", "description": "Vexcel `last-capture-date` of that collection."}
+    "property_subtype": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "CoStar `propertySubtype`, decoded with enums.json PropertySubtype (for example Industrial_Warehouse)."
+    },
+    "size_sqft": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "CoStar `grossBuildingAreaSquareFeet` (GBA)."
+    },
+    "size_basis": {
+      "const": "GBA",
+      "description": "Always GBA: filled on every Houston retail, industrial and flex record."
+    },
+    "year_built": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "Latest `constructionEvents[].year` with eventType 2 (ConstructionComplete); can be approximate."
+    },
+    "stories": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "CoStar `numStoriesAboveGrade`. 1 means every scan of the building is on the ground floor."
+    },
+    "tenants": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Names of current tenants: location-occupancy rows with null `toDate`, joined on `tenantLocationId` to company-detail `id`. May be out of date."
+    },
+    "value_usd": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Assessor total value (`assessment.totalValue`) from the most recent CoStar sale comp on this property; null when there is none. Not a market value."
+    },
+    "improvement_value_usd": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Assessor improvement value (`assessment.improvedValue`, buildings only, no land) from the same sale comp. Basis for structure loss when present."
+    },
+    "value_as_of": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date",
+      "description": "`soldDate` of the sale comp the values come from."
+    },
+    "value_source": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Plain-text citation without CoStar ids, for example 'CoStar sale comp, deed assessment, 1 parcel matched by APN, assessment year 2024'."
+    },
+    "loading_docks_external": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "CoStar `propertyIndustrial|propertyFlex|propertyRetail.numExternalLoadingDocks`."
+    },
+    "drive_in_bays": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "CoStar `propertyIndustrial|propertyFlex.driveInBays.numDriveInBays` (grade-level doors)."
+    },
+    "matterport_model_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The Matterport model used for the interior survey (a `videoKey` on a property attachment with videoExternalReferenceType 36 or 234)."
+    },
+    "matterport_model_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "All Matterport model ids on the property (commercial-properties.csv MatterportModelId)."
+    },
+    "scan_area_sqft": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Matterport `model.dimensions(units: imperial).areaFloor` of `matterport_model_id`. Often far below size_sqft: a scan may cover only part of the building."
+    },
+    "scan_coverage": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1,
+      "description": "min(scan_area_sqft / size_sqft, 1). Capped at 1 because a scan can measure more floor than CoStar's GBA (covered outdoor areas, mezzanines, or a GBA that is out of date). Interior loss covers the scanned area only; structure loss is scaled by this share."
+    },
+    "in_mapped_flood_zone": {
+      "type": [
+        "boolean",
+        "null"
+      ],
+      "description": "FEMA NFHL layer 28 `SFHA_TF` == 'T' (inside the 1% annual-chance Special Flood Hazard Area). Shaded zone X (0.2%) is false. Null when there is no NFHL coverage."
+    },
+    "flood_zone": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "FEMA NFHL `FLD_ZONE`, for example AE, AO, X."
+    },
+    "flood_zone_subtype": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "FEMA NFHL `ZONE_SUBTY`, for example FLOODWAY, '0.2 PCT ANNUAL CHANCE FLOOD HAZARD', 'AREA OF MINIMAL FLOOD HAZARD'."
+    },
+    "flood_zone_source": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "For example 'FEMA NFHL, panel <FIRM_PAN>, effective <EFF_DATE>'."
+    },
+    "ground_elevation_ft": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "Ground elevation at (lat, lng) in feet. Vertical datum not stated by the source; do not compare with FEMA BFE."
+    },
+    "ground_elevation_source": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "'USGS EPQS' (default) or 'Vexcel ground-elevation.value'. On the shortlist Vexcel is 1.1 ft below to 3.8 ft above USGS."
+    },
+    "aerial_collection": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Vexcel collection of the aerial image shown, from the image XMP `Vexcel:collection`."
+    },
+    "aerial_capture_date": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date",
+      "description": "Vexcel `last-capture-date` of that collection."
+    }
   }
 }

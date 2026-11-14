@@ -95,7 +95,7 @@ Stack: FastAPI, `deepagents` for orchestration, a Gemini vision model for panora
 | B: UI, map, 3D viewer, slider | Codex | `frontend/` |
 | Shared | Human decides | `contracts/`, root files |
 
-Each tool works on its own branch (`ws-a`, `ws-b`) or git worktree. Merge to `main` at every checkpoint. Workstream B builds against `contracts/fixtures/` until the real API is ready, so it is never blocked.
+Both tools work on `main` in the same folder. Claude Code commits only `backend/`, `contracts/`, `docs/` and root files; Codex commits only `frontend/`. Always stage with `git add <your paths>`, never `git add -A`. Workstream B builds against `contracts/fixtures/` until the real API is ready, so it is never blocked.
 
 ## 8. Contracts (frozen)
 
@@ -136,6 +136,11 @@ API (backend):
   5. Stops and waits for approval before sending.
   6. Adapts to feedback (Amazon's "adaptive intelligence"): when a human corrects an asset height or deletes a wrong asset, the correction is saved to the dossier, the agent re-runs the scenario and mitigation ranking, and it applies the same correction to similar assets in that building, emitting a decision event that says so.
 - If the sponsor toolkit ships MCP servers, connect them as tools rather than rewriting clients.
+- **How LangChain judges:** complexity of the use case, effective use of Deep Agents (sub-agents, the file system and the other harness features) and the demo.
+- **Docs:** use the `docs-langchain` MCP server (`https://docs.langchain.com/mcp`) for every deepagents question.
+- **Before writing agent code,** read `../hack-princeton-intro-to-deep-agents` (`modules/01`, `modules/02` and `agent.py`). Follow its patterns for streaming the live plan, files and sub-agent activity, and for approvals.
+- **Harness features to use:** sub-agents, the file dossier, planning, human-in-the-loop approval, skills (survey method, loss method), and memory for human corrections.
+- **Model:** vision and the orchestrator both run on Gemini. `AGENT_MODEL` uses the `provider:model` format, for example `google_genai:gemini-3.8-flash`. The `langchain-google-genai` integration reads `GOOGLE_API_KEY` by default, so pass `GEMINI_API_KEY` to it explicitly. Anthropic is optional.
 
 ## 11. 3D water view: fallback ladder
 
