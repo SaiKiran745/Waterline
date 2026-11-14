@@ -99,11 +99,19 @@ Both tools work on `main` in the same folder. Claude Code commits only `backend/
 
 ## 8. Contracts (frozen)
 
-**`contracts/` v1.0.0 is the source of truth.** Read `contracts/README.md` for the schemas (Building, EntryPoint, Asset, ScenarioResult, Mitigation, AgentEvent), the fixtures, and what changed from the first sketch. Each schema property's description names the source field it maps from. Change `contracts/` only under rule 7 of section 5.
+**`contracts/` v1.1.0 is the source of truth.** Read `contracts/README.md` for the schemas (Building, EntryPoint, Asset, ScenarioResult, Mitigation, AgentEvent), the fixtures, and the changelog.
+
+v1.1.0 changed three things:
+- Building ids are slugs such as `building-h`. They appear in URLs and as `building_id` everywhere.
+- No CoStar property id appears in any response, URL, UI or committed file.
+- `Building.scan_coverage` is new: scanned area ÷ CoStar GBA, capped at 1.
+
+Each schema property's description names the source field it maps from. Change `contracts/` only under rule 7 of section 5.
 
 API (backend):
 - `GET /buildings` list of Building for the triage map
 - `GET /buildings/{id}` `{"building": Building, "entry_points": [EntryPoint], "assets": [Asset]}`
+- `GET /buildings/{id}/media` media manifest (mesh, aerial images, panorama faces cleared by the privacy screen)
 - `GET /media/{path}` cached meshes, panoramas and aerial images (served to localhost only)
 - `GET /buildings/{id}/scenario?depth_ft=` ScenarioResult (must answer in under 100 ms: pure computation over cached assets, so the slider is smooth; the front end may also compute client-side from the same data)
 - `GET /buildings/{id}/mitigations?depth_ft=`

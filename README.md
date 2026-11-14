@@ -29,6 +29,26 @@ python3.14 -m venv .venv                         # any Python 3.11+
 .venv/bin/python -m pytest -q                    # tests
 ```
 
+### Run the backend for the front end
+
+Keep this running in its own terminal while the front end is up:
+
+```bash
+cd backend && .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+- The front end calls `http://localhost:8000` (`WATERLINE_DATA_SOURCE=api` in `frontend/.env.local`, the default).
+- CORS allows `http://localhost:3000`.
+- `/media` answers only to requests from this machine.
+- To keep it running after the terminal closes:
+
+```bash
+cd backend && nohup .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 > ../data/cache/uvicorn.log 2>&1 &
+```
+
+- To stop it: `kill $(lsof -tiTCP:8000 -sTCP:LISTEN)`.
+- Add `DEMO_MODE=1` in front of either command to serve strictly from cache.
+
 `DEMO_MODE=1` (in `.env` or the environment) makes the backend read only from `data/cache/` and fail loudly on a miss: `DEMO_MODE=1 .venv/bin/python -m app.sources.pull` checks that the cache is complete.
 
 ### API
