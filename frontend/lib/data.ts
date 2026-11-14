@@ -1,7 +1,8 @@
 import buildingFixture from "../../contracts/fixtures/building.json";
 import entryPointsFixture from "../../contracts/fixtures/entry_points.json";
 import assetsFixture from "../../contracts/fixtures/assets.json";
-import scenarioFixture from "../../contracts/fixtures/scenario_2ft.json";
+import scenarioTableFixture from "../../contracts/fixtures/scenario_table.json";
+import triageFixture from "../../contracts/fixtures/triage.json";
 import mitigationsFixture from "../../contracts/fixtures/mitigations.json";
 import eventsFixture from "../../contracts/fixtures/agent_events.json";
 import type {
@@ -12,7 +13,8 @@ import type {
   EntryPoint,
   MediaManifest,
   Mitigation,
-  ScenarioResult,
+  ScenarioTable,
+  TriageRow,
 } from "./contracts";
 
 const API_BASE = "http://localhost:8000";
@@ -54,36 +56,27 @@ export async function getBuildings(): Promise<Building[]> {
   return [buildingFixture as unknown as Building];
 }
 
+export async function getTriage(depthFt: 1 | 2 | 4 | 6): Promise<TriageRow[]> {
+  if (source === "api") return api<TriageRow[]>(`/triage?depth_ft=${depthFt}`);
+  return triageFixture as TriageRow[];
+}
+
 export async function getBuildingBundle(id: string): Promise<BuildingBundle | null> {
   if (source === "api") {
     try {
-      const [detail, rawManifest] = await Promise.all([
-        api<{ building: Building; entry_points: EntryPoint[]; assets: Asset[] }>(`/buildings/${id}`),
+      const [detail, rawManifest, scenarioTable, mitigations] = await Promise.all([
+        api<{ building: Building; entry_points: EntryPoint[]; assets: Asset[] }>(`/buildings/${encodeURIComponent(id)}`),
         optionalApi<MediaManifest>(`/media/${encodeURIComponent(id)}/manifest.json`),
+        api<ScenarioTable>(`/buildings/${encodeURIComponent(id)}/scenario_table`),
+        optionalApi<Mitigation[]>(`/buildings/${encodeURIComponent(id)}/mitigations?depth_ft=2`),
       ]);
       const media = normalizeManifest(rawManifest);
-      if (detail.assets.length === 0) {
-        return {
-          building: detail.building,
-          entryPoints: detail.entry_points,
-          assets: [],
-          scenario: emptyScenario(detail.building.id),
-          mitigations: [],
-          events: [],
-          meshUrl: media?.mesh?.url ?? null,
-          media,
-        };
-      }
-      const [scenario, mitigations] = await Promise.all([
-        api<ScenarioResult>(`/buildings/${id}/scenario?depth_ft=2`),
-        api<Mitigation[]>(`/buildings/${id}/mitigations?depth_ft=2`),
-      ]);
       return {
         building: detail.building,
         entryPoints: detail.entry_points,
         assets: detail.assets,
-        scenario,
-        mitigations,
+        scenarioTable,
+        mitigations: mitigations ?? [],
         events: [],
         meshUrl: media?.mesh?.url ?? null,
         media,
@@ -97,25 +90,11 @@ export async function getBuildingBundle(id: string): Promise<BuildingBundle | nu
   const building = buildingFixture as unknown as Building;
   const entryPoints = entryPointsFixture as EntryPoint[];
   const assets = assetsFixture as Asset[];
-  const scenario = scenarioFixture as ScenarioResult;
+  const scenarioTable = scenarioTableFixture as ScenarioTable;
   const mitigations = mitigationsFixture as Mitigation[];
   const events = eventsFixture as AgentEvent[];
   if (building.id !== id) return null;
-  return { building, entryPoints, assets, scenario, mitigations, events, meshUrl: null, media: null };
-}
-
-function emptyScenario(buildingId: string): ScenarioResult {
-  return {
-    building_id: buildingId,
-    depth_ft: 2,
-    depth_reference: "interior water depth above ground-floor slab",
-    loss_usd_low: 0,
-    loss_usd_high: 0,
-    assets_hit: [],
-    structure_loss_usd_low: 0,
-    structure_loss_usd_high: 0,
-    assumptions: [],
-  };
+  return { building, entryPoints, assets, scenarioTable, mitigations, events, meshUrl: null, media: null };
 }
 
 export async function forwardSend(buildingId: string, body: string) {

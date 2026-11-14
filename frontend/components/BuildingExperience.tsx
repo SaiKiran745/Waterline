@@ -10,7 +10,7 @@ import { WaterSlider } from "./WaterSlider";
 import { LossCounter } from "./LossCounter";
 import { DetailTabs } from "./DetailTabs";
 import { AssumptionsDrawer } from "./AssumptionsDrawer";
-import { computeScenario } from "@/lib/scenario";
+import { assetDamageMap, scenarioFromTable, scenarioRow } from "@/lib/scenario";
 import type { BuildingBundle } from "@/lib/contracts";
 
 export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBundle; dataSource: string }) {
@@ -18,13 +18,10 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
   const [view, setView] = useState<"model" | "rooms">("model");
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(bundle.assets[0]?.id ?? null);
   const [assumptionsOpen, setAssumptionsOpen] = useState(false);
-  const scenario = useMemo(
-    () => computeScenario(bundle.building.id, bundle.assets, depth, bundle.scenario.assumptions),
-    [bundle.assets, bundle.building.id, bundle.scenario.assumptions, depth],
-  );
-  const scannedPercent = bundle.building.scan_area_sqft && bundle.building.size_sqft
-    ? Math.min(100, Math.round((bundle.building.scan_area_sqft / bundle.building.size_sqft) * 100))
-    : null;
+  const scenario = useMemo(() => scenarioFromTable(bundle.scenarioTable, depth), [bundle.scenarioTable, depth]);
+  const row = useMemo(() => scenarioRow(bundle.scenarioTable, depth), [bundle.scenarioTable, depth]);
+  const damageByAsset = useMemo(() => assetDamageMap(bundle.scenarioTable, depth), [bundle.scenarioTable, depth]);
+  const scannedPercent = bundle.building.scan_coverage == null ? null : Math.round(bundle.building.scan_coverage * 100);
   const selectedAsset = bundle.assets.find((asset) => asset.id === selectedAssetId) ?? null;
 
   return (
@@ -58,12 +55,12 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
               <>
                 <div className="viewer-pane water-model-pane">
                   <div className="pane-label">WATER MODEL</div>
-                  <Viewer3D assets={bundle.assets} scenario={scenario} depthFt={depth} meshUrl={bundle.meshUrl} />
+                  <Viewer3D assets={bundle.assets} damageByAsset={damageByAsset} depthFt={depth} meshUrl={bundle.meshUrl} />
                   <div className="viewer-overlay top-left">
                     <span>INTERIOR WATER</span><strong>{depth.toFixed(2)}<small> FT</small></strong>
                   </div>
                   <div className="viewer-overlay bottom-left">
-                    <span className="legend-dot clear" /> CLEAR <span className="legend-dot possible" /> POSSIBLE <span className="legend-dot likely" /> LIKELY
+                    <span className="legend-dot clear" /> CLEAR <span className="legend-dot possible" /> PARTIAL <span className="legend-dot likely" /> SEVERE <span className="legend-diamond" /> VEHICLE
                   </div>
                 </div>
                 <div className="viewer-pane matterport-pane">
@@ -72,20 +69,20 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
                 </div>
               </>
             ) : (
-              <RoomGrid assets={bundle.assets} scenario={scenario} depthFt={depth} />
+              <RoomGrid assets={bundle.assets} damageByAsset={damageByAsset} depthFt={depth} />
             )}
           </div>
           <div className="scenario-console">
-            <LossCounter scenario={scenario} scannedPercent={scannedPercent} />
+            <LossCounter row={row} scannedPercent={scannedPercent} />
             <WaterSlider depth={depth} onChange={setDepth} />
             <button className="assumptions-button" onClick={() => setAssumptionsOpen(true)}>
               <span>ASSUMPTIONS</span><b>{scenario.assumptions.length}</b>
             </button>
           </div>
         </section>
-        <DetailTabs bundle={bundle} scenario={scenario} dataSource={dataSource} selectedAssetId={selectedAssetId} onSelectAsset={setSelectedAssetId} />
+        <DetailTabs bundle={bundle} scenario={scenario} damageByAsset={damageByAsset} dataSource={dataSource} selectedAssetId={selectedAssetId} onSelectAsset={setSelectedAssetId} />
       </section>
-      <AssumptionsDrawer open={assumptionsOpen} onClose={() => setAssumptionsOpen(false)} assumptions={scenario.assumptions} />
+      <AssumptionsDrawer open={assumptionsOpen} onClose={() => setAssumptionsOpen(false)} assumptions={bundle.scenarioTable.assumptions} />
     </main>
   );
 }

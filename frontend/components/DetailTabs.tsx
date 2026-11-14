@@ -5,7 +5,7 @@ import { AssetList } from "./AssetList";
 import { MitigationTable } from "./MitigationTable";
 import { AgentTrace } from "./AgentTrace";
 import { ApprovePanel } from "./ApprovePanel";
-import type { BuildingBundle, ScenarioResult } from "@/lib/contracts";
+import type { AssetDamage, BuildingBundle, ScenarioResult } from "@/lib/contracts";
 
 const tabs = [
   { id: "assets", label: "ASSETS" },
@@ -16,7 +16,7 @@ const tabs = [
 
 type TabId = (typeof tabs)[number]["id"];
 
-export function DetailTabs({ bundle, scenario, dataSource, selectedAssetId, onSelectAsset }: { bundle: BuildingBundle; scenario: ScenarioResult; dataSource: string; selectedAssetId: string | null; onSelectAsset: (assetId: string) => void }) {
+export function DetailTabs({ bundle, scenario, damageByAsset, dataSource, selectedAssetId, onSelectAsset }: { bundle: BuildingBundle; scenario: ScenarioResult; damageByAsset: Map<string, AssetDamage>; dataSource: string; selectedAssetId: string | null; onSelectAsset: (assetId: string) => void }) {
   const [tab, setTab] = useState<TabId>("assets");
   return (
     <aside className="details-panel panel-frame">
@@ -28,7 +28,7 @@ export function DetailTabs({ bundle, scenario, dataSource, selectedAssetId, onSe
         ))}
       </div>
       <div className="tab-content" role="tabpanel">
-        {tab === "assets" ? <AssetList assets={bundle.assets} scenario={scenario} selectedAssetId={selectedAssetId} onSelectAsset={onSelectAsset} /> : null}
+        {tab === "assets" ? <AssetList assets={bundle.assets} scenario={scenario} damageByAsset={damageByAsset} selectedAssetId={selectedAssetId} onSelectAsset={onSelectAsset} /> : null}
         {tab === "mitigation" ? <MitigationTable buildingId={bundle.building.id} mitigations={bundle.mitigations} currentDepth={scenario.depth_ft} dataSource={dataSource} /> : null}
         {tab === "trace" ? <AgentTrace buildingId={bundle.building.id} fixtureEvents={bundle.events} dataSource={dataSource} /> : null}
         {tab === "approve" ? <ApprovePanel building={bundle.building} mitigations={bundle.mitigations} dataSource={dataSource} /> : null}

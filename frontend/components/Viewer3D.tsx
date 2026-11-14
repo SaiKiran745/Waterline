@@ -4,12 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
-import type { Asset, ScenarioResult } from "@/lib/contracts";
-import { hitMap } from "@/lib/scenario";
+import type { Asset, AssetDamage } from "@/lib/contracts";
+import { damageColour } from "@/lib/scenario";
 
 const WATER = 0x28b8db;
 
-export function Viewer3D({ assets, scenario, depthFt, meshUrl }: { assets: Asset[]; scenario: ScenarioResult; depthFt: number; meshUrl: string | null }) {
+export function Viewer3D({ assets, damageByAsset, depthFt, meshUrl }: { assets: Asset[]; damageByAsset: Map<string, AssetDamage>; depthFt: number; meshUrl: string | null }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const waterRef = useRef<THREE.Mesh<THREE.PlaneGeometry, THREE.MeshPhysicalMaterial> | null>(null);
   const markerMaterialsRef = useRef(new Map<string, THREE.MeshStandardMaterial>());
@@ -57,15 +57,15 @@ export function Viewer3D({ assets, scenario, depthFt, meshUrl }: { assets: Asset
     sun.castShadow = true;
     scene.add(sun);
 
-    const hit = hitMap(scenario);
     const markerGroup = new THREE.Group();
     const markerMaterials = markerMaterialsRef.current;
     markerMaterials.clear();
     assets.filter((asset) => asset.position).forEach((asset) => {
       const position = asset.position!;
-      const state = hit.get(asset.id);
-      const material = new THREE.MeshStandardMaterial({ color: state === "likely" ? 0xff5d57 : state === "possible" ? 0xf6ad55 : 0x70d4c8, emissive: state === "likely" ? 0x641715 : 0x0b2827, emissiveIntensity: 0.4 });
-      const marker = new THREE.Mesh(new THREE.SphereGeometry(0.48, 20, 20), material);
+      const damage = damageByAsset.get(asset.id);
+      const material = new THREE.MeshStandardMaterial({ color: new THREE.Color(damageColour(damage?.fractionHigh ?? 0)), emissive: damage?.fractionHigh ? 0x4c1a16 : 0x0b2827, emissiveIntensity: 0.4 });
+      const geometry = damage?.movable ? new THREE.OctahedronGeometry(0.62, 0) : new THREE.SphereGeometry(0.48, 20, 20);
+      const marker = new THREE.Mesh(geometry, material);
       marker.position.set(position.x, position.y, Math.max(position.z, 0.4));
       markerGroup.add(marker);
       markerMaterials.set(asset.id, material);
@@ -184,14 +184,13 @@ export function Viewer3D({ assets, scenario, depthFt, meshUrl }: { assets: Asset
 
   useEffect(() => {
     if (waterRef.current) waterRef.current.position.z = depthFt * 0.3048;
-    const hits = hitMap(scenario);
     markerMaterialsRef.current.forEach((material, assetId) => {
-      const assetStatus = hits.get(assetId);
-      material.color.setHex(assetStatus === "likely" ? 0xff5d57 : assetStatus === "possible" ? 0xf6ad55 : 0x70d4c8);
-      material.emissive.setHex(assetStatus === "likely" ? 0x641715 : 0x0b2827);
+      const damage = damageByAsset.get(assetId);
+      material.color.set(damageColour(damage?.fractionHigh ?? 0));
+      material.emissive.setHex(damage?.fractionHigh ? 0x4c1a16 : 0x0b2827);
       material.needsUpdate = true;
     });
-  }, [depthFt, scenario]);
+  }, [damageByAsset, depthFt]);
 
   return (
     <div className="viewer3d" ref={hostRef}>

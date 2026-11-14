@@ -1,6 +1,5 @@
 export type Building = {
   id: string;
-  costar_property_id: number;
   name: string | null;
   address: string;
   lat: number;
@@ -21,6 +20,7 @@ export type Building = {
   matterport_model_id: string | null;
   matterport_model_ids: string[];
   scan_area_sqft: number | null;
+  scan_coverage: number | null;
   in_mapped_flood_zone: boolean | null;
   flood_zone: string | null;
   flood_zone_subtype: string | null;
@@ -90,6 +90,62 @@ export type ScenarioResult = {
   assumptions: Assumption[];
 };
 
+export type ScenarioTableRow = {
+  depth_ft: number;
+  loss_usd_low: number;
+  loss_usd_high: number;
+  structure_loss_usd_low: number;
+  structure_loss_usd_high: number;
+  total_usd_low: number;
+  total_usd_high: number;
+  assets_hit: Array<{ asset_id: string; status: HitStatus }>;
+};
+
+export type ScenarioTableAsset = {
+  asset_id: string;
+  value_basis: string;
+  value_usd_low: number;
+  value_usd_high: number;
+  critical_ft: number;
+  movable: boolean;
+  fraction_low: number[];
+  fraction_high: number[];
+};
+
+export type ScenarioTable = {
+  building_id: string;
+  depth_reference: string;
+  step_ft: number;
+  steps_ft: number[];
+  rows: ScenarioTableRow[];
+  assets: ScenarioTableAsset[];
+  assumptions: Assumption[];
+};
+
+export type AssetDamage = {
+  status: HitStatus | "clear";
+  fractionLow: number;
+  fractionHigh: number;
+  movable: boolean;
+};
+
+export type TriageLoss = {
+  contents: [number, number];
+  structure: [number, number];
+  total: [number, number];
+};
+
+export type TriageRow = {
+  building_id: string;
+  rank: number;
+  status: "surveyed" | "structure only";
+  positions_read: number;
+  scan_positions: number;
+  contents_assets: number;
+  note: string;
+  loss_by_depth_ft: Record<"1" | "2" | "4" | "6", TriageLoss>;
+};
+
 export type Mitigation = {
   id: string;
   building_id: string;
@@ -139,7 +195,7 @@ export type BuildingBundle = {
   building: Building;
   entryPoints: EntryPoint[];
   assets: Asset[];
-  scenario: ScenarioResult;
+  scenarioTable: ScenarioTable;
   mitigations: Mitigation[];
   events: AgentEvent[];
   meshUrl: string | null;
