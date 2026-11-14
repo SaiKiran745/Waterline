@@ -30,7 +30,9 @@ RUNS = CACHE / "agent" / "runs"
 class Session:
     def __init__(self, bid: str, echo: bool = True, cached_positions_only: bool = False, quick_scan: int | None = None):
         self.bid = bid
-        self.run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:6]
+        now = datetime.now(timezone.utc)
+        self.started_at = now.isoformat(timespec="seconds")
+        self.run_id = now.strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:6]
         self.trace = events.Trace(bid, self.run_id, echo=echo)
         self.cb = orchestrator.SpendCallback(orchestrator.model_name())
         self.sub_cb = orchestrator.SpendCallback(orchestrator.subagent_model_name())

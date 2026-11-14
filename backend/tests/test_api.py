@@ -172,3 +172,42 @@ def test_approve_without_recipient_uses_the_first_allowed_address(monkeypatch, t
 
 def test_demo_reset_is_localhost_only():
     assert remote.post("/demo/reset").status_code == 403
+
+
+def test_agent_status_reports_memory_and_last_delivery(monkeypatch, tmp_path):
+    """GET /agent: active human corrections, corrections the agent applied this session, and the last send."""
+    import json
+    from types import SimpleNamespace
+
+    from app import buildings, corrections
+    from app.actions import send as send_action
+    from app.agent import service
+    bid = "building-e"
+    if bid not in buildings.building_ids():
+        pytest.skip("building-e not pulled")
+    path = tmp_path / "corrections.json"
+    monkeypatch.setattr(corrections, "_path", lambda b: path)
+    monkeypatch.setattr(send_action, "LOG_DIR", tmp_path)
+    monkeypatch.setenv("ALLOWED_RECIPIENTS", "ops@example.com")
+    for k in send_action.SETTINGS:
+        monkeypatch.delenv(k, raising=False)
+    rec = lambda i, by, ts, **kw: {"id": i, "asset_id": f"{bid}-a{i[-1]}", "action": "patch", "by": by, "ts": ts,
+                                   "changes": {"height_ft_low": 1.5}, "note": "steel desks", **kw}
+    path.write_text(json.dumps([
+        rec("corr-h1", "human", "2026-11-14T10:00:00+00:00"),
+        rec("corr-a2", "agent", "2026-11-14T11:59:00+00:00"),                       # before this session
+        rec("corr-a3", "agent", "2026-11-14T12:05:00+00:00"),                       # in this session
+        rec("corr-h4", "human", "2026-11-14T09:00:00+00:00", inactive={"reason": "x"})]))
+
+    s = local.get(f"/buildings/{bid}/agent").json()
+    assert s["session"] is None and s["last_delivery"] is None
+    assert s["memory"]["active_human_corrections"] == 1 and s["memory"]["applied_this_session"] == 0
+    assert [c["id"] for c in s["memory"]["human_corrections"]] == ["corr-h1"]
+
+    fake = SimpleNamespace(run_id="r1", started_at="2026-11-14T12:00:00+00:00", turns=[], trace=SimpleNamespace(events=[]))
+    monkeypatch.setitem(service._sessions, bid, fake)
+    send_action.send_playbook(bid, "ops@example.com", 4, "<p>x</p>", approved=True)
+    s = local.get(f"/buildings/{bid}/agent").json()
+    assert s["memory"]["applied_this_session"] == 1 and s["memory"]["applied_this_session_asset_ids"] == [f"{bid}-a3"]
+    d = s["last_delivery"]
+    assert d["status"] == "draft_only" and d["recipient"] == "ops@example.com" and d["at"] and d["detail"]

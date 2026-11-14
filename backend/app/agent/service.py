@@ -76,13 +76,38 @@ def waiting_for_approval(bid: str) -> bool:
     return bool(s and s.turns and s.turns[-1]["interrupted"] and not running(bid))
 
 
+def memory_summary(bid: str, started_at: str | None) -> dict:
+    """Active human corrections, and how many assets the agent applied them to in this session (agent-propagated
+    corrections recorded since the session started; 0 without a session). Inactive corrections never count."""
+    from datetime import datetime
+
+    from app import corrections
+    recs = corrections.load(bid)
+    human = [r for r in recs if r["by"] == "human"]
+    since = datetime.fromisoformat(started_at) if started_at else None
+    applied = [r for r in recs if r["by"] != "human" and since and datetime.fromisoformat(r["ts"]) >= since]
+    return {"active_human_corrections": len(human),
+            "human_corrections": [{"id": r["id"], "asset_id": r["asset_id"], "action": r["action"],
+                                   "changes": r.get("changes"), "note": r.get("note"), "at": r["ts"]} for r in human],
+            "applied_this_session": len(applied),
+            "applied_this_session_asset_ids": [r["asset_id"] for r in applied]}
+
+
+def last_delivery(bid: str) -> dict | None:
+    """The latest send attempt: status (sent, draft_only, refused, failed), recipient, time and detail."""
+    from app.actions import send as send_action
+    d = send_action.last(bid)
+    return {"status": d["status"], "recipient": d["recipient"], "at": d["at"], "detail": d.get("detail")} if d else None
+
+
 def status(bid: str) -> dict:
     s = _sessions.get(bid)
+    extra = {"memory": memory_summary(bid, getattr(s, "started_at", None)), "last_delivery": last_delivery(bid)}
     if s is None:
-        return {"building_id": bid, "session": None}
+        return {"building_id": bid, "session": None, **extra}
     return {"building_id": bid, "run_id": s.run_id, "running": running(bid), "turns": s.turns,
             "waiting_for_approval": waiting_for_approval(bid), "events": len(s.trace.events),
-            "error": _errors.get(bid), "events_url": f"/buildings/{bid}/events"}
+            "error": _errors.get(bid), "events_url": f"/buildings/{bid}/events", **extra}
 
 
 def has_live(bid: str) -> bool:

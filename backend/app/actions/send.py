@@ -33,6 +33,14 @@ def _log(bid: str, rec: dict) -> None:
     write_json(path, log + [rec])
 
 
+def last(bid: str) -> dict | None:
+    """The most recent delivery attempt for a building (sends.json), or None."""
+    import json
+    path = LOG_DIR / bid / "sends.json"
+    log = json.loads(path.read_text()) if path.exists() else []
+    return log[-1] if log else None
+
+
 def send_playbook(bid: str, recipient: str, depth_ft: float, html: str, approved: bool) -> dict:
     r = (recipient or "").strip().lower()
     out = {"building_id": bid, "recipient": r, "depth_ft": depth_ft, "approved": bool(approved),

@@ -26,6 +26,98 @@ Fixtures are fake ("FIXTURE, not real data") and contain no sponsor data. Phase 
 
 `backend/tests/test_contracts.py` validates every fixture.
 
+## Agent flow (API)
+
+The agent runs one session per building, as up to four turns: assess → depth change → draft and request send → approval. Each turn runs in the background. A POST starts a turn and returns at once with the session status; `GET /events` streams the turn, and `GET /agent` says when it has finished. These endpoints are not JSON-schema'd. Shapes below are as implemented and tested (`backend/tests/test_api.py`, `test_demo_mode.py`).
+
+**Typical sequence:**
+1. `POST /run` and open `/events`.
+2. When the stream sends `end`, `POST /depth` and reopen `/events?after=<last id>`.
+3. `POST /request_send` and reopen `/events?after=…`. The stream's `end` carries `waiting_for_approval: true`.
+4. `POST /send {"approved": true}` and reopen `/events?after=…`.
+
+Unknown building: 404. Another turn still running: 409.
+
+### `POST /buildings/{id}/run`
+- **Body:** `{"depth_ft": 1}` starts a live session (turn 1, assess at that depth).
+  - `{"replay": true}` returns the last saved run instead, without starting anything.
+  - Under `DEMO_MODE=1`, every `/run` is a replay unless the body has `"live": true`. The demo-mode replay is the pinned hero run. It also puts that run's resulting corrections in place, so the numbers the UI fetches match the ones the trace quotes; `POST /demo/reset` restores the starting state.
+- **Live response:** the session status (see `GET /agent`).
+- **Replay response:** `{"status": "replay", "building_id", "run_id", "recorded_at", "events", "seconds", "cost_usd", "model_calls", "turns", "replay": true, "label", "events_url"}`, plus `"outcome_applied"` in demo mode.
+  - `label` starts with `REPLAY` and must be shown while it plays.
+  - `events_url` is `/buildings/{id}/events?replay=1`.
+- **Errors:** 404 when there is no saved run to replay; 409 when a turn is still running.
+
+### `GET /buildings/{id}/events` (Server-Sent Events)
+- **Query:**
+  - `after=<event id>`: send only events with a larger id. A reconnecting `EventSource` sends `Last-Event-ID`, which is honoured the same way.
+  - `replay=1`: force the saved run even while a session exists.
+  - `speed=1`: replay pacing; 0 sends everything at once.
+- **Live** (a session exists):
+  - `event: agent_event` with `id: <event id>` and `data: AgentEvent` (`agent_event.schema.json`), for every event after `after`. New ones follow as they arrive.
+  - When the current turn ends: `event: end`, `data: {"events", "waiting_for_approval", "error"}`. The stream then closes.
+  - Without `after`, each connection resends the session from its first event.
+- **Replay** (no session, or `replay=1`): `event: replay` first, with the same label object as the replay response. Then every `agent_event`. Then `event: end`, `data: {"events", "replay": true, "label"}`.
+- **Errors:** 404 when there is no session and no saved run.
+
+### `POST /buildings/{id}/depth`
+- **Body:** `{"depth_ft": 4}`, optional `"recipient"`. Starts turn 2: the agent re-plans, re-prices and re-ranks at the new depth, and the trace gets a `replan` event and a "Priority change" decision.
+- **Response:** the session status.
+- **Errors:** 409 with no session (POST `/run` first) or while a turn runs; 403 if the recipient (given, or the default) is not in `ALLOWED_RECIPIENTS`.
+
+### `POST /buildings/{id}/request_send`
+- **Body:** `{}` or `{"recipient": "<in ALLOWED_RECIPIENTS>"}` (default: the first allowed address).
+- **What happens:** turn 3. Communications drafts the report and playbook (dossier files), then the agent calls `send_playbook`, which pauses. The stream ends with `waiting_for_approval: true`, after an `awaiting_approval` event.
+- **Response:** the session status.
+- **Errors:** 409 or 403 as above.
+
+### `POST /buildings/{id}/send?depth_ft=`
+- **Body:** `{"approved": true | false, "recipient"?, "note"?}`. With no recipient, the first allowed address is used.
+- **While the agent waits for approval:**
+  - `true` resumes it (turn 4); its `send_playbook` tool sends. The response is the session status.
+  - `false` rejects, with `note` as the reason; the response is the session status.
+- **Otherwise:**
+  - `true` sends the playbook at `depth_ft` directly. The response is the delivery record `{"building_id", "recipient", "depth_ft", "approved", "at", "status", "detail"}`.
+  - `false` returns 400.
+- **Delivery `status`:**
+  - `sent`: delivered over SMTP.
+  - `draft_only`: SMTP is not configured, or `DEMO_MODE=1`. Show `detail`, which reads "draft only, not sent: …".
+  - `refused`: not approved, or recipient not allowed.
+  - `failed`: SMTP error, given in `detail`.
+- **Errors:** 403 when the recipient is not in `ALLOWED_RECIPIENTS`.
+
+### `GET /buildings/{id}/agent`
+- **Without a session:** `{"building_id", "session": null, "memory", "last_delivery"}`.
+- **With a session:** `{"building_id", "run_id", "running", "turns", "waiting_for_approval", "events", "error", "events_url", "memory", "last_delivery"}`.
+  - `turns`: `[{"turn": "assess" | "replan" | "send" | "approval", "seconds", "model_calls", "cost_usd", "interrupted"}]`.
+  - `error`: null, or a budget or model error from the last turn.
+  - Every POST above that returns "the session status" returns this same object.
+- **`memory`** (human corrections the agent remembers):
+  - `active_human_corrections`: integer. Corrections a person made through PATCH or DELETE that are still active.
+  - `human_corrections`: `[{"id", "asset_id", "action": "patch" | "delete", "changes", "note", "at"}]`.
+  - `applied_this_session`: integer. How many assets the agent applied a human correction to during the current session (agent-propagated corrections since the session started). It is 0 without a session.
+  - `applied_this_session_asset_ids`: those assets' ids.
+  - Inactive corrections (agent copies that no longer match any asset) are never counted.
+- **`last_delivery`:** null, or the latest send attempt for this building: `{"status", "recipient", "at", "detail"}`. Status values are as for `/send`.
+
+### `POST /demo/reset` (localhost only) and `GET /demo/state`
+- **Reset:** puts the demo in its starting state:
+  - every building's full stored survey;
+  - exactly one human correction on E and no agent copies;
+  - the agent's memory rebuilt;
+  - dossiers emptied (the send log is kept);
+  - the triage ranking recomputed;
+  - no agent sessions, and depth 1 ft.
+- **Properties:** no model calls; safe to repeat.
+- **Response:** `{"reset_at", "depth_ft": 1.0, "agent_session": null, "baseline_taken_at", "buildings": {"<id>": {"positions_read", "scan_positions", "assets", "human_corrections", "agent_corrections"}}}`.
+- **Errors:** 409 while an agent turn runs; 403 from another host.
+- **`GET /demo/state`:** returns the object the last reset returned, or `{"depth_ft": 1.0, "reset_at": null}` if there has been none.
+
+### Related
+- The fixture building `fixture-1`: `/run` and `/events` replay the fixture trace (`fixtures/agent_events.json`).
+- `GET /buildings/{id}/runs/latest` returns the replay object without starting anything.
+- `GET /buildings/{id}/dossier` returns every file the agent wrote: `{"building_id", "files": [{"path", "bytes", "modified", "content"}]}`.
+
 ## Changes from AGENTS.md section 8
 
 **Building**
@@ -58,6 +150,11 @@ Fixtures are fake ("FIXTURE, not real data") and contain no sponsor data. Phase 
 - Added `id` (sequence number), `building_id` and `data`.
 
 ## Changelog
+
+### 1.2.2 (2026-11-14, requested by Codex; no schema changed)
+
+- New "Agent flow (API)" section above: run, events (with `?after`), depth, request_send, send, agent, and demo reset and state.
+- `GET /buildings/{id}/agent` (and every POST that returns the session status) adds `memory` (`active_human_corrections`, `human_corrections`, `applied_this_session`, `applied_this_session_asset_ids`) and `last_delivery` (`status`, `recipient`, `at`, `detail`, or null).
 
 ### 1.2.1 (2026-11-14, human decisions on the stored survey; no schema shape changed)
 
