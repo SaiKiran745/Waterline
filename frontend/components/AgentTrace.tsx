@@ -22,7 +22,7 @@ function eventSignal(event: AgentEvent): Signal {
   if (text.includes("layer discrepancy")) return "discrepancy";
   if (text.includes("re-look") || text.includes("relook") || text.includes("neighboring scan") || text.includes("neighbouring scan")) return "relook";
   if (text.includes("memory") || text.includes("correction") || text.includes("skipped")) return "memory";
-  if (text.includes("survey batch") || (text.includes("batch") && text.includes("reason"))) return "batch";
+  if (typeof event.data?.batch === "number" || text.includes("survey batch") || text.includes("why now") || (text.includes("batch") && text.includes("reason"))) return "batch";
   if (text.includes("loaded skill") || text.includes("skill.md")) return "skill";
   if (event.type === "artifact" || text.includes("wrote /dossier")) return "file";
   return null;
@@ -48,15 +48,16 @@ export function AgentTrace({ buildingId, fixtureEvents, dataSource, session, dep
   const runIdRef = useRef("");
 
   useEffect(() => {
-    const runId = session.replay?.run_id ?? session.status?.run_id ?? "fixture";
-    if (runIdRef.current && runIdRef.current !== runId) setEvents([]);
-    runIdRef.current = runId;
-  }, [session.replay?.run_id, session.status?.run_id]);
-
-  useEffect(() => {
     if (dataSource === "api" && !session.eventsUrl) return;
+    const runId = `${session.replay ? "replay" : "live"}:${session.replay?.run_id ?? session.status?.run_id ?? "fixture"}`;
+    let firstEventOfRun = runIdRef.current !== runId;
+    runIdRef.current = runId;
     return subscribeToEvents(buildingId, dataSource, fixtureEvents, (event) => {
-      setEvents((current) => current.some((item) => item.id === event.id) ? current : [...current, event].sort((a, b) => a.id - b.id));
+      setEvents((current) => {
+        const base = firstEventOfRun ? [] : current;
+        firstEventOfRun = false;
+        return base.some((item) => item.id === event.id) ? base : [...base, event].sort((a, b) => a.id - b.id);
+      });
     }, setState, {
       eventsUrl: session.eventsUrl ?? undefined,
       onReplay: setReplayRun,
@@ -64,20 +65,21 @@ export function AgentTrace({ buildingId, fixtureEvents, dataSource, session, dep
     });
     // The stream version intentionally reconnects after every agent turn.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [buildingId, dataSource, fixtureEvents, session.eventsUrl, session.streamVersion]);
+  }, [buildingId, dataSource, fixtureEvents, session.eventsUrl, session.replay, session.status?.run_id, session.streamVersion]);
 
   const groups = useMemo(() => {
     const grouped = new Map<AgentEvent["agent"], AgentEvent[]>();
     events.forEach((event) => grouped.set(event.agent, [...(grouped.get(event.agent) ?? []), event]));
     return [...grouped.entries()];
   }, [events]);
-  const start = async () => { try { await session.start(depth, quickScanEnabled ? positionBudget : undefined); } catch { /* Error is rendered verbatim. */ } };
+  const start = async () => { setReplayRun(null); try { await session.start(depth, quickScanEnabled ? positionBudget : undefined); } catch { /* Error is rendered verbatim. */ } };
   const replay = async () => { try { await session.playReplay(); } catch { /* Error is rendered verbatim. */ } };
   const recordedAt = replayRun?.recorded_at ?? session.latestRun?.recorded_at;
+  const visibleState = replayRun ? "replay" : state;
 
   return (
     <div className="trace-tab">
-      <div className="tab-heading trace-heading"><div><span className="eyebrow">LIVE AGENT FLOW</span><h2>Agent activity</h2></div><span className={`stream-state ${state}`}>{state === "replay" ? "REPLAY" : state.toUpperCase()}</span></div>
+      <div className="tab-heading trace-heading"><div><span className="eyebrow">LIVE AGENT FLOW</span><h2>Agent activity</h2></div><span className={`stream-state ${visibleState}`}>{visibleState === "replay" ? "REPLAY" : visibleState.toUpperCase()}</span></div>
       <div className="agent-run-controls">
         <div><button className="run-agent-button" disabled={session.busy || dataSource !== "api"} onClick={() => void start()}>{session.action === "run" ? "STARTING…" : "RUN AGENT"}</button><span className={`agent-status ${session.statusLabel.toLowerCase().replaceAll(" ", "-")}`}>{session.statusLabel}</span></div>
         <label className="quick-scan-control"><input type="checkbox" checked={quickScanEnabled} onChange={(event) => setQuickScanEnabled(event.target.checked)} /><span>QUICK SCAN (PARTIAL SURVEY)</span>{quickScanEnabled ? <input aria-label="Quick scan position budget" type="number" min="1" max="100" value={positionBudget} onChange={(event) => setPositionBudget(Math.max(1, Number(event.target.value)))} /> : null}</label>
@@ -102,7 +104,7 @@ export function AgentTrace({ buildingId, fixtureEvents, dataSource, session, dep
           </section>)}
         </div>
       )}
-      {recordedAt && state === "replay" ? <footer className="replay-footer">Saved run recorded {new Date(recordedAt).toLocaleString()} · replay, not a live agent session</footer> : null}
+      {recordedAt && replayRun ? <footer className="replay-footer">Saved run recorded {new Date(recordedAt).toLocaleString()} · replay, not a live agent session</footer> : null}
     </div>
   );
 }

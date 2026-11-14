@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   decideAgentSend,
+  getDossier,
   getAgentStatus,
   getLatestRun,
   postAgentDepth,
@@ -13,6 +14,17 @@ import {
 import type { AgentActionResult, AgentStatus, ReplayRun } from "@/lib/contracts";
 
 type ActionName = "idle" | "run" | "replay" | "depth" | "draft" | "approve" | "reject";
+
+async function latestDeliveryResult(buildingId: string) {
+  const dossier = await getDossier(buildingId);
+  const sendLog = dossier.files.find((file) => file.path.endsWith("/sends.json"));
+  if (!sendLog?.content) return "";
+  const entries = JSON.parse(sendLog.content) as Array<{ status?: string; recipient?: string }>;
+  const latest = entries.at(-1);
+  if (latest?.status === "sent") return `sent to ${latest.recipient ?? "approved recipient"}`;
+  if (latest?.status === "draft_only") return "draft only, not sent";
+  return "";
+}
 
 export function useAgentSession(buildingId: string, enabled: boolean) {
   const [status, setStatus] = useState<AgentStatus | null>(null);
@@ -31,6 +43,11 @@ export function useAgentSession(buildingId: string, enabled: boolean) {
       const next = await getAgentStatus(buildingId);
       setStatus(next);
       if (next.run_id && next.events_url) setEventsUrl(next.events_url);
+      setError((current) => current.includes("→ 409") && next.run_id ? "" : current);
+      if (!next.running && next.turns?.at(-1)?.turn === "approval") {
+        latestDeliveryResult(buildingId).then((message) => { if (message) setSendResult(message); }).catch(() => undefined);
+        getLatestRun(buildingId).then(setLatestRun).catch(() => undefined);
+      }
       return next;
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : String(caught));
@@ -51,8 +68,8 @@ export function useAgentSession(buildingId: string, enabled: boolean) {
   }, [buildingId, enabled, refresh]);
 
   useEffect(() => {
-    if (!enabled || !status?.run_id) return;
-    const timer = window.setInterval(() => void refresh(), status.running ? 1000 : 2500);
+    if (!enabled) return;
+    const timer = window.setInterval(() => void refresh(), status?.running ? 1000 : 2500);
     return () => window.clearInterval(timer);
   }, [enabled, refresh, status?.run_id, status?.running]);
 
@@ -118,7 +135,11 @@ export function useAgentSession(buildingId: string, enabled: boolean) {
       if (record.status === "sent") setSendResult(`sent to ${String(record.recipient ?? "approved recipient")}`);
       if (record.status === "draft_only") setSendResult("draft only, not sent");
     }
-  }, [refresh]);
+    const message = await latestDeliveryResult(buildingId).catch(() => "");
+    if (message) setSendResult(message);
+    const latest = await getLatestRun(buildingId).catch(() => null);
+    if (latest) setLatestRun(latest);
+  }, [buildingId, refresh]);
 
   const active = Boolean(status?.run_id && !replay);
   const busy = action !== "idle" || Boolean(status?.running);
