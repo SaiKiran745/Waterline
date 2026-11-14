@@ -98,9 +98,12 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
   const waterRef = useRef<Three.Mesh | null>(null);
   const markerMaterialsRef = useRef(new Map<string, Three.MeshBasicMaterial>());
   const automaticFloorRef = useRef(0);
+  const loadStartedAtRef = useRef(0);
   const [iframeReady, setIframeReady] = useState(false);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [error, setError] = useState("");
+  const [loadingStage, setLoadingStage] = useState("Starting Matterport viewer");
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [mode, setMode] = useState<ViewMode>("dollhouse");
   const [floorLevel, setFloorLevel] = useState(0);
   const [floorDraft, setFloorDraft] = useState("0.000");
@@ -108,8 +111,21 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
   const [floorSource, setFloorSource] = useState("Matterport floor pucks");
   const [currentPuckLevel, setCurrentPuckLevel] = useState<number | null>(null);
   const [coordinateCheck, setCoordinateCheck] = useState("Checking shared scan positions");
+  const [activeLocationId, setActiveLocationId] = useState<string | null>(null);
   const sdkKey = process.env.NEXT_PUBLIC_MATTERPORT_SDK_KEY ?? "";
   const bundleUrl = useMemo(() => modelId && sdkKey ? `/matterport-bundle/showcase.html?m=${encodeURIComponent(modelId)}&play=1&qs=1&applicationKey=${encodeURIComponent(sdkKey)}` : "", [modelId, sdkKey]);
+
+  useEffect(() => {
+    if (iframeReady || !modelId || !sdkKey) return;
+    loadStartedAtRef.current = performance.now();
+    const timer = window.setTimeout(() => {
+      const message = "Matterport Bundle iframe did not load after 30 seconds.";
+      setStatus("error");
+      setError(message);
+      onFailure(message);
+    }, 30_000);
+    return () => window.clearTimeout(timer);
+  }, [iframeReady, modelId, onFailure, sdkKey]);
 
   useEffect(() => {
     if (!iframeReady || !iframeRef.current || !modelId || !sdkKey) return;
@@ -118,19 +134,24 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
     let currentSubscription: { cancel?: () => void } | null = null;
     const markerMaterials = markerMaterialsRef.current;
     const connect = async () => {
+      loadStartedAtRef.current = performance.now();
       setStatus("loading");
       setError("");
+      setElapsedSeconds(0);
+      setLoadingStage("Connecting to Matterport SDK");
       try {
         const bundleWindow = iframeRef.current!.contentWindow as BundleWindow | null;
         if (!bundleWindow?.MP_SDK) throw new Error("Matterport Bundle files are missing. Run npm run bundle:download.");
-        const sdk = await withTimeout(bundleWindow.MP_SDK.connect(bundleWindow), 15_000, "Matterport Bundle SDK connection timed out.");
-        await withTimeout(sdk.App.state.waitUntil((app) => app.phase === sdk.App.Phase.PLAYING), 30_000, "Matterport viewer did not reach the playing state.");
+        const sdk = await withTimeout(bundleWindow.MP_SDK.connect(bundleWindow), 30_000, "Matterport Bundle SDK connection timed out after 30 seconds.");
+        setLoadingStage("Loading photo-real model");
+        await withTimeout(sdk.App.state.waitUntil((app) => app.phase === sdk.App.Phase.PLAYING), 60_000, "Matterport viewer did not reach the playing state after 60 seconds.");
         if (cancelled) { sdk.disconnect(); return; }
         sdkRef.current = sdk;
         currentSubscription = sdk.Sweep.current.subscribe((sweep) => { if (sweep?.id) setCurrentPuckLevel(sweep.puckPosition.y); });
-        const sweeps = await new Promise<SweepData[]>((resolve) => {
+        setLoadingStage("Reading scan positions");
+        const sweeps = await withTimeout(new Promise<SweepData[]>((resolve) => {
           sweepSubscription = sdk.Sweep.data.subscribe({ onCollectionUpdated: (collection) => resolve(Object.values(collection)) });
-        });
+        }), 30_000, "Matterport scan positions did not arrive after 30 seconds.");
         if (cancelled) return;
 
         const floorSequences = sweeps.map((sweep) => sweep.floorInfo?.sequence).filter((value): value is number => typeof value === "number");
@@ -150,6 +171,7 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
         setCoordinateCheck(check.rms == null ? "No shared scan points" : `${check.matches} shared points · RMS ${check.rms.toFixed(3)} m`);
         if (check.rms != null && check.rms > 0.2) throw new Error(`Mesh/viewer coordinate check failed (${check.rms.toFixed(3)} m RMS).`);
 
+        setLoadingStage("Aligning water and asset markers");
         const THREE = sdk.Scene.THREE;
         markerMaterials.clear();
         let water: Three.Mesh | null = null;
@@ -205,6 +227,7 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
         }), 5_000, "Matterport Scene overlay did not initialize.");
         sceneObjectRef.current = sceneObject;
         setCoordinateCheck((label) => `${label} · ${objectRoot.children.length - 1} markers`);
+        setLoadingStage("Opening dollhouse view");
         await sdk.Mode.moveTo(sdk.Mode.Mode.DOLLHOUSE, { transition: sdk.Camera.TransitionType.FLY });
         setMode("dollhouse");
         setStatus("ready");
@@ -235,6 +258,12 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
   }, [assets, iframeReady, locations, modelId, sdkKey]);
 
   useEffect(() => {
+    if (status !== "loading") return;
+    const timer = window.setInterval(() => setElapsedSeconds(Math.max(0, Math.floor((performance.now() - loadStartedAtRef.current) / 1000))), 1000);
+    return () => window.clearInterval(timer);
+  }, [status]);
+
+  useEffect(() => {
     if (waterRef.current) {
       waterRef.current.position.y = floorLevel + depthFt * FEET_TO_METRES;
       waterRef.current.visible = depthFt > 0.001;
@@ -247,14 +276,14 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
 
   useEffect(() => {
     if (insideRequest === 0 || status !== "ready" || !locationId || !sdkRef.current) return;
-    sdkRef.current.Sweep.moveTo(locationId, { transition: sdkRef.current.Camera.TransitionType.FADEOUT }).then(() => setMode("inside")).catch((caught) => setError(caught instanceof Error ? caught.message : String(caught)));
+    sdkRef.current.Sweep.moveTo(locationId, { transition: sdkRef.current.Camera.TransitionType.FADEOUT }).then(() => { setMode("inside"); setActiveLocationId(locationId); }).catch((caught) => setError(caught instanceof Error ? caught.message : String(caught)));
   }, [insideRequest, locationId, status]);
 
   const switchMode = async (next: ViewMode) => {
     const sdk = sdkRef.current;
     if (!sdk) return;
     try {
-      if (next === "inside" && locationId) await sdk.Sweep.moveTo(locationId, { transition: sdk.Camera.TransitionType.FADEOUT });
+      if (next === "inside" && locationId) { await sdk.Sweep.moveTo(locationId, { transition: sdk.Camera.TransitionType.FADEOUT }); setActiveLocationId(locationId); }
       else await sdk.Mode.moveTo(next === "inside" ? sdk.Mode.Mode.INSIDE : sdk.Mode.Mode.DOLLHOUSE, { transition: sdk.Camera.TransitionType.FLY });
       setMode(next);
     } catch (caught) {
@@ -284,11 +313,12 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
 
   return (
     <div className="photo-real-viewer">
-      <iframe ref={iframeRef} src={bundleUrl} title="Photo-real Matterport water view" allow="fullscreen; xr-spatial-tracking" onLoad={() => setIframeReady(true)} />
+      <iframe ref={iframeRef} src={bundleUrl} title="Photo-real Matterport water view" allow="fullscreen; xr-spatial-tracking" onLoad={() => { setLoadingStage("Connecting to Matterport SDK"); setIframeReady(true); }} />
       <div className="photo-real-toolbar">
         <div className="photo-mode-toggle"><button className={mode === "inside" ? "active" : ""} onClick={() => void switchMode("inside")}>INSIDE</button><button className={mode === "dollhouse" ? "active" : ""} onClick={() => void switchMode("dollhouse")}>DOLLHOUSE</button></div>
-        <span>{status === "ready" ? `● PHOTO-REAL · ${coordinateCheck}` : status === "error" ? "! BUNDLE FAILED" : "◌ LOADING BUNDLE"}</span>
+        <span>{status === "ready" ? `● PHOTO-REAL · ${coordinateCheck}${mode === "inside" && activeLocationId ? ` · SCAN ${activeLocationId}` : ""}` : status === "error" ? "! BUNDLE FAILED" : `◌ ${loadingStage.toUpperCase()} · ${elapsedSeconds}s`}</span>
       </div>
+      {status === "loading" ? <div className="photo-real-loading" role="status"><i /><b>{loadingStage}</b><span>{elapsedSeconds}s elapsed · large spaces can take longer on first load</span></div> : null}
       <div className="photo-floor-control">
         <span>FLOOR {floorLevel.toFixed(3)} M · {floorSource}</span>
         <button onClick={() => setCalibrating((value) => !value)}>SET FLOOR LEVEL</button>

@@ -42,6 +42,16 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
     setView("model");
   }, []);
 
+  const retryPhotoReal = useCallback(() => {
+    setFallbackNotice("");
+    setView("photo");
+  }, []);
+
+  const handleAssetSelect = useCallback((assetId: string) => {
+    setSelectedAssetId(assetId);
+    if (view === "photo") setInsideRequest((value) => value + 1);
+  }, [view]);
+
   const handleCorrection = async (assetId: string, method: "PATCH" | "DELETE", changes: Record<string, unknown>) => {
     setCorrectionState({ kind: "saving", message: method === "DELETE" ? "Removing asset and refreshing scenarios…" : "Saving correction and refreshing scenarios…" });
     try {
@@ -94,7 +104,7 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
               <button className={view === "photo" ? "active" : ""} disabled={dataSource !== "api" || !bundle.building.matterport_model_id} onClick={() => { setFallbackNotice(""); setView("photo"); }}>PHOTO-REAL</button>
               <button className={view === "rooms" ? "active" : ""} onClick={() => setView("rooms")}>ROOM SAFETY VIEW</button>
             </div>
-            <span className="scenario-label">{fallbackNotice || "SCENARIO · NOT A PREDICTION"}</span>
+            <div className="scenario-status"><span className="scenario-label">{fallbackNotice || "SCENARIO · NOT A PREDICTION"}</span>{fallbackNotice ? <button className="retry-photo-real" onClick={retryPhotoReal}>RETRY PHOTO-REAL</button> : null}</div>
             {selectedAsset ? <button className="view-selected-inside" onClick={() => { setFallbackNotice(""); setView("photo"); setInsideRequest((value) => value + 1); }}>VIEW SELECTED INSIDE</button> : null}
           </div>
           <div className={`viewer-stage ${view === "model" ? "dual-view" : ""}`}>
@@ -125,7 +135,7 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
             </button>
           </div>
         </section>
-        <DetailTabs bundle={currentBundle} scenario={scenario} damageByAsset={damageByAsset} dataSource={dataSource} selectedAssetId={selectedAssetId} onSelectAsset={setSelectedAssetId} onCorrect={handleCorrection} correctionState={correctionState} session={session} />
+        <DetailTabs bundle={currentBundle} scenario={scenario} damageByAsset={damageByAsset} dataSource={dataSource} selectedAssetId={selectedAssetId} onSelectAsset={handleAssetSelect} onCorrect={handleCorrection} correctionState={correctionState} session={session} />
       </section>
       <AssumptionsDrawer open={assumptionsOpen} onClose={() => setAssumptionsOpen(false)} assumptions={scenarioTable.assumptions} />
     </main>
