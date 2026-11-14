@@ -45,7 +45,7 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
       setScenarioTable(refreshed.scenarioTable);
       setMitigations(refreshed.mitigations);
       if (method === "DELETE") setSelectedAssetId(refreshed.assets[0]?.id ?? null);
-      setCorrectionState({ kind: "success", message: `Scenario table and mitigations refreshed · portfolio rank ${refreshed.rank == null ? "pending" : `#${refreshed.rank}`}${refreshed.similarCount ? ` · ${refreshed.similarCount} similar assets flagged` : ""}.` });
+      setCorrectionState({ kind: "success", message: `Scenario table and mitigations refreshed · portfolio rank at ${refreshed.rankDepth} ft ${refreshed.rank == null ? "pending" : `#${refreshed.rank}`}${refreshed.similarCount ? ` · ${refreshed.similarCount} similar assets flagged` : ""}.` });
     } catch (error) {
       setCorrectionState({ kind: "error", message: error instanceof Error ? error.message : "Correction failed." });
     }

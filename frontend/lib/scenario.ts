@@ -46,5 +46,5 @@ export function damageColour(fraction: number) {
   const amber = [241, 180, 95];
   const red = [255, 98, 93];
   const channel = (index: number) => Math.round(amber[index] + (red[index] - amber[index]) * amount);
-  return `rgb(${channel(0)} ${channel(1)} ${channel(2)})`;
+  return `rgb(${channel(0)}, ${channel(1)}, ${channel(2)})`;
 }

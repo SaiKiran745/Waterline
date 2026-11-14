@@ -143,16 +143,18 @@ export async function correctAsset(buildingId: string, assetId: string, method: 
   });
   const mutation = await response.json() as { detail?: string; mitigations?: Mitigation[]; similar_asset_ids?: string[] };
   if (!response.ok) throw new Error(mutation.detail || `Correction failed (${response.status}).`);
+  const triageDepth = [1, 2, 4, 6].reduce((nearest, candidate) => Math.abs(candidate - depthFt) < Math.abs(nearest - depthFt) ? candidate : nearest);
   const [detail, scenarioTable, triage] = await Promise.all([
     api<{ building: Building; entry_points: EntryPoint[]; assets: Asset[] }>(`/buildings/${encodeURIComponent(buildingId)}`),
     api<ScenarioTable>(`/buildings/${encodeURIComponent(buildingId)}/scenario_table`),
-    api<TriageRow[]>("/triage?depth_ft=2"),
+    api<TriageRow[]>(`/triage?depth_ft=${triageDepth}`),
   ]);
   return {
     assets: detail.assets,
     scenarioTable,
     mitigations: mutation.mitigations ?? [],
     rank: triage.find((row) => row.building_id === buildingId)?.rank ?? null,
+    rankDepth: triageDepth,
     similarCount: mutation.similar_asset_ids?.length ?? 0,
   };
 }

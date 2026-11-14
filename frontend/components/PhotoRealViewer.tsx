@@ -14,8 +14,18 @@ type SweepData = {
   puckPosition: Vector3;
   floorInfo: { id?: string; sequence?: number };
 };
-type SceneComponent = { inputs: Record<string, unknown>; outputs: { objectRoot?: Three.Object3D }; onInit(this: SceneComponent): void };
-type SceneNode = { addComponent(name: string, inputs?: Record<string, unknown>): unknown };
+type SceneComponent = {
+  outputs: { objectRoot?: Three.Object3D | null; collider?: Three.Object3D | null };
+  events: Record<string, boolean>;
+  emits: Record<string, boolean>;
+  onInit(this: SceneComponent): void;
+  onEvent(): void;
+  onInputsUpdated(): void;
+  onTick(): void;
+  onDestroy(this: SceneComponent): void;
+};
+type SceneRuntimeComponent = { outputs: { objectRoot?: Three.Object3D | null } };
+type SceneNode = { addComponent(name: string, inputs?: Record<string, unknown>): SceneRuntimeComponent; start(): void };
 type SceneObject = { addNode(name?: string): SceneNode; start(): void; stop(): void };
 type Disposable = { dispose(): void };
 type BundleSdk = {
@@ -41,6 +51,13 @@ type BundleWindow = Window & { MP_SDK?: { connect(target: Window): Promise<Bundl
 type ViewMode = "inside" | "dollhouse";
 
 const FEET_TO_METRES = 0.3048;
+
+function withTimeout<T>(promise: Promise<T>, milliseconds: number, message: string) {
+  return Promise.race<T>([
+    promise,
+    new Promise<T>((_, reject) => window.setTimeout(() => reject(new Error(message)), milliseconds)),
+  ]);
+}
 
 function median(values: number[]) {
   const sorted = [...values].sort((a, b) => a - b);
@@ -105,8 +122,8 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
       try {
         const bundleWindow = iframeRef.current!.contentWindow as BundleWindow | null;
         if (!bundleWindow?.MP_SDK) throw new Error("Matterport Bundle files are missing. Run npm run bundle:download.");
-        const sdk = await bundleWindow.MP_SDK.connect(bundleWindow);
-        await sdk.App.state.waitUntil((app) => app.phase === sdk.App.Phase.PLAYING);
+        const sdk = await withTimeout(bundleWindow.MP_SDK.connect(bundleWindow), 15_000, "Matterport Bundle SDK connection timed out.");
+        await withTimeout(sdk.App.state.waitUntil((app) => app.phase === sdk.App.Phase.PLAYING), 30_000, "Matterport viewer did not reach the playing state.");
         if (cancelled) { sdk.disconnect(); return; }
         sdkRef.current = sdk;
         currentSubscription = sdk.Sweep.current.subscribe((sweep) => { if (sweep?.id) setCurrentPuckLevel(sweep.puckPosition.y); });
@@ -137,8 +154,9 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
         let water: Three.Mesh | null = null;
         const componentName = `waterline.photoReal.${Date.now()}`;
         registrationRef.current = await sdk.Scene.register(componentName, () => ({
-          inputs: {},
           outputs: {},
+          events: {},
+          emits: {},
           onInit() {
             const root = new THREE.Group();
             const xValues = sweeps.map((sweep) => sweep.puckPosition.x);
@@ -151,12 +169,13 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
             );
             water.rotation.x = -Math.PI / 2;
             water.position.set((Math.max(...xValues) + Math.min(...xValues)) / 2, initialFloor + depthFt * FEET_TO_METRES, (Math.max(...zValues) + Math.min(...zValues)) / 2);
+            water.visible = depthFt > 0.001;
             water.renderOrder = 2;
             root.add(water);
             assets.filter((asset) => asset.position).forEach((asset) => {
               const damage = damageByAsset.get(asset.id);
               const material = new THREE.MeshBasicMaterial({ color: damageColour(damage?.fractionHigh ?? 0), depthTest: true });
-              const geometry = damage?.movable ? new THREE.OctahedronGeometry(0.34, 0) : new THREE.SphereGeometry(0.25, 16, 12);
+              const geometry = damage?.movable ? new THREE.OctahedronGeometry(0.5, 0) : new THREE.SphereGeometry(0.38, 16, 12);
               const marker = new THREE.Mesh(geometry, material);
               const point = meshToViewer(asset.position!);
               marker.position.set(point.x, point.y, point.z);
@@ -167,12 +186,24 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
             waterRef.current = water;
             this.outputs.objectRoot = root;
           },
+          onEvent() {},
+          onInputsUpdated() {},
+          onTick() {},
+          onDestroy() {
+            this.outputs.objectRoot = null;
+            this.outputs.collider = null;
+          },
         }));
         const [sceneObject] = await sdk.Scene.createObjects(1);
         const node = sceneObject.addNode("waterline-photo-real-overlay");
-        node.addComponent(componentName);
-        sceneObject.start();
+        const component = node.addComponent(componentName);
+        node.start();
+        const objectRoot = await withTimeout(new Promise<Three.Object3D>((resolve) => {
+          const inspect = () => component.outputs.objectRoot ? resolve(component.outputs.objectRoot) : window.requestAnimationFrame(inspect);
+          inspect();
+        }), 5_000, "Matterport Scene overlay did not initialize.");
         sceneObjectRef.current = sceneObject;
+        setCoordinateCheck((label) => `${label} · ${objectRoot.children.length - 1} markers`);
         setStatus("ready");
       } catch (caught) {
         if (cancelled) return;
@@ -201,7 +232,10 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
   }, [assets, iframeReady, locations, modelId, sdkKey]);
 
   useEffect(() => {
-    if (waterRef.current) waterRef.current.position.y = floorLevel + depthFt * FEET_TO_METRES;
+    if (waterRef.current) {
+      waterRef.current.position.y = floorLevel + depthFt * FEET_TO_METRES;
+      waterRef.current.visible = depthFt > 0.001;
+    }
   }, [depthFt, floorLevel]);
 
   useEffect(() => {
