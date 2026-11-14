@@ -91,14 +91,18 @@ def get_site_context(building_id: str) -> str:
     return json.dumps(out)
 
 
-@tool(parse_docstring=True)
+@tool(parse_docstring=True, return_direct=True)
 def find_entry_points(building_id: str, tool_call_id: Annotated[str, InjectedToolCallId]) -> Command:
-    """Find where water gets in from the Vexcel aerial images, ranked, and cross-checked against CoStar's door counts.
+    """Site context (FEMA zone, CoStar door counts) and where water gets in from the Vexcel aerial images, ranked and cross-checked.
 
     Args:
         building_id: Building slug.
     """
-    _check(building_id)
+    b = _check(building_id)
+    events.emit("site-scout", "observation",
+                f"FEMA zone {b.get('flood_zone')} ({'inside' if b.get('in_mapped_flood_zone') else 'outside'} the 1% "
+                f"annual-chance area); ground {b.get('ground_elevation_ft')} ft (context only); CoStar: "
+                f"{b.get('drive_in_bays')} drive-in bays, {b.get('loading_docks_external')} docks.")
     _call("site-scout", "find_entry_points", {"building_id": building_id},
           "find_entry_points on the ortho and oblique aerial images")
     eps, log = site.scout(building_id, cache_only=(BUILDINGS / building_id / "site_log.json").exists())
@@ -116,6 +120,8 @@ def find_entry_points(building_id: str, tool_call_id: Annotated[str, InjectedToo
     doc += ["", "## Cross-check with CoStar"] + [f"- {k}: {v}" for k, v in log["count_check"].items()]
     doc += [f"- DISCREPANCY: {d['text']}" for d in log.get("discrepancies") or []]
     return _reply("site-scout", tool_call_id, {
+        "fema_zone": b.get("flood_zone"), "in_1pct_zone": b.get("in_mapped_flood_zone"),
+        "lowest_door": f"{eps[0]['id']} {eps[0]['kind']}" if eps else None,
         "entry_points": [f"{e['id']} {e['kind']} conf {e['confidence']:.2f}" for e in eps],
         "discrepancies": [d["text"] for d in log.get("discrepancies") or []],
         "details": f"/dossier/{building_id}/entry-points.md"}, {f"/dossier/{building_id}/entry-points.md": "\n".join(doc)})
@@ -261,11 +267,36 @@ def survey_positions(building_id: str, choices: list[dict],
     doc += [f"| {a['id']} | {a['room']} | {a['label']} | {a['value_basis']} | {a['height_ft_low']}-{a['height_ft_high']} "
             f"| {a['confidence']} |" for a in assets]
     doc += ["", "## Positions", ""] + [f"- {c['location_id'][:6]}: {c['reason']}" for c in st["chosen"]]
+    areas = _areas(building_id, mp)
+    names = sorted({a.split(" (")[0] + " = " + a.split(" (")[1].split(",")[0] for a in areas.values()})
     return _reply("interior-surveyor", tool_call_id, {
-        "new_positions": found, "refused": refused, "budget_left": SETTINGS["max_positions"] - len(st["chosen"]),
+        "new_positions": found, "refused": refused, "areas_now": names, "budget_left": SETTINGS["max_positions"] - len(st["chosen"]),
         "contents_assets": len(contents), "contents_value_usd": value,
         "low_confidence": [f"{a['id']} {a['label'][:40]} conf {a['confidence']}" for a in low[:6]],
         "inventory": f"/dossier/{building_id}/inventory.md"}, {f"/dossier/{building_id}/inventory.md": "\n".join(doc)})
+
+
+@tool(parse_docstring=True, return_direct=True)
+def finish_survey(building_id: str) -> str:
+    """Finish the interior survey and report its exact results to the orchestrator. Call this last.
+
+    Args:
+        building_id: Building slug.
+    """
+    _check(building_id)
+    st = STATE.get(building_id, {"chosen": []})
+    assets = buildings.get_assets(building_id)
+    contents = [a for a in assets if a["value_basis"] not in ("A-FIN", "V-VEHICLE")]
+    value = [sum(a["value_usd_low"] for a in contents), sum(a["value_usd_high"] for a in contents)]
+    low = [a for a in contents if a["confidence"] < interior.LOW_CONF]
+    out = {"positions_read": len(st["chosen"]), "budget": SETTINGS["max_positions"], "contents_assets": len(contents),
+           "contents_value_usd": _usd(value), "vehicles": sum(1 for a in assets if a["value_basis"] == "V-VEHICLE"),
+           "still_low_confidence": len(low), "inventory": f"/dossier/{building_id}/inventory.md"}
+    events.emit("interior-surveyor", "observation",
+                f"Survey finished: {out['positions_read']} of {out['budget']} positions, {out['contents_assets']} contents "
+                f"assets worth {out['contents_value_usd']}, {out['vehicles']} vehicles, {len(low)} still below "
+                f"confidence {interior.LOW_CONF}.", data=out)
+    return json.dumps(out)
 
 
 @tool(parse_docstring=True)
@@ -303,7 +334,7 @@ def relook_asset(building_id: str, asset_id: str) -> str:
 
 # ------------------------------------------------------------------ market-analyst
 
-@tool(parse_docstring=True)
+@tool(parse_docstring=True, return_direct=True)
 def get_building_value(building_id: str) -> str:
     """CoStar building data behind the loss: type, size, year built, assessor improvement value, scan coverage.
 
@@ -325,7 +356,7 @@ def get_building_value(building_id: str) -> str:
 
 # ------------------------------------------------------------------ scenario-builder
 
-@tool(parse_docstring=True)
+@tool(parse_docstring=True, return_direct=True)
 def run_scenario(building_id: str, depth_ft: float, tool_call_id: Annotated[str, InjectedToolCallId]) -> Command:
     """Price the loss at a water depth above the ground-floor slab (0 to 8 ft): contents, structure, assets hit.
 
@@ -362,13 +393,15 @@ def run_scenario(building_id: str, depth_ft: float, tool_call_id: Annotated[str,
 
 # ------------------------------------------------------------------ mitigation-planner
 
-@tool(parse_docstring=True)
-def rank_mitigations(building_id: str, depth_ft: float, tool_call_id: Annotated[str, InjectedToolCallId]) -> Command:
-    """Rank the fixes at a depth by avoided loss per dollar: cost, avoided loss, payback note.
+@tool(parse_docstring=True, return_direct=True)
+def rank_mitigations(building_id: str, depth_ft: float, tool_call_id: Annotated[str, InjectedToolCallId],
+                     previous_depth_ft: float | None = None) -> Command:
+    """Rank the fixes at a depth by avoided loss per dollar; with previous_depth_ft, also say what moved and why.
 
     Args:
         building_id: Building slug.
         depth_ft: Interior water depth in feet.
+        previous_depth_ft: The depth before the user changed it, if it changed.
     """
     b = _check(building_id)
     d = float(depth_ft)
@@ -378,6 +411,25 @@ def rank_mitigations(building_id: str, depth_ft: float, tool_call_id: Annotated[
     events.emit("mitigation-planner", "observation",
                 f"At {d:g} ft the top fixes are: " + "; ".join(f"{m['rank']}. {m['action']}" for m in ms[:3]),
                 refs=[m["id"] for m in ms[:3]], data={"depth_ft": d, "order": [m["id"] for m in ms]})
+    changes = []
+    if previous_depth_ft is not None and float(previous_depth_ft) != d:
+        pd = float(previous_depth_ft)
+        old = {m["id"]: m for m in engine.ranked(building_id, engine.candidates(building_id, assets, eps), assets, pd,
+                                                 engine.building_loss_fn(b))}
+        for m in ms[:5]:
+            o = old.get(m["id"])
+            if o and o["rank"] != m["rank"]:
+                why = (f"avoided loss {_usd([o['avoided_loss_usd_low'], o['avoided_loss_usd_high']])} at {pd:g} ft -> "
+                       f"{_usd([m['avoided_loss_usd_low'], m['avoided_loss_usd_high']])} at {d:g} ft")
+                changes.append(f"{m['action']}: rank {o['rank']} -> {m['rank']} ({why})")
+        for m in old.values():
+            if m["rank"] <= 3 and next(x["rank"] for x in ms if x["id"] == m["id"]) > 3:
+                why = (f"a {m['action'].split(' ft')[0].split()[-1]} ft barrier stops helping once water is deeper"
+                       if m["kind"] == "entry_barrier" else "it avoids less per dollar at this depth")
+                changes.append(f"Dropped out of the top 3: {m['action']} (was {m['rank']}; {why})")
+        if changes:
+            events.emit("mitigation-planner", "decision", f"Priority change {pd:g} -> {d:g} ft: " + "; ".join(changes[:3]),
+                        data={"from_ft": pd, "to_ft": d, "changes": changes})
     doc = [f"# Mitigations at {d:g} ft: {building_id}", "", "| Rank | Action | Cost | Avoided loss | Note |",
            "|---|---|---|---|---|"]
     doc += [f"| {m['rank']} | {m['action']} | {_usd([m['cost_usd_low'], m['cost_usd_high']])} | "
@@ -386,12 +438,12 @@ def rank_mitigations(building_id: str, depth_ft: float, tool_call_id: Annotated[
     return _reply("mitigation-planner", tool_call_id, {
         "depth_ft": d, "top": [f"{m['rank']}. {m['action']} (cost {_usd([m['cost_usd_low'], m['cost_usd_high']])}, "
                                f"avoids {_usd([m['avoided_loss_usd_low'], m['avoided_loss_usd_high']])})" for m in ms[:3]],
-        "details": path}, {path: "\n".join(doc)})
+        "changed_since_previous_depth": changes[:4], "details": path}, {path: "\n".join(doc)})
 
 
 # ------------------------------------------------------------------ communications
 
-@tool(parse_docstring=True)
+@tool(parse_docstring=True, return_direct=True)
 def draft_documents(building_id: str, depth_ft: float, tool_call_id: Annotated[str, InjectedToolCallId]) -> Command:
     """Render the resilience report and the room-by-room pre-storm playbook for a depth.
 
@@ -496,8 +548,8 @@ def apply_correction_to_similar(building_id: str, correction_id: str, asset_ids:
 
 
 ROLE_TOOLS = {
-    "site-scout": [get_site_context, find_entry_points],
-    "interior-surveyor": [list_scan_positions, survey_positions, relook_asset],
+    "site-scout": [find_entry_points],
+    "interior-surveyor": [list_scan_positions, survey_positions, relook_asset, finish_survey],
     "market-analyst": [get_building_value],
     "scenario-builder": [run_scenario],
     "mitigation-planner": [rank_mitigations],

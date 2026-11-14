@@ -43,7 +43,7 @@ Rules:
 2. Plan before acting: write_todos with 4 to 6 short steps. Update it only when the plan changes.
 3. Delegate with task(), one subagent per call, building id and depth in the description. Run independent work in
    parallel: site-scout, interior-surveyor and market-analyst together; then scenario-builder and mitigation-planner
-   together. Do not do their work yourself.
+   together. Do not do their work yourself. Their replies are exact tool results; quote numbers from them only.
 4. Details live in /dossier/{bid}/ (the tools write them). Keep your messages short; never paste tables.
 5. When the user changes the depth: re-plan with write_todos, then only scenario-builder and mitigation-planner at
    the new depth (tell the planner the old depth). Say in 3 lines how the priority list changed.
@@ -117,7 +117,6 @@ def build_agent(bid: str, cb: SpendCallback, model=None, sub_cb: SpendCallback |
         system_prompt=SYSTEM.format(bid=bid),
         subagents=subagents.build(bid, sub),
         middleware=[TodoListMiddleware(), ModelCallLimitMiddleware(run_limit=40, exit_behavior="end")],
-        skills=["/skills/survey/", "/skills/loss/"],
         backend=backend,
         store=memory.store(),
         checkpointer=checkpointer(),

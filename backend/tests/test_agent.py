@@ -111,3 +111,15 @@ def test_skill_files_have_frontmatter():
     assert set(files) == {"/skills/survey/survey-method/SKILL.md", "/skills/loss/loss-method/SKILL.md"}
     for f in files.values():
         assert f["content"].startswith("---\nname: ")
+
+
+def test_rerank_explains_what_moved_without_the_model(isolated):
+    events.activate(events.Trace(BID, "t5"))
+    try:
+        rk, _ = _call(tools.rank_mitigations, building_id=BID, depth_ft=4, previous_depth_ft=1)
+        assert rk["changed_since_previous_depth"], rk
+        assert tools.rank_mitigations.return_direct and tools.finish_survey.return_direct
+        assert any(e["type"] == "decision" and e["text"].startswith("Priority change 1 -> 4 ft")
+                   for e in events.current().events)
+    finally:
+        events.activate(None)
