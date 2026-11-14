@@ -117,6 +117,24 @@ export type AgentEvent = {
   data: Record<string, unknown> | null;
 };
 
+export type MediaManifest = {
+  building_id: string;
+  mesh: { url: string; bytes: number; has_uv?: boolean; has_materials?: boolean } | null;
+  aerial: Record<string, {
+    url: string;
+    meta_url: string;
+    collection: string | null;
+    capture_date: string | null;
+    min_gsd_m: number | null;
+    max_gsd_m: number | null;
+  }>;
+  panos?: Array<Record<string, unknown>>;
+  floors?: Array<Record<string, unknown>>;
+  rooms?: Array<Record<string, unknown>>;
+  locations?: Array<Record<string, unknown>>;
+  notes?: string[];
+};
+
 export type BuildingBundle = {
   building: Building;
   entryPoints: EntryPoint[];
@@ -125,4 +143,5 @@ export type BuildingBundle = {
   mitigations: Mitigation[];
   events: AgentEvent[];
   meshUrl: string | null;
+  media: MediaManifest | null;
 };

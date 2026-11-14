@@ -16,7 +16,7 @@ const tabs = [
 
 type TabId = (typeof tabs)[number]["id"];
 
-export function DetailTabs({ bundle, scenario, dataSource }: { bundle: BuildingBundle; scenario: ScenarioResult; dataSource: string }) {
+export function DetailTabs({ bundle, scenario, dataSource, selectedAssetId, onSelectAsset }: { bundle: BuildingBundle; scenario: ScenarioResult; dataSource: string; selectedAssetId: string | null; onSelectAsset: (assetId: string) => void }) {
   const [tab, setTab] = useState<TabId>("assets");
   return (
     <aside className="details-panel panel-frame">
@@ -28,8 +28,8 @@ export function DetailTabs({ bundle, scenario, dataSource }: { bundle: BuildingB
         ))}
       </div>
       <div className="tab-content" role="tabpanel">
-        {tab === "assets" ? <AssetList assets={bundle.assets} scenario={scenario} /> : null}
-        {tab === "mitigation" ? <MitigationTable mitigations={bundle.mitigations} currentDepth={scenario.depth_ft} /> : null}
+        {tab === "assets" ? <AssetList assets={bundle.assets} scenario={scenario} selectedAssetId={selectedAssetId} onSelectAsset={onSelectAsset} /> : null}
+        {tab === "mitigation" ? <MitigationTable buildingId={bundle.building.id} mitigations={bundle.mitigations} currentDepth={scenario.depth_ft} dataSource={dataSource} /> : null}
         {tab === "trace" ? <AgentTrace buildingId={bundle.building.id} fixtureEvents={bundle.events} dataSource={dataSource} /> : null}
         {tab === "approve" ? <ApprovePanel building={bundle.building} mitigations={bundle.mitigations} dataSource={dataSource} /> : null}
       </div>

@@ -38,6 +38,8 @@ export function Viewer3D({ assets, scenario, depthFt, meshUrl }: { assets: Asset
     }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.08;
     renderer.shadowMap.enabled = true;
     host.appendChild(renderer.domElement);
 
@@ -48,7 +50,8 @@ export function Viewer3D({ assets, scenario, depthFt, meshUrl }: { assets: Asset
     controls.minDistance = 8;
     controls.maxDistance = 120;
 
-    scene.add(new THREE.HemisphereLight(0xaaddec, 0x172027, 1.8));
+    scene.add(new THREE.HemisphereLight(0xbfe8f0, 0x152129, 1.55));
+    scene.add(new THREE.AmbientLight(0x9fc3cd, 0.48));
     const sun = new THREE.DirectionalLight(0xffffff, 2.3);
     sun.position.set(8, -12, 30);
     sun.castShadow = true;
@@ -74,7 +77,7 @@ export function Viewer3D({ assets, scenario, depthFt, meshUrl }: { assets: Asset
     });
     scene.add(markerGroup);
 
-    const waterMaterial = new THREE.MeshPhysicalMaterial({ color: WATER, transparent: true, opacity: 0.32, roughness: 0.18, metalness: 0.05, side: THREE.DoubleSide, depthWrite: false });
+    const waterMaterial = new THREE.MeshPhysicalMaterial({ color: WATER, transparent: true, opacity: 0.38, roughness: 0.12, metalness: 0.03, transmission: 0.08, side: THREE.DoubleSide, depthWrite: false });
     const water = new THREE.Mesh(new THREE.PlaneGeometry(80, 50), waterMaterial);
     water.position.set(-10, -4, depthFt * 0.3048);
     scene.add(water);
@@ -109,14 +112,48 @@ export function Viewer3D({ assets, scenario, depthFt, meshUrl }: { assets: Asset
 
     if (meshUrl) {
       new OBJLoader().load(meshUrl, (object) => {
-        object.traverse((child) => { if (child instanceof THREE.Mesh) { child.castShadow = true; child.receiveShadow = true; } });
+        const architecturalMaterial = new THREE.MeshStandardMaterial({ color: 0x91a6ae, roughness: 0.88, metalness: 0.04, side: THREE.DoubleSide });
+        const edgeMaterial = new THREE.LineBasicMaterial({ color: 0x1b3039, transparent: true, opacity: 0.58 });
+        const meshChildren: THREE.Mesh[] = [];
+        object.traverse((child) => { if (child instanceof THREE.Mesh) meshChildren.push(child); });
+        meshChildren.forEach((child) => {
+          const oldMaterials = Array.isArray(child.material) ? child.material : [child.material];
+          oldMaterials.forEach((material) => material.dispose());
+          child.material = architecturalMaterial;
+          child.castShadow = true;
+          child.receiveShadow = true;
+          const edges = new THREE.LineSegments(new THREE.EdgesGeometry(child.geometry, 28), edgeMaterial);
+          edges.renderOrder = 2;
+          child.add(edges);
+        });
         scene.add(object);
         const bounds = new THREE.Box3().setFromObject(object);
         const center = bounds.getCenter(new THREE.Vector3());
-        controls.target.copy(center);
+        const size = bounds.getSize(new THREE.Vector3());
+        const span = Math.max(size.x, size.y, size.z, 8);
+        controls.target.set(center.x, center.y, Math.max(0.8, center.z * 0.45));
+        camera.position.set(center.x + span * 0.72, center.y - span * 0.92, Math.max(span * 0.62, size.z * 1.4));
+        camera.near = Math.max(0.05, span / 1000);
+        camera.far = Math.max(600, span * 12);
+        camera.updateProjectionMatrix();
+        controls.minDistance = Math.max(2, span * 0.08);
+        controls.maxDistance = span * 4;
+        water.geometry.dispose();
+        water.geometry = new THREE.PlaneGeometry(Math.max(size.x * 1.08, 10), Math.max(size.y * 1.08, 10));
+        water.position.x = center.x;
+        water.position.y = center.y;
+        const floor = new THREE.Mesh(
+          new THREE.PlaneGeometry(Math.max(size.x * 1.12, 10), Math.max(size.y * 1.12, 10)),
+          new THREE.MeshStandardMaterial({ color: 0x17313a, roughness: 0.94, metalness: 0.02, side: THREE.DoubleSide }),
+        );
+        floor.position.set(center.x, center.y, -0.035);
+        floor.receiveShadow = true;
+        scene.add(floor);
         setMessage("OBJ mesh · metres · z-up");
         setStatus("ready");
-      }, undefined, () => { addPlaceholder(); setStatus("error"); setMessage("OBJ failed to load · showing placeholder"); });
+      }, (progress) => {
+        if (progress.total > 0) setMessage(`Loading mesh · ${Math.round(progress.loaded / progress.total * 100)}%`);
+      }, () => { addPlaceholder(); setStatus("error"); setMessage("OBJ failed to load · showing placeholder"); });
     } else addPlaceholder();
 
     const resize = () => {

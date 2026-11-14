@@ -7,8 +7,8 @@ function money(low: number, high: number) {
   return `${format.format(low)}–${format.format(high)}`;
 }
 
-export function AssetList({ assets, scenario }: { assets: Asset[]; scenario: ScenarioResult }) {
-  if (assets.length === 0) return <PanelState kind="empty" title="No assets inventoried" detail="Run the interior survey to populate this panel." />;
+export function AssetList({ assets, scenario, selectedAssetId, onSelectAsset }: { assets: Asset[]; scenario: ScenarioResult; selectedAssetId: string | null; onSelectAsset: (assetId: string) => void }) {
+  if (assets.length === 0) return <PanelState kind="empty" title="Survey pending" detail="The building is live, but its interior asset survey has not landed yet." />;
   const hits = hitMap(scenario);
   const sorted = [...assets].sort((a, b) => {
     const order = { likely: 0, possible: 1, clear: 2 };
@@ -26,11 +26,11 @@ export function AssetList({ assets, scenario }: { assets: Asset[]; scenario: Sce
         {sorted.map((asset) => {
           const status = hits.get(asset.id) ?? "clear";
           return (
-            <article className={`asset-row ${status}`} key={asset.id}>
+            <button className={`asset-row ${status} ${asset.id === selectedAssetId ? "selected" : ""}`} key={asset.id} onClick={() => onSelectAsset(asset.id)}>
               <div className="asset-status"><i /><span>{status}</span></div>
               <div className="asset-main"><span className="asset-room">{asset.room} · {asset.category}</span><b>{asset.label}</b><small>{asset.height_ft_low}–{asset.height_ft_high} ft vulnerable height · {Math.round(asset.confidence * 100)}% confidence</small></div>
               <span className="asset-value">{money(asset.value_usd_low, asset.value_usd_high)}</span>
-            </article>
+            </button>
           );
         })}
       </div>

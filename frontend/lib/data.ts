@@ -10,17 +10,39 @@ import type {
   Building,
   BuildingBundle,
   EntryPoint,
+  MediaManifest,
   Mitigation,
   ScenarioResult,
 } from "./contracts";
 
 const API_BASE = "http://localhost:8000";
-const source = process.env.WATERLINE_DATA_SOURCE === "api" ? "api" : "fixture";
+const source = process.env.WATERLINE_DATA_SOURCE === "fixture" ? "fixture" : "api";
 
 async function api<T>(pathname: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${pathname}`, { ...init, cache: "no-store" });
   if (!response.ok) throw new Error(`Waterline API ${response.status}: ${pathname}`);
   return response.json() as Promise<T>;
+}
+
+async function optionalApi<T>(pathname: string): Promise<T | null> {
+  const response = await fetch(`${API_BASE}${pathname}`, { cache: "no-store" });
+  if (response.status === 404 || response.status === 503) return null;
+  if (!response.ok) throw new Error(`Waterline API ${response.status}: ${pathname}`);
+  return response.json() as Promise<T>;
+}
+
+function mediaUrl(pathname: string | null | undefined) {
+  if (!pathname) return null;
+  return pathname.startsWith("http://") || pathname.startsWith("https://") ? pathname : `${API_BASE}${pathname.startsWith("/") ? "" : "/"}${pathname}`;
+}
+
+function normalizeManifest(manifest: MediaManifest | null): MediaManifest | null {
+  if (!manifest) return null;
+  return {
+    ...manifest,
+    mesh: manifest.mesh ? { ...manifest.mesh, url: mediaUrl(manifest.mesh.url)! } : null,
+    aerial: Object.fromEntries(Object.entries(manifest.aerial ?? {}).map(([kind, image]) => [kind, { ...image, url: mediaUrl(image.url)!, meta_url: mediaUrl(image.meta_url)! }])),
+  };
 }
 
 export function getDataSource() {
@@ -35,8 +57,24 @@ export async function getBuildings(): Promise<Building[]> {
 export async function getBuildingBundle(id: string): Promise<BuildingBundle | null> {
   if (source === "api") {
     try {
-      const [detail, scenario, mitigations] = await Promise.all([
+      const [detail, rawManifest] = await Promise.all([
         api<{ building: Building; entry_points: EntryPoint[]; assets: Asset[] }>(`/buildings/${id}`),
+        optionalApi<MediaManifest>(`/media/${encodeURIComponent(id)}/manifest.json`),
+      ]);
+      const media = normalizeManifest(rawManifest);
+      if (detail.assets.length === 0) {
+        return {
+          building: detail.building,
+          entryPoints: detail.entry_points,
+          assets: [],
+          scenario: emptyScenario(detail.building.id),
+          mitigations: [],
+          events: [],
+          meshUrl: media?.mesh?.url ?? null,
+          media,
+        };
+      }
+      const [scenario, mitigations] = await Promise.all([
         api<ScenarioResult>(`/buildings/${id}/scenario?depth_ft=2`),
         api<Mitigation[]>(`/buildings/${id}/mitigations?depth_ft=2`),
       ]);
@@ -47,7 +85,8 @@ export async function getBuildingBundle(id: string): Promise<BuildingBundle | nu
         scenario,
         mitigations,
         events: [],
-        meshUrl: `${API_BASE}/media/${id}/mesh/mesh_50k.obj`,
+        meshUrl: media?.mesh?.url ?? null,
+        media,
       };
     } catch (error) {
       if (error instanceof Error && error.message.includes("404")) return null;
@@ -62,19 +101,30 @@ export async function getBuildingBundle(id: string): Promise<BuildingBundle | nu
   const mitigations = mitigationsFixture as Mitigation[];
   const events = eventsFixture as AgentEvent[];
   if (building.id !== id) return null;
-  return { building, entryPoints, assets, scenario, mitigations, events, meshUrl: null };
+  return { building, entryPoints, assets, scenario, mitigations, events, meshUrl: null, media: null };
 }
 
-export async function sendPlaybook(buildingId: string, recipient = ""): Promise<{ ok: boolean; message: string }> {
-  if (source === "api") {
-    await api(`/buildings/${buildingId}/send`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ approved: true, recipient }),
-    });
-    return { ok: true, message: "Approved playbook sent by Waterline API." };
-  }
-  return { ok: true, message: "Fixture approval recorded. No external message was sent." };
+function emptyScenario(buildingId: string): ScenarioResult {
+  return {
+    building_id: buildingId,
+    depth_ft: 2,
+    depth_reference: "interior water depth above ground-floor slab",
+    loss_usd_low: 0,
+    loss_usd_high: 0,
+    assets_hit: [],
+    structure_loss_usd_low: 0,
+    structure_loss_usd_high: 0,
+    assumptions: [],
+  };
+}
+
+export async function forwardSend(buildingId: string, body: string) {
+  return fetch(`${API_BASE}/buildings/${encodeURIComponent(buildingId)}/send`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body,
+    cache: "no-store",
+  });
 }
 
 export function subscribeToEvents(
@@ -97,13 +147,26 @@ export function subscribeToEvents(
   return () => eventSource.close();
 }
 
+export async function getMitigationsForDepth(buildingId: string, depthFt: number, signal?: AbortSignal) {
+  const response = await fetch(`${API_BASE}/buildings/${encodeURIComponent(buildingId)}/mitigations?depth_ft=${encodeURIComponent(depthFt)}`, {
+    cache: "no-store",
+    signal,
+  });
+  if (!response.ok) throw new Error(`Mitigations unavailable at ${depthFt.toFixed(2)} ft (${response.status}).`);
+  return response.json() as Promise<Mitigation[]>;
+}
+
+export function getArtifactUrl(buildingId: string, artifact: "report" | "playbook") {
+  return `${API_BASE}/buildings/${encodeURIComponent(buildingId)}/${artifact}`;
+}
+
 export async function approveAndSend(buildingId: string, recipient: string) {
   const response = await fetch(`/api/buildings/${buildingId}/send`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ approved: true, recipient }),
   });
-  const result = await response.json() as { ok: boolean; message: string };
-  if (!response.ok) throw new Error(result.message || "The playbook could not be sent.");
-  return result;
+  const result = await response.json() as { status?: string; reason?: string; message?: string; detail?: string };
+  if (!response.ok) throw new Error(result.detail || result.message || "The playbook could not be sent.");
+  return { ok: true, message: result.reason || result.message || `Backend send status: ${result.status ?? "accepted"}.` };
 }
