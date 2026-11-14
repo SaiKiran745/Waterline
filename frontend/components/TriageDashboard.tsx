@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useState } from "react";
 import { Brand } from "./Brand";
+import { buildingLabel, floodZoneLabel, propertyTypeLabel, showAddresses } from "@/lib/presentation";
 import type { Building, TriageRow } from "@/lib/contracts";
 
 const BuildingMap = dynamic(() => import("./BuildingMap").then((module) => module.BuildingMap), {
@@ -25,10 +26,7 @@ export function TriageDashboard({ rows, depth, dataSource }: { rows: Row[]; dept
       <header className="topbar">
         <Brand />
         <div className="topbar-meta">
-          <span className={`live-dot ${dataSource}`} />
-          {dataSource === "fixture" ? "FIXTURE REPLAY" : "LIVE API"}
-          <span className="divider" />
-          HOUSTON, TX
+          <span className={`live-dot ${dataSource}`} /> HOUSTON PORTFOLIO
         </div>
       </header>
 
@@ -42,7 +40,7 @@ export function TriageDashboard({ rows, depth, dataSource }: { rows: Row[]; dept
           <div className="triage-depth-options" aria-label="Portfolio water depth">
             {([1, 2, 4, 6] as const).map((option) => <Link key={option} className={option === depth ? "active" : ""} href={`/?depth_ft=${option}`}>{option} FT</Link>)}
           </div>
-          <small>Server-ranked · above ground-floor slab</small>
+          <small>Interior depth above the ground-floor slab</small>
         </div>
       </section>
 
@@ -53,7 +51,6 @@ export function TriageDashboard({ rows, depth, dataSource }: { rows: Row[]; dept
           <div className="map-shell">
             <BuildingMap buildings={rows.map((item) => item.building)} selectedId={selectedId} onSelect={setSelectedId} />
             <div className="map-legend"><span><i className="map-dot selected" /> Selected</span><span><i className="map-dot" /> Assessed</span></div>
-            <div className="map-caption">HOUSTON · LOCAL COORDINATE VIEW</div>
           </div>
           <aside className="ranking-panel">
             <div className="panel-heading-row">
@@ -65,18 +62,19 @@ export function TriageDashboard({ rows, depth, dataSource }: { rows: Row[]; dept
                 const active = item.building.id === selectedId;
                 const loss = item.triage.loss_by_depth_ft[String(depth) as "1" | "2" | "4" | "6"];
                 const structureOnly = item.triage.status === "structure only";
+                const flood = floodZoneLabel(item.building);
                 return (
                   <button className={`rank-card ${active ? "active" : ""} ${structureOnly ? "structure-only" : "surveyed"}`} key={item.building.id} onClick={() => setSelectedId(item.building.id)}>
                     <span className="rank-number">{String(item.triage.rank).padStart(2, "0")}</span>
                     <span className="rank-body">
-                      <b>{item.building.name ?? item.building.address}</b>
-                      <small>{item.building.address}</small>
+                      <b>{buildingLabel(item.building)}</b>
+                      <small>{propertyTypeLabel(item.building.property_type)} · Houston{showAddresses ? ` · ${item.building.address}` : ""}</small>
                       <span className={`survey-status ${structureOnly ? "structure" : "surveyed"}`}>{item.triage.status}</span>
                       <span className="loss-range">{money(loss.total[0])} – {money(loss.total[1])}</span>
                       <span className="loss-basis">{structureOnly ? "STRUCTURE CURVE ONLY · NOT COMPARABLE · " : `${item.triage.contents_assets} CONTENTS ASSETS · `}{item.triage.positions_read} OF {item.triage.scan_positions} POSITIONS READ</span>
                     </span>
                     <span className={`zone-pill ${item.building.in_mapped_flood_zone ? "inside" : "outside"}`}>
-                      FEMA {item.building.flood_zone ?? "—"}
+                      {flood.plain}{flood.code ? <small>{flood.code}</small> : null}
                     </span>
                   </button>
                 );

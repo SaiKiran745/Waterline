@@ -24,7 +24,7 @@ function useAnimatedNumber(target: number) {
 }
 
 function dollars(value: number) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", notation: "compact", maximumSignificantDigits: 3 }).format(value);
 }
 
 export function LossCounter({ row, scannedPercent }: { row: ScenarioTableRow; scannedPercent: number | null }) {
@@ -37,12 +37,12 @@ export function LossCounter({ row, scannedPercent }: { row: ScenarioTableRow; sc
   return (
     <div className="loss-counter" aria-live="polite">
       <span>ESTIMATED TOTAL LOSS</span>
-      <strong>{dollars(totalLow)} <i>—</i> {dollars(totalHigh)}</strong>
+      <strong>{dollars(totalLow)} <i>–</i> {dollars(totalHigh)}</strong>
       <div className="loss-split">
-        <span>CONTENTS <b>{dollars(contentsLow)}–{dollars(contentsHigh)}</b></span>
-        <span>STRUCTURE <b>{dollars(structureLow)}–{dollars(structureHigh)}</b></span>
+        <span><em>CONTENTS</em><b>{dollars(contentsLow)} – {dollars(contentsHigh)}</b></span>
+        <span><em>STRUCTURE</em><b>{dollars(structureLow)} – {dollars(structureHigh)}</b></span>
       </div>
-      <small>{row.assets_hit.length} assets exposed · scanned area: {scannedPercent == null ? "unknown" : `${scannedPercent}% of floor`}</small>
+      <small>scanned area only ({scannedPercent == null ? "coverage unknown" : `${scannedPercent}% of floor`}) · assumed value ranges</small>
     </div>
   );
 }

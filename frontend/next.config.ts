@@ -13,6 +13,7 @@ loadEnvConfig(
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  devIndicators: false,
   turbopack: {
     root: path.resolve(process.cwd(), ".."),
   },

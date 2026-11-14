@@ -12,6 +12,7 @@ const WATER = 0x28b8db;
 export function Viewer3D({ assets, damageByAsset, depthFt, meshUrl }: { assets: Asset[]; damageByAsset: Map<string, AssetDamage>; depthFt: number; meshUrl: string | null }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const waterRef = useRef<THREE.Mesh<THREE.PlaneGeometry, THREE.MeshPhysicalMaterial> | null>(null);
+  const waterEdgeRef = useRef<THREE.LineLoop | null>(null);
   const markerMaterialsRef = useRef(new Map<string, THREE.MeshStandardMaterial>());
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [message, setMessage] = useState("Preparing model");
@@ -21,11 +22,11 @@ export function Viewer3D({ assets, damageByAsset, depthFt, meshUrl }: { assets: 
     if (!host) return;
     setStatus("loading");
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0b1116);
-    scene.fog = new THREE.FogExp2(0x0b1116, 0.018);
+    scene.background = new THREE.Color(0x17262d);
+    scene.fog = new THREE.FogExp2(0x17262d, 0.006);
     const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 600);
     camera.up.set(0, 0, 1);
-    camera.position.set(24, -35, 25);
+    camera.position.set(28, -36, 30);
     let renderer: THREE.WebGLRenderer;
     try {
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
@@ -39,7 +40,8 @@ export function Viewer3D({ assets, damageByAsset, depthFt, meshUrl }: { assets: 
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.08;
+    renderer.toneMappingExposure = 1.35;
+    renderer.localClippingEnabled = true;
     renderer.shadowMap.enabled = true;
     host.appendChild(renderer.domElement);
 
@@ -50,9 +52,9 @@ export function Viewer3D({ assets, damageByAsset, depthFt, meshUrl }: { assets: 
     controls.minDistance = 8;
     controls.maxDistance = 120;
 
-    scene.add(new THREE.HemisphereLight(0xbfe8f0, 0x152129, 1.55));
-    scene.add(new THREE.AmbientLight(0x9fc3cd, 0.48));
-    const sun = new THREE.DirectionalLight(0xffffff, 2.3);
+    scene.add(new THREE.HemisphereLight(0xe6f7fa, 0x35505b, 2.15));
+    scene.add(new THREE.AmbientLight(0xd7eef2, 0.75));
+    const sun = new THREE.DirectionalLight(0xffffff, 3.2);
     sun.position.set(8, -12, 30);
     sun.castShadow = true;
     scene.add(sun);
@@ -77,11 +79,21 @@ export function Viewer3D({ assets, damageByAsset, depthFt, meshUrl }: { assets: 
     });
     scene.add(markerGroup);
 
-    const waterMaterial = new THREE.MeshPhysicalMaterial({ color: WATER, transparent: true, opacity: 0.38, roughness: 0.12, metalness: 0.03, transmission: 0.08, side: THREE.DoubleSide, depthWrite: false });
+    const waterMaterial = new THREE.MeshPhysicalMaterial({ color: WATER, transparent: true, opacity: 0.31, roughness: 0.08, metalness: 0.02, transmission: 0.14, side: THREE.DoubleSide, depthWrite: false });
     const water = new THREE.Mesh(new THREE.PlaneGeometry(80, 50), waterMaterial);
     water.position.set(-10, -4, depthFt * 0.3048);
+    water.renderOrder = 4;
     scene.add(water);
     waterRef.current = water;
+    const makeWaterEdge = (width: number, height: number) => new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(-width / 2, -height / 2, 0), new THREE.Vector3(width / 2, -height / 2, 0),
+      new THREE.Vector3(width / 2, height / 2, 0), new THREE.Vector3(-width / 2, height / 2, 0),
+    ]);
+    const waterEdge = new THREE.LineLoop(makeWaterEdge(80, 50), new THREE.LineBasicMaterial({ color: 0x75eaff, transparent: true, opacity: 0.96 }));
+    waterEdge.position.copy(water.position);
+    waterEdge.renderOrder = 5;
+    scene.add(waterEdge);
+    waterEdgeRef.current = waterEdge;
 
     const grid = new THREE.GridHelper(90, 30, 0x285461, 0x1a3038);
     grid.rotation.x = Math.PI / 2;
@@ -89,8 +101,8 @@ export function Viewer3D({ assets, damageByAsset, depthFt, meshUrl }: { assets: 
     scene.add(grid);
 
     const addPlaceholder = () => {
-      const roomMaterial = new THREE.MeshStandardMaterial({ color: 0x53616a, transparent: true, opacity: 0.45, side: THREE.DoubleSide });
-      const floor = new THREE.Mesh(new THREE.BoxGeometry(55, 30, 0.12), new THREE.MeshStandardMaterial({ color: 0x28343b, roughness: 0.9 }));
+      const roomMaterial = new THREE.MeshStandardMaterial({ color: 0xb5c5ca, transparent: true, opacity: 0.76, roughness: 0.9, side: THREE.DoubleSide });
+      const floor = new THREE.Mesh(new THREE.BoxGeometry(55, 30, 0.12), new THREE.MeshStandardMaterial({ color: 0x366373, roughness: 0.88 }));
       floor.position.set(-10, -4, -0.08);
       floor.receiveShadow = true;
       scene.add(floor);
@@ -112,8 +124,9 @@ export function Viewer3D({ assets, damageByAsset, depthFt, meshUrl }: { assets: 
 
     if (meshUrl) {
       new OBJLoader().load(meshUrl, (object) => {
-        const architecturalMaterial = new THREE.MeshStandardMaterial({ color: 0x91a6ae, roughness: 0.88, metalness: 0.04, side: THREE.DoubleSide });
-        const edgeMaterial = new THREE.LineBasicMaterial({ color: 0x1b3039, transparent: true, opacity: 0.58 });
+        const ceilingCut = new THREE.Plane(new THREE.Vector3(0, 0, -1), 1e6);
+        const architecturalMaterial = new THREE.MeshStandardMaterial({ color: 0xbac9ce, roughness: 0.86, metalness: 0.02, side: THREE.DoubleSide, clippingPlanes: [ceilingCut] });
+        const edgeMaterial = new THREE.LineBasicMaterial({ color: 0x415d67, transparent: true, opacity: 0.8, clippingPlanes: [ceilingCut] });
         const meshChildren: THREE.Mesh[] = [];
         object.traverse((child) => { if (child instanceof THREE.Mesh) meshChildren.push(child); });
         meshChildren.forEach((child) => {
@@ -131,25 +144,32 @@ export function Viewer3D({ assets, damageByAsset, depthFt, meshUrl }: { assets: 
         const center = bounds.getCenter(new THREE.Vector3());
         const size = bounds.getSize(new THREE.Vector3());
         const span = Math.max(size.x, size.y, size.z, 8);
-        controls.target.set(center.x, center.y, Math.max(0.8, center.z * 0.45));
-        camera.position.set(center.x + span * 0.72, center.y - span * 0.92, Math.max(span * 0.62, size.z * 1.4));
+        ceilingCut.constant = bounds.min.z + size.z * 0.72;
+        controls.target.set(center.x, center.y, bounds.min.z + size.z * 0.34);
+        camera.position.set(center.x + span * 0.78, center.y - span * 1.02, Math.max(span * 0.76, size.z * 1.7));
         camera.near = Math.max(0.05, span / 1000);
         camera.far = Math.max(600, span * 12);
         camera.updateProjectionMatrix();
         controls.minDistance = Math.max(2, span * 0.08);
         controls.maxDistance = span * 4;
         water.geometry.dispose();
-        water.geometry = new THREE.PlaneGeometry(Math.max(size.x * 1.08, 10), Math.max(size.y * 1.08, 10));
+        const waterWidth = Math.max(size.x * 1.08, 10);
+        const waterHeight = Math.max(size.y * 1.08, 10);
+        water.geometry = new THREE.PlaneGeometry(waterWidth, waterHeight);
         water.position.x = center.x;
         water.position.y = center.y;
+        waterEdge.geometry.dispose();
+        waterEdge.geometry = makeWaterEdge(waterWidth, waterHeight);
+        waterEdge.position.x = center.x;
+        waterEdge.position.y = center.y;
         const floor = new THREE.Mesh(
           new THREE.PlaneGeometry(Math.max(size.x * 1.12, 10), Math.max(size.y * 1.12, 10)),
-          new THREE.MeshStandardMaterial({ color: 0x17313a, roughness: 0.94, metalness: 0.02, side: THREE.DoubleSide }),
+          new THREE.MeshStandardMaterial({ color: 0x315d6b, roughness: 0.92, metalness: 0.01, side: THREE.DoubleSide }),
         );
         floor.position.set(center.x, center.y, -0.035);
         floor.receiveShadow = true;
         scene.add(floor);
-        setMessage("OBJ mesh · metres · z-up");
+        setMessage("Architectural model ready");
         setStatus("ready");
       }, (progress) => {
         if (progress.total > 0) setMessage(`Loading mesh · ${Math.round(progress.loaded / progress.total * 100)}%`);
@@ -175,6 +195,7 @@ export function Viewer3D({ assets, damageByAsset, depthFt, meshUrl }: { assets: 
         if (object instanceof THREE.Mesh) { object.geometry.dispose(); const materials = Array.isArray(object.material) ? object.material : [object.material]; materials.forEach((material) => material.dispose()); }
       });
       waterRef.current = null;
+      waterEdgeRef.current = null;
       markerMaterials.clear();
       renderer.domElement.remove();
     };
@@ -184,6 +205,7 @@ export function Viewer3D({ assets, damageByAsset, depthFt, meshUrl }: { assets: 
 
   useEffect(() => {
     if (waterRef.current) waterRef.current.position.z = depthFt * 0.3048;
+    if (waterEdgeRef.current) waterEdgeRef.current.position.z = depthFt * 0.3048;
     markerMaterialsRef.current.forEach((material, assetId) => {
       const damage = damageByAsset.get(assetId);
       material.color.set(damageColour(damage?.fractionHigh ?? 0));
@@ -196,7 +218,7 @@ export function Viewer3D({ assets, damageByAsset, depthFt, meshUrl }: { assets: 
     <div className="viewer3d" ref={hostRef}>
       {status === "loading" ? <div className="viewer-status">◌ {message}</div> : null}
       {status === "error" ? <div className="viewer-webgl-fallback"><span>3D VIEW UNAVAILABLE</span><strong>Use Room Safety View</strong><p>The rest of the scenario remains interactive.</p></div> : null}
-      <div className={`model-status ${status}`}>{status === "error" ? "!" : "●"} {message}</div>
+      {status !== "ready" ? <div className={`model-status ${status}`}>{status === "error" ? "!" : "●"} {message}</div> : null}
       <div className="orbit-hint">DRAG TO ORBIT · SCROLL TO ZOOM</div>
     </div>
   );

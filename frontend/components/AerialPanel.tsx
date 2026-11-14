@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { PanelState } from "./PanelState";
 import type { Building, EntryPoint, MediaManifest } from "@/lib/contracts";
+import { buildingLabel } from "@/lib/presentation";
 
 const fixtureMarkerPositions = [
   { left: "62%", top: "67%" },
@@ -52,7 +53,7 @@ export function AerialPanel({ building, entryPoints, media, dataSource }: { buil
                 {/* Manifest URLs are localhost-only cached sponsor media served by the backend. */}
                 <Image
                   src={selectedImage.url}
-                  alt={`${selectedKind} aerial view of ${building.name ?? building.address}`}
+                  alt={`${selectedKind} aerial view of ${buildingLabel(building)}`}
                   fill
                   unoptimized
                   loading="eager"

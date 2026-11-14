@@ -12,7 +12,7 @@ const agentLabels: Record<AgentEvent["agent"], string> = {
   "mitigation-planner": "Mitigation planner", "communications": "Communications",
 };
 
-type Signal = "plan" | "batch" | "relook" | "discrepancy" | "memory" | "replan" | "skill" | "file" | "approval" | null;
+type Signal = "plan" | "batch" | "relook" | "discrepancy" | "memory-applied" | "memory-skipped" | "replan" | "skill" | "file" | "approval" | null;
 
 function eventSignal(event: AgentEvent): Signal {
   const text = `${event.text} ${JSON.stringify(event.data ?? {})}`.toLowerCase();
@@ -21,7 +21,7 @@ function eventSignal(event: AgentEvent): Signal {
   if (event.type === "plan") return "plan";
   if (text.includes("layer discrepancy")) return "discrepancy";
   if (text.includes("re-look") || text.includes("relook") || text.includes("neighboring scan") || text.includes("neighbouring scan")) return "relook";
-  if (text.includes("memory") || text.includes("correction") || text.includes("skipped")) return "memory";
+  if (text.includes("memory") || text.includes("correction") || text.includes("skipped")) return text.includes("skip") ? "memory-skipped" : "memory-applied";
   if (typeof event.data?.batch === "number" || text.includes("survey batch") || text.includes("why now") || (text.includes("batch") && text.includes("reason"))) return "batch";
   if (text.includes("loaded skill") || text.includes("skill.md")) return "skill";
   if (event.type === "artifact" || text.includes("wrote /dossier")) return "file";
@@ -36,10 +36,14 @@ function isCached(event: AgentEvent) {
 
 const signalLabels: Record<Exclude<Signal, null>, string> = {
   plan: "PLAN", batch: "SURVEY BATCH + REASON", relook: "RE-LOOK", discrepancy: "LAYER DISCREPANCY",
-  memory: "AGENT MEMORY", replan: "RE-PLAN + PRIORITIES", skill: "SKILL LOADED", file: "FILE WRITTEN", approval: "APPROVAL WAIT",
+  "memory-applied": "MEMORY APPLIED", "memory-skipped": "MEMORY SKIPPED + REASON", replan: "RE-PLAN + PRIORITIES", skill: "SKILL LOADED", file: "FILE WRITTEN", approval: "APPROVAL WAIT",
 };
 
-export function AgentTrace({ buildingId, fixtureEvents, dataSource, session, depth }: { buildingId: string; fixtureEvents: AgentEvent[]; dataSource: string; session: AgentSessionController; depth: number }) {
+const eventIcons: Record<AgentEvent["type"], string> = {
+  plan: "✦", tool_call: "↗", observation: "◉", decision: "◆", replan: "↻", artifact: "▤", awaiting_approval: "Ⅱ",
+};
+
+export function AgentTrace({ buildingId, fixtureEvents, dataSource, session }: { buildingId: string; fixtureEvents: AgentEvent[]; dataSource: string; session: AgentSessionController }) {
   const [events, setEvents] = useState<AgentEvent[]>([]);
   const [state, setState] = useState<"idle" | "connecting" | "open" | "replay" | "error" | "ended">(dataSource === "api" ? "idle" : "connecting");
   const [replayRun, setReplayRun] = useState<ReplayRun | null>(session.replay);
@@ -70,7 +74,6 @@ export function AgentTrace({ buildingId, fixtureEvents, dataSource, session, dep
     events.forEach((event) => grouped.set(event.agent, [...(grouped.get(event.agent) ?? []), event]));
     return [...grouped.entries()];
   }, [events]);
-  const start = async () => { setReplayRun(null); try { await session.start(depth); } catch { /* Error is rendered verbatim. */ } };
   const replay = async () => { try { await session.playReplay(); } catch { /* Error is rendered verbatim. */ } };
   const recordedAt = replayRun?.recorded_at ?? session.latestRun?.recorded_at;
   const visibleState = replayRun ? "replay" : state;
@@ -79,7 +82,7 @@ export function AgentTrace({ buildingId, fixtureEvents, dataSource, session, dep
     <div className="trace-tab">
       <div className="tab-heading trace-heading"><div><span className="eyebrow">LIVE AGENT FLOW</span><h2>Agent activity</h2></div><span className={`stream-state ${visibleState}`}>{visibleState === "replay" ? "REPLAY" : visibleState.toUpperCase()}</span></div>
       <div className="agent-run-controls">
-        <div><button className="run-agent-button" disabled={session.busy || dataSource !== "api"} onClick={() => void start()}>{session.action === "run" ? "STARTING…" : "RUN AGENT"}</button><span className={`agent-status ${session.statusLabel.toLowerCase().replaceAll(" ", "-")}`}>{session.statusLabel}</span></div>
+        <span className={`agent-status ${session.statusLabel.toLowerCase().replaceAll(" ", "-")}`}>{session.statusLabel}</span>
         <button className="replay-button" disabled={session.busy || dataSource !== "api"} onClick={() => void replay()}>REPLAY LAST RUN{session.latestRun ? ` · ${new Date(session.latestRun.recorded_at).toLocaleString()}` : ""}</button>
       </div>
       {replayRun ? <div className="replay-banner"><b>REPLAY · NOT LIVE</b><span>{replayRun.label}</span></div> : null}
@@ -91,11 +94,14 @@ export function AgentTrace({ buildingId, fixtureEvents, dataSource, session, dep
             <h3><i />{agentLabels[agent]}<span>{agentEvents.length}</span></h3>
             {agentEvents.map((event) => {
               const signal = eventSignal(event); const cached = isCached(event);
-              return <article className={`trace-event ${event.type} ${signal ? `signal-${signal}` : ""}`} key={event.id}>
-                <div><span>{event.type.replace("_", " ")}</span><time>{new Date(event.ts).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })}</time></div>
-                {signal || cached ? <div className="trace-signal-row">{signal ? <b>{signalLabels[signal]}</b> : null}{cached ? <b className="cache-badge">CACHED RESULT</b> : null}</div> : null}
-                <p>{event.text}</p>{event.refs.length ? <small>{event.refs.join(" · ")}</small> : null}
-              </article>;
+              return <details className={`trace-event ${event.type} ${signal ? `signal-${signal}` : ""}`} key={event.id}>
+                <summary>
+                  <span className="trace-event-icon" aria-hidden="true">{eventIcons[event.type]}</span>
+                  <span className="trace-event-copy"><span>{signal ? signalLabels[signal] : event.type.replace("_", " ")}{cached ? " · CACHED" : ""}</span><b>{event.text}</b></span>
+                  <time>{new Date(event.ts).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })}</time>
+                </summary>
+                <div className="trace-event-details"><span>{agentLabels[agent]} · {event.type.replace("_", " ")}</span>{cached ? <b className="cache-badge">CACHED RESULT</b> : null}<p>{event.text}</p>{event.refs.length ? <small>{event.refs.join(" · ")}</small> : null}</div>
+              </details>;
             })}
           </section>)}
         </div>

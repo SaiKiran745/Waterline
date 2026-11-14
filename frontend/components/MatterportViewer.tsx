@@ -2,6 +2,7 @@
 
 import Script from "next/script";
 import { useEffect, useRef, useState } from "react";
+import { showAddresses } from "@/lib/presentation";
 
 type MatterportSdk = {
   App: {
@@ -78,7 +79,7 @@ export function MatterportViewer({ modelId, locationId, enabled }: { modelId: st
   if (!modelId) return <ViewerNotice title="No Matterport scan" detail="This building has no selected Matterport model." />;
   if (!sdkKey) return <ViewerNotice title="Matterport key missing" detail="Set NEXT_PUBLIC_MATTERPORT_SDK_KEY and restart the frontend." tone="error" />;
 
-  const iframeUrl = `https://my.matterport.com/show?m=${encodeURIComponent(modelId)}&play=1&qs=1&applicationKey=${encodeURIComponent(sdkKey)}`;
+  const iframeUrl = `https://my.matterport.com/show?m=${encodeURIComponent(modelId)}&play=1&qs=1&title=${showAddresses ? "1" : "0"}&applicationKey=${encodeURIComponent(sdkKey)}`;
   const scriptUrl = `${BOOTSTRAP_URL}?applicationKey=${encodeURIComponent(sdkKey)}`;
 
   return (

@@ -15,4 +15,14 @@ npm run dev
 
 Open `http://localhost:3000`. The `set -a` step exports the root `.env` into Next.js. `bundle:download` fetches Matterport Bundle SDK `26.5.4_webgl-708-g332adb66f5` from Matterport's official distribution into the git-ignored `public/matterport-bundle/`; licensed bundle files are never committed.
 
+Street addresses are hidden by default for the projected demo. Set `NEXT_PUBLIC_SHOW_ADDRESSES=1` before building only when the audience is allowed to see them.
+
+For the demo, use a production build so no development tooling appears:
+
+```bash
+set -a; source ../.env; set +a
+npm run build
+npm run start
+```
+
 The photo-real view requires WebGL plus network access to Matterport. If the bundle, network, WebGL, or viewer connection fails, the app visibly falls back to the local OBJ-based 3D model view; the room safety view remains available as a second fallback.

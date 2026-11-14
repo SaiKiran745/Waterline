@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { Building } from "@/lib/contracts";
+import { buildingLabel } from "@/lib/presentation";
 
 export function BuildingMap({ buildings, selectedId, onSelect }: { buildings: Building[]; selectedId: string; onSelect: (id: string) => void }) {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -32,7 +33,7 @@ export function BuildingMap({ buildings, selectedId, onSelect }: { buildings: Bu
         html: `<span class="map-pin ${active ? "active" : ""}"><b>${index + 1}</b><i></i></span>`,
         iconSize: [48, 56], iconAnchor: [24, 48],
       });
-      const marker = L.marker([building.lat, building.lng], { icon, title: building.name ?? building.address });
+      const marker = L.marker([building.lat, building.lng], { icon, title: buildingLabel(building) });
       marker.on("click", () => onSelect(building.id));
       marker.addTo(layer);
       bounds.extend([building.lat, building.lng]);

@@ -13,6 +13,7 @@ import { DetailTabs } from "./DetailTabs";
 import { AssumptionsDrawer } from "./AssumptionsDrawer";
 import { assetDamageMap, scenarioFromTable, scenarioRow } from "@/lib/scenario";
 import { correctAsset } from "@/lib/data";
+import { buildingTitle, floodZoneLabel, showAddresses } from "@/lib/presentation";
 import { useAgentSession } from "@/hooks/useAgentSession";
 import type { BuildingBundle } from "@/lib/contracts";
 
@@ -27,6 +28,8 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
   const [fallbackNotice, setFallbackNotice] = useState("");
   const [fallbackDetail, setFallbackDetail] = useState("");
   const [insideRequest, setInsideRequest] = useState(0);
+  const [insideOverlayOpen, setInsideOverlayOpen] = useState(false);
+  const [traceRequest, setTraceRequest] = useState(0);
   const [correctionState, setCorrectionState] = useState<{ kind: "idle" | "saving" | "success" | "error"; message: string }>({ kind: "idle", message: "" });
   const scenario = useMemo(() => scenarioFromTable(scenarioTable, depth), [scenarioTable, depth]);
   const row = useMemo(() => scenarioRow(scenarioTable, depth), [scenarioTable, depth]);
@@ -38,6 +41,8 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
   const memoryCorrections = session.status?.memory.active_human_corrections ?? assets.filter((asset) => asset.source === "human").length;
   const memoryAppliedAssetIds = useMemo(() => new Set(session.status?.memory.applied_this_session_asset_ids ?? []), [session.status?.memory.applied_this_session_asset_ids]);
   const currentBundle = useMemo(() => ({ ...bundle, assets, scenarioTable, mitigations }), [assets, bundle, mitigations, scenarioTable]);
+  const floodZone = floodZoneLabel(bundle.building);
+  const agentStage = session.action === "run" ? "planning" : session.action === "depth" ? "re-planning" : session.status?.waiting_for_approval ? "waiting for approval" : session.status?.running ? ((session.status?.events ?? 0) < 3 ? "planning" : "surveying") : session.status?.run_id ? "done" : "idle";
 
   const handlePhotoFailure = useCallback((message: string) => {
     setFallbackNotice("Photo-real unavailable — offline 3D restored.");
@@ -53,8 +58,18 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
 
   const handleAssetSelect = useCallback((assetId: string) => {
     setSelectedAssetId(assetId);
+    setInsideOverlayOpen(true);
     if (view === "photo") setInsideRequest((value) => value + 1);
   }, [view]);
+
+  const handleRun = async () => {
+    setTraceRequest((value) => value + 1);
+    try {
+      await session.start(depth);
+    } catch {
+      // The exact endpoint response remains visible in the trace panel.
+    }
+  };
 
   const handleCorrection = async (assetId: string, method: "PATCH" | "DELETE", changes: Record<string, unknown>) => {
     setCorrectionState({ kind: "saving", message: method === "DELETE" ? "Removing asset and refreshing scenarios…" : "Saving correction and refreshing scenarios…" });
@@ -86,14 +101,16 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
       <header className="building-header">
         <Brand compact />
         <div className="building-title">
-          <span className="eyebrow">BUILDING DOSSIER / {bundle.building.property_type.toUpperCase()}</span>
-          <h1>{bundle.building.name ?? bundle.building.address}</h1>
-          <p>{bundle.building.address}</p>
+          <span className="eyebrow">FLOOD DOSSIER</span>
+          <h1>{buildingTitle(bundle.building)}</h1>
+          {showAddresses ? <p>{bundle.building.address}</p> : null}
+        </div>
+        <div className="agent-header-action">
+          <button className="run-agent-button primary" disabled={session.busy || dataSource !== "api"} onClick={() => void handleRun()}>{session.action === "run" ? "STARTING AGENT…" : "RUN AGENT"}</button>
+          <span className={`agent-stage stage-${agentStage.replaceAll(" ", "-")}`}><i />{agentStage}</span>
         </div>
         <div className="building-meta">
-          <span><small>FEMA ZONE</small><b>{bundle.building.flood_zone ?? "—"}</b></span>
-          <span><small>GROUND EL.</small><b>{bundle.building.ground_elevation_ft?.toFixed(1) ?? "—"} ft</b></span>
-          <span className={`source-badge ${dataSource}`}>{dataSource === "fixture" ? "FIXTURE" : "LIVE"}</span>
+          <span className="flood-zone-meta"><small>FLOOD MAP</small><b>{floodZone.plain}</b>{floodZone.code ? <em>{floodZone.code}</em> : null}</span>
           <span className="survey-progress"><small>SURVEY</small><b>{bundle.triage ? `${bundle.triage.positions_read} of ${bundle.triage.scan_positions} positions read` : "Position count unavailable"}</b></span>
           <span className="agent-memory"><small>AGENT MEMORY</small><b>{memoryCorrections} corrections</b></span>
         </div>
@@ -109,37 +126,31 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
               <button className={view === "rooms" ? "active" : ""} onClick={() => setView("rooms")}>ROOM SAFETY VIEW</button>
             </div>
             <div className="scenario-status"><span className="scenario-label" title={fallbackDetail}>{fallbackNotice || "SCENARIO · NOT A PREDICTION"}</span>{fallbackNotice ? <button className="retry-photo-real" onClick={retryPhotoReal}>RETRY PHOTO-REAL</button> : null}</div>
-            {selectedAsset ? <button className="view-selected-inside" onClick={() => { setFallbackNotice(""); setFallbackDetail(""); setView("photo"); setInsideRequest((value) => value + 1); }}>VIEW SELECTED INSIDE</button> : null}
+            {selectedAsset ? <button className="view-selected-inside" onClick={() => { setInsideOverlayOpen(true); setInsideRequest((value) => value + 1); }}>VIEW SELECTED INSIDE</button> : null}
           </div>
-          <div className={`viewer-stage ${view === "model" ? "dual-view" : ""}`}>
+          <div className="viewer-stage">
             {view === "model" ? (
-              <>
-                <div className="viewer-pane water-model-pane">
-                  <div className="pane-label">WATER MODEL</div>
-                  <Viewer3D assets={assets} damageByAsset={damageByAsset} depthFt={depth} meshUrl={bundle.meshUrl} />
-                  <div className="viewer-overlay top-left">
-                    <span>INTERIOR WATER</span><strong>{depth.toFixed(2)}<small> FT</small></strong>
-                  </div>
-                  <div className="viewer-overlay bottom-left">
-                    <span className="legend-dot clear" /> CLEAR <span className="legend-dot possible" /> PARTIAL <span className="legend-dot likely" /> SEVERE <span className="legend-diamond" /> VEHICLE
-                  </div>
+              <div className="viewer-pane water-model-pane">
+                <Viewer3D assets={assets} damageByAsset={damageByAsset} depthFt={depth} meshUrl={bundle.meshUrl} />
+                <div className="viewer-overlay top-left">
+                  <span>INTERIOR WATER</span><strong>{depth.toFixed(2)}<small> FT</small></strong>
                 </div>
-                <div className="viewer-pane matterport-pane">
-                  <div className="pane-label">MATTERPORT WALKTHROUGH</div>
-                  <MatterportViewer modelId={bundle.building.matterport_model_id} locationId={selectedAsset?.location_id ?? null} enabled={dataSource === "api"} />
+                <div className="viewer-overlay bottom-left">
+                  <span className="legend-dot clear" /> CLEAR <span className="legend-dot possible" /> PARTIAL <span className="legend-dot likely" /> SEVERE <span className="legend-diamond" /> VEHICLE
                 </div>
-              </>
+              </div>
             ) : view === "photo" ? <PhotoRealViewer modelId={bundle.building.matterport_model_id} assets={assets} damageByAsset={damageByAsset} depthFt={depth} locationId={selectedAsset?.location_id ?? null} locations={bundle.media?.locations ?? []} insideRequest={insideRequest} onFailure={handlePhotoFailure} /> : <RoomGrid assets={assets} damageByAsset={damageByAsset} depthFt={depth} />}
+            {insideOverlayOpen ? <section className="inside-view-overlay" aria-label="Selected asset walkthrough">
+              <header><div><span>SELECTED ASSET · INSIDE VIEW</span><b>{selectedAsset?.label ?? "Walkthrough"}</b></div><button onClick={() => setInsideOverlayOpen(false)} aria-label="Close inside view">CLOSE ×</button></header>
+              <div className="inside-view-body"><MatterportViewer modelId={bundle.building.matterport_model_id} locationId={selectedAsset?.location_id ?? null} enabled={dataSource === "api"} /></div>
+            </section> : null}
           </div>
           <div className="scenario-console">
-            <LossCounter row={row} scannedPercent={scannedPercent} />
+            <div className="loss-console-group"><LossCounter row={row} scannedPercent={scannedPercent} /><button className="assumptions-button" onClick={() => setAssumptionsOpen(true)}><span>ASSUMPTIONS</span><b>({scenario.assumptions.length})</b></button></div>
             <WaterSlider depth={depth} onChange={setDepth} onCommit={commitDepth} />
-            <button className="assumptions-button" onClick={() => setAssumptionsOpen(true)}>
-              <span>ASSUMPTIONS</span><b>{scenario.assumptions.length}</b>
-            </button>
           </div>
         </section>
-        <DetailTabs bundle={currentBundle} scenario={scenario} damageByAsset={damageByAsset} dataSource={dataSource} selectedAssetId={selectedAssetId} memoryAppliedAssetIds={memoryAppliedAssetIds} onSelectAsset={handleAssetSelect} onCorrect={handleCorrection} correctionState={correctionState} session={session} />
+        <DetailTabs key={`details-${traceRequest}`} bundle={currentBundle} scenario={scenario} damageByAsset={damageByAsset} dataSource={dataSource} selectedAssetId={selectedAssetId} memoryAppliedAssetIds={memoryAppliedAssetIds} onSelectAsset={handleAssetSelect} onCorrect={handleCorrection} correctionState={correctionState} session={session} traceRequest={traceRequest} />
       </section>
       <AssumptionsDrawer open={assumptionsOpen} onClose={() => setAssumptionsOpen(false)} assumptions={scenarioTable.assumptions} />
     </main>

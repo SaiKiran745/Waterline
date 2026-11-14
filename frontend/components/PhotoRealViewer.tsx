@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type * as Three from "three";
 import { damageColour } from "@/lib/scenario";
 import type { Asset, AssetDamage, MatterportLocation } from "@/lib/contracts";
+import { showAddresses } from "@/lib/presentation";
 
 type Vector3 = { x: number; y: number; z: number };
 type SweepData = {
@@ -113,7 +114,7 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
   const [coordinateCheck, setCoordinateCheck] = useState("Checking shared scan positions");
   const [activeLocationId, setActiveLocationId] = useState<string | null>(null);
   const sdkKey = process.env.NEXT_PUBLIC_MATTERPORT_SDK_KEY ?? "";
-  const bundleUrl = useMemo(() => modelId && sdkKey ? `/matterport-bundle/showcase.html?m=${encodeURIComponent(modelId)}&play=1&qs=1&applicationKey=${encodeURIComponent(sdkKey)}` : "", [modelId, sdkKey]);
+  const bundleUrl = useMemo(() => modelId && sdkKey ? `/matterport-bundle/showcase.html?m=${encodeURIComponent(modelId)}&play=1&qs=1&title=${showAddresses ? "1" : "0"}&applicationKey=${encodeURIComponent(sdkKey)}` : "", [modelId, sdkKey]);
 
   useEffect(() => {
     if (iframeReady || !modelId || !sdkKey) return;

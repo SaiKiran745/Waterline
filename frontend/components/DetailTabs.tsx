@@ -19,8 +19,8 @@ const tabs = [
 
 type TabId = (typeof tabs)[number]["id"];
 
-export function DetailTabs({ bundle, scenario, damageByAsset, dataSource, selectedAssetId, memoryAppliedAssetIds, onSelectAsset, onCorrect, correctionState, session }: { bundle: BuildingBundle; scenario: ScenarioResult; damageByAsset: Map<string, AssetDamage>; dataSource: string; selectedAssetId: string | null; memoryAppliedAssetIds: Set<string>; onSelectAsset: (assetId: string) => void; onCorrect: (assetId: string, method: "PATCH" | "DELETE", changes: Record<string, unknown>) => Promise<void>; correctionState: { kind: "idle" | "saving" | "success" | "error"; message: string }; session: AgentSessionController }) {
-  const [tab, setTab] = useState<TabId>("assets");
+export function DetailTabs({ bundle, scenario, damageByAsset, dataSource, selectedAssetId, memoryAppliedAssetIds, onSelectAsset, onCorrect, correctionState, session, traceRequest }: { bundle: BuildingBundle; scenario: ScenarioResult; damageByAsset: Map<string, AssetDamage>; dataSource: string; selectedAssetId: string | null; memoryAppliedAssetIds: Set<string>; onSelectAsset: (assetId: string) => void; onCorrect: (assetId: string, method: "PATCH" | "DELETE", changes: Record<string, unknown>) => Promise<void>; correctionState: { kind: "idle" | "saving" | "success" | "error"; message: string }; session: AgentSessionController; traceRequest: number }) {
+  const [tab, setTab] = useState<TabId>(traceRequest > 0 ? "trace" : "assets");
   return (
     <aside className="details-panel panel-frame">
       <div className="tab-list" role="tablist" aria-label="Building details">
@@ -33,7 +33,7 @@ export function DetailTabs({ bundle, scenario, damageByAsset, dataSource, select
       <div className="tab-content" role="tabpanel">
         {tab === "assets" ? <AssetList assets={bundle.assets} scenario={scenario} damageByAsset={damageByAsset} selectedAssetId={selectedAssetId} memoryAppliedAssetIds={memoryAppliedAssetIds} onSelectAsset={onSelectAsset} onCorrect={onCorrect} correctionState={correctionState} correctionsEnabled={dataSource === "api"} /> : null}
         {tab === "mitigation" ? <MitigationTable buildingId={bundle.building.id} mitigations={bundle.mitigations} currentDepth={scenario.depth_ft} dataSource={dataSource} /> : null}
-        {tab === "trace" ? <AgentTrace buildingId={bundle.building.id} fixtureEvents={bundle.events} dataSource={dataSource} session={session} depth={scenario.depth_ft} /> : null}
+        {tab === "trace" ? <AgentTrace buildingId={bundle.building.id} fixtureEvents={bundle.events} dataSource={dataSource} session={session} /> : null}
         {tab === "files" ? <FilesPanel buildingId={bundle.building.id} live={Boolean(session.status?.running)} refreshVersion={session.streamVersion} dataSource={dataSource} /> : null}
         {tab === "approve" ? <ApprovePanel building={bundle.building} mitigations={bundle.mitigations} currentDepth={scenario.depth_ft} dataSource={dataSource} session={session} /> : null}
       </div>
