@@ -27,7 +27,7 @@ python3.14 -m venv .venv                         # any Python 3.11+
 .venv/bin/python -m app.survey.spotcheck building-e   # 10-asset spot-check table (--sheet out.jpg for a local review sheet)
 .venv/bin/python -m app.survey.site building-e      # entry points from the aerial images (Gemini)
 .venv/bin/python -m app.loss.rank                # precompute loss at 1, 2, 4, 6 ft for the triage map
-.venv/bin/python -m app.agent.run building-e --depth 1 --new-depth 4 --approve   # live deep agent run (Gemini)
+.venv/bin/python -m app.agent.run building-e --depth 1 --new-depth 4 --approve --positions 12   # live deep agent run (Gemini)
 .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
 
 .venv/bin/python -m pytest -q                    # tests
@@ -71,11 +71,13 @@ All responses follow `contracts/`. CORS allows `http://localhost:3000`.
 | `DELETE /buildings/{id}/assets/{asset_id}?depth_ft=` | Removes a wrong asset (optional body `{"note"}`). Returns the same shape, with `asset: null` |
 | `GET /triage?depth_ft=1\|2\|4\|6` | Every building ranked by total loss, labelled `surveyed` (with positions read and contents count) or `structure only` (contracts v1.2; `?fixture=1` for the fixture) |
 | `POST /buildings/{id}/run` | Starts the live agent at `{"depth_ft": 1}`. Demo mode: only scan positions with cached vision answers are offered (fixture: trace replay) |
-| `POST /buildings/{id}/depth` | `{"depth_ft": 4}` during a session: the agent re-plans, re-prices, re-ranks, drafts the documents and waits for approval |
+| `POST /buildings/{id}/depth` | `{"depth_ft": 4}` during a session: the agent re-plans, re-prices and re-ranks |
 | `GET /buildings/{id}/agent` | Session status: running, turns, `waiting_for_approval`, errors |
+| `POST /buildings/{id}/request_send` | The agent drafts the report and playbook, then calls `send_playbook`, which waits for `POST /send` |
+| `GET /buildings/{id}/dossier` | Every file the agent wrote for the building (notes, inventory, scenarios, mitigations, report, playbook, send log) with contents |
 | `GET /buildings/{id}/events?speed=` | SSE stream of AgentEvent (`event: agent_event`, then `event: end`): live while the agent runs, otherwise a replay of the latest saved trace |
 | `GET /buildings/{id}/report?depth_ft=`, `/playbook?depth_ft=` | HTML |
-| `POST /buildings/{id}/send` | `{"approved": true, "recipient": "<in ALLOWED_RECIPIENTS>"}` resumes an agent waiting for approval (`false` rejects). The approved send is recorded; email delivery is Phase 5B |
+| `POST /buildings/{id}/send` | `{"approved": true, "recipient": "<in ALLOWED_RECIPIENTS>"}` resumes an agent waiting for approval (`false` rejects), or sends directly. Email goes out over SMTP when `SMTP_*` and `EMAIL_FROM` are set; otherwise the status is `draft_only` |
 | `GET /media/{id}/manifest.json` | Same manifest (localhost only) |
 | `GET /media/{id}/...` | The cached files themselves (localhost only). Panorama faces are served only when the privacy screen cleared them |
 

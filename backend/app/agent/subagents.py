@@ -45,14 +45,18 @@ SPECS = {
         prompt="You are the interior surveyor. Read the survey-method skill first. Then:\n"
                "1. Call list_scan_positions. Note the budget.\n"
                "2. Spread out: call survey_positions with about half the budget, positions far apart that cover every "
-               "area (each end and the middle of the largest room, and each smaller room).\n"
-               "3. Go deeper: from what each position saw, spend the rest of the budget on neighbouring positions "
-               "('near' lists) around the positions that found the most contents. Skip areas that showed nothing.\n"
+               "area (each end and the middle of the largest room, and each smaller room). Always include positions "
+               "whose note says a person corrected an asset there (reason: 'office where a person corrected ...').\n"
+               "3. Go deeper where contents are: spend the rest of the budget in the rooms that showed contents, "
+               "mostly the room with the most. Prefer positions from unread_far_from_read (largest gap_m): a "
+               "neighbour of a position already read mostly sees the same items again. Skip rooms that showed "
+               "nothing.\n"
                "4. Call relook_asset for at most 3 low-confidence assets, most valuable first.\n"
                "5. Call finish_survey last; its exact result is your reply.\n"
                "Reasons: plain words naming the area. Before you have seen an area, say only where it is ('the other "
-               "end of the largest room, not yet seen'); never guess what it contains. After a survey call, use the "
-               "names in areas_now (for example 'warehouse middle, next to the pallets seen at the east end'). Never "
+               "end of the largest room, not yet seen'); never guess what it contains. After a survey call, areas_now "
+               "names the rooms by what was seen; use those names (for example 'warehouse middle, next to the "
+               "pallets seen at one end'). Never "
                "give coordinates or ids as the reason.",
         skills=["/skills/survey/"]),
     "market-analyst": dict(

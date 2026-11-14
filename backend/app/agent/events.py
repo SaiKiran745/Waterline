@@ -39,6 +39,8 @@ class Trace:
         self.task_ids: dict[str, str] = {}  # task() tool-call id -> subagent, so parallel reports are attributed right
         self.files: set[str] = set()
         self.skills: set[tuple[str, str]] = set()
+        self.ns_role: dict[str, str] = {}               # subgraph namespace -> subagent, learned from its tool calls
+        self.pending_skills: dict[str, list] = {}       # skill loads seen before the namespace's subagent is known
         self.listeners: list = []
 
     def emit(self, agent: str, type_: str, text: str, refs=(), data=None) -> dict:
@@ -93,10 +95,28 @@ def _todo_texts(todos) -> list[str]:
     return [t.get("content", "") if isinstance(t, dict) else str(t) for t in todos or []]
 
 
+def _skill_event(trace: Trace, who: str, skill: str, path: str) -> None:
+    if (who, skill) not in trace.skills:
+        trace.skills.add((who, skill))
+        trace.emit(who, "tool_call", f"Loaded skill {skill} on demand ({path})", refs=[path],
+                   data={"tool": "read_file", "skill": skill, "path": path})
+
+
 def translate(trace: Trace, namespace: tuple, chunk: dict) -> None:
     """One (namespace, {node: update}) item from agent.stream(..., stream_mode="updates", subgraphs=True)."""
     in_subagent = bool(namespace)
-    who = trace.delegated[-1] if in_subagent and trace.delegated else "orchestrator"
+    ns = "|".join(namespace) if namespace else ""
+    who = trace.ns_role.get(ns) or (trace.delegated[-1] if in_subagent and trace.delegated else "orchestrator")
+    if in_subagent and ns not in trace.ns_role:
+        from app.agent.tools import ROLE_TOOLS
+        owner = {t.name: role for role, ts in ROLE_TOOLS.items() for t in ts}
+        for update in (chunk or {}).values():
+            for m in _msgs(update):
+                for call in getattr(m, "tool_calls", None) or []:
+                    if call.get("name") in owner:
+                        trace.ns_role[ns] = who = owner[call["name"]]
+                        for skill, path in trace.pending_skills.pop(ns, []):
+                            _skill_event(trace, who, skill, path)
     for node, update in (chunk or {}).items():
         if node == "__interrupt__":
             for intr in update or ():
@@ -137,10 +157,10 @@ def translate(trace: Trace, namespace: tuple, chunk: dict) -> None:
                     elif name == "read_file" and "/skills/" in str(args.get("file_path") or args.get("path") or ""):
                         path = str(args.get("file_path") or args.get("path"))
                         skill = path.rstrip("/").split("/")[-2] if path.endswith("SKILL.md") else path
-                        if (who, skill) not in trace.skills:
-                            trace.skills.add((who, skill))
-                            trace.emit(who, "tool_call", f"Loaded skill {skill} on demand ({path})", refs=[path],
-                                       data={"tool": "read_file", "skill": skill, "path": path})
+                        if in_subagent and ns not in trace.ns_role:
+                            trace.pending_skills.setdefault(ns, []).append((skill, path))   # owner not known yet
+                        else:
+                            _skill_event(trace, who, skill, path)
                     elif name in ("write_file", "edit_file"):
                         path = args.get("file_path") or args.get("path") or ""
                         if path.startswith("/dossier/") or path.startswith("/memories/"):

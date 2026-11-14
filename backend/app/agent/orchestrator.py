@@ -38,20 +38,27 @@ Goal: where flood water gets in, what a flood would damage, the loss at the user
 documents drafted, and a person's approval before anything is sent.
 
 Rules:
-1. Memory first: call get_corrections. For each correction with candidates in apply_to_similar, judge every
-   candidate against the person's note: apply it only where the note clearly describes that asset too. Call
-   apply_correction_to_similar once per correction with the assets you chose (possibly none) and a reason that
-   names any you skipped and why.
-2. Plan before acting: write_todos with 4 to 6 short steps. Update it only when the plan changes.
+1. Plan before acting: write_todos with 4 to 6 short steps, one of them "apply human corrections".
+2. Memory: once the interior survey is done (before pricing), call get_corrections. For each correction with
+   candidates in apply_to_similar, judge every candidate against the person's note: apply it only where the note
+   clearly describes that asset too. Call apply_correction_to_similar once per correction with the assets you chose
+   (possibly none) and a reason that names any you skipped and why.
 3. Delegate with task(), one subagent per call, building id and depth in the description. Run independent work in
    parallel: site-scout, interior-surveyor and market-analyst together; then scenario-builder and mitigation-planner
    together. Do not do their work yourself. Their replies are exact tool results; quote numbers from them only.
 4. Details live in /dossier/{bid}/ (the tools write them). Keep your messages short; never paste tables.
 5. When the user changes the depth: re-plan with write_todos, then only scenario-builder and mitigation-planner at
    the new depth (tell the planner the old depth). Say in 3 lines how the priority list changed.
-6. Sending needs a person: when asked to send, have communications draft first, then you must call send_playbook
-   (never just ask in text). It pauses until a person approves or rejects it.
+6. Sending needs a person: when asked to send, have communications draft first (no new plan needed), then you must
+   call send_playbook (never just ask in text). It pauses until a person approves or rejects it.
 Every dollar figure is a low-high range; the depth is a scenario, not a forecast. Final answers: at most 5 lines."""
+
+
+# The default write_todos texts are about 2,000 tokens and ride on every orchestrator call; these say the same for us.
+PLAN_PROMPT = ("## write_todos\nWrite the plan with write_todos before acting (4 to 6 short steps) and again only "
+               "when the plan itself changes. Do not call it just to mark steps done.")
+PLAN_TOOL = ("Write or replace the plan: a list of todos, each with content and a status (pending, in_progress or "
+             "completed).")
 
 
 class SpendCallback(BaseCallbackHandler):
@@ -118,7 +125,8 @@ def build_agent(bid: str, cb: SpendCallback, model=None, sub_cb: SpendCallback |
         tools=ORCHESTRATOR_TOOLS,
         system_prompt=SYSTEM.format(bid=bid),
         subagents=subagents.build(bid, sub),
-        middleware=[TodoListMiddleware(), ModelCallLimitMiddleware(run_limit=40, exit_behavior="end")],
+        middleware=[TodoListMiddleware(system_prompt=PLAN_PROMPT, tool_description=PLAN_TOOL),
+                    ModelCallLimitMiddleware(run_limit=40, exit_behavior="end")],
         backend=backend,
         store=memory.store(),
         checkpointer=checkpointer(),

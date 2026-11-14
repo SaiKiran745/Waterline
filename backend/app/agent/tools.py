@@ -157,14 +157,14 @@ def _areas(bid: str, mp: dict) -> dict:
         ys = [l["position"]["y"] for l in ls]
         long_x = (max(xs) - min(xs)) >= (max(ys) - min(ys))
         lo, hi = (min(xs), max(xs)) if long_x else (min(ys), max(ys))
-        name = labels.get(rid) or seen.get(rid) or f"room {rank[rid]}"
-        size = "largest room" if rank[rid] == 1 else f"{len(ls)} positions"
+        order = {1: "the largest room", 2: "the second-largest room", 3: "the third-largest room"}
+        name = labels.get(rid) or seen.get(rid) or order.get(rank[rid], f"small room {rank[rid]}")
         state = "seen" if rid in seen else "not yet seen"
         for l in ls:
             v = l["position"]["x" if long_x else "y"]
             t = (v - lo) / (hi - lo) if hi > lo else 0.5
             part = "one end" if t < 0.25 else "the other end" if t > 0.75 else "the middle"
-            out[l["id"]] = f"{name} ({size}, {state}), {part}" if len(ls) > 2 else f"{name} ({size}, {state})"
+            out[l["id"]] = f"{name} ({state}), {part}" if len(ls) > 2 else f"{name} ({state})"
     return out
 
 
@@ -182,9 +182,16 @@ def list_scan_positions(building_id: str) -> str:
     areas = _areas(building_id, mp)
     cached = interior.vision_index(building_id)
     _call("interior-surveyor", "list_scan_positions", {"building_id": building_id})
+    corrected = {(r.get("fingerprint") or {}).get("location_id") for r in corrections.load(building_id)
+                 if r["by"] == "human"}
     rows = [{"id": l["id"][:6], "area": areas[l["id"]],
              "xy": [round(l["position"]["x"], 1), round(l["position"]["y"], 1)],
-             "near": [n[:6] for n in (l.get("neighbors") or []) if n in with_pano][:6]} for l in locs]
+             "near": [n[:6] for n in (l.get("neighbors") or []) if n in with_pano][:6]}
+            | ({"note": "a person corrected an asset seen here"} if l["id"] in corrected else {}) for l in locs]
+    if corrected & {l["id"] for l in locs}:
+        events.emit("interior-surveyor", "observation",
+                    f"Memory: {len(corrected & {l['id'] for l in locs})} position(s) hold assets a person corrected; "
+                    "they will be read again.", refs=sorted(corrected & {l["id"] for l in locs}))
     budget = SETTINGS["max_positions"]
     used = len(STATE.get(building_id, {}).get("chosen", []))
     events.emit("interior-surveyor", "observation",
@@ -268,9 +275,19 @@ def survey_positions(building_id: str, choices: list[dict],
             f"| {a['confidence']} |" for a in assets]
     doc += ["", "## Positions", ""] + [f"- {c['location_id'][:6]}: {c['reason']}" for c in st["chosen"]]
     areas = _areas(building_id, mp)
-    names = sorted({a.split(" (")[0] + " = " + a.split(" (")[1].split(",")[0] for a in areas.values()})
+    names = sorted({a.split(" (")[0] for a in areas.values()})
+    # New coverage beats re-sighting: unread positions in rooms where contents were found, farthest from any read one.
+    locs = {l["id"]: l for l in mp["locations"] if l["id"] in full}
+    room = lambda i: (locs[i].get("room") or {}).get("id") or "none"
+    rich = {room(c["location_id"]) for c in st["chosen"] if (per.get(c["location_id"]) or {}).get("contents")}
+    read = [locs[c["location_id"]]["position"] for c in st["chosen"] if c["location_id"] in locs]
+    def gap(i):
+        q = locs[i]["position"]
+        return min(((q["x"] - r["x"]) ** 2 + (q["y"] - r["y"]) ** 2) ** 0.5 for r in read) if read else 99.0
+    far = sorted((i for i in locs if i not in have and room(i) in rich), key=lambda i: -gap(i))[:8]
+    unread_far = [{"id": i[:6], "area": areas[i], "gap_m": round(gap(i), 1)} for i in far]
     return _reply("interior-surveyor", tool_call_id, {
-        "new_positions": found, "refused": refused, "areas_now": names, "budget_left": SETTINGS["max_positions"] - len(st["chosen"]),
+        "new_positions": found, "refused": refused, "areas_now": names, "unread_far_from_read": unread_far, "budget_left": SETTINGS["max_positions"] - len(st["chosen"]),
         "contents_assets": len(contents), "contents_value_usd": value,
         "low_confidence": [f"{a['id']} {a['label'][:40]} conf {a['confidence']}" for a in low[:6]],
         "inventory": f"/dossier/{building_id}/inventory.md"}, {f"/dossier/{building_id}/inventory.md": "\n".join(doc)})

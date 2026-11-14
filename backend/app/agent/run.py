@@ -34,6 +34,11 @@ class Session:
         self.cb = orchestrator.SpendCallback(orchestrator.model_name())
         self.sub_cb = orchestrator.SpendCallback(orchestrator.subagent_model_name())
         tools.reset(bid)
+        old = tools.DOSSIER / bid                      # each session starts a clean dossier; the send log is an audit trail
+        if old.exists():
+            for f in old.rglob("*"):
+                if f.is_file() and f.name != "sends.json":
+                    f.unlink()
         tools.SETTINGS.update(cached_positions_only=cached_positions_only, max_positions=positions)
         self.agent = orchestrator.build_agent(bid, self.cb, sub_cb=self.sub_cb)
         self.config = {"configurable": {"thread_id": f"{bid}-{self.run_id}"}, "recursion_limit": 300}

@@ -117,6 +117,27 @@ H is the story building outside the mapped flood zone, and the first building su
   - An earlier run never called `send_playbook`, so the instruction now says to call the tool.
 - **Not built yet:** email delivery (Phase 5B). An approved send is recorded and nothing leaves the machine.
 
+## D14. Agent quality pass (2026-11-14)
+
+- **Position budget.** The interior surveyor gets 12 of all 49 positions on E, with coordinates, neighbours and plain-language areas. It spreads out first, then spends the rest where it found contents.
+  - After round 1 the survey tool lists unread positions in rooms with contents, farthest from anything read, because neighbouring positions mostly re-see the same items.
+  - Positions holding an asset a person corrected are always re-read.
+  - **Result on E:** the agent's 12 positions found 17–23% of the contents value that all 49 find ($14,080–99,100 of $82,060–438,200). A rule-based spread of 12 found 23–31%; random sets of 12 averaged 37% (range 20–43%, 8 draws).
+  - The agent is not yet better than random. Most of the value sits in the warehouse, which holds 33 of the 49 positions, and the agent spends early picks on small rooms.
+- **Cost and speed.** A full four-turn run on E took 48 s and cost $0.106, with the re-plan at 9 s. The first live run took 127 s and cost $0.39.
+  - Long results live in dossier files, and tool messages are short.
+  - The six sub-agents run on gemini-3.5-flash-lite ($0.30 / $2.50 per 1M input / output tokens). The orchestrator stays on 3.6 Flash.
+  - The planning tool's default description (about 2,000 tokens per call) is replaced with a short one.
+  - A re-plan touches only scenario-builder and mitigation-planner. Drafting and sending is its own turn.
+- **Sub-agent replies are the tool's own words.** Flash-Lite restated numbers wrongly ("$73k–75k" for $9,340–75,300) and communications invented costs.
+  - `EchoFinalTool` middleware now returns the final tool result as the sub-agent's reply, with no model call.
+  - `return_direct` did not work: deepagents forwards the last AI message, so the orchestrator received empty reports.
+- **Memory.** A PATCH correction is written to `/memories/` and matched to assets by fingerprint after a re-survey.
+  - The orchestrator judges each look-alike against the person's note. On E, a "steel-frame desks" correction was applied to the other desk; two chairs were skipped as "chairs, not desks", and in another run a wooden desk was skipped.
+  - An earlier, looser look-alike rule copied a pallet correction onto a folding table. That was undone and the rule tightened (same category plus a specific shared noun).
+- **Layer cross-check.** When the aerial door count disagrees with CoStar, the site scout reports a discrepancy and lowers confidence by 20%. On E: 3 drive-in doors seen, 4 recorded. On B: 2 seen, 4 recorded.
+- **Email.** `actions/send.py` sends over SMTP to `ALLOWED_RECIPIENTS` only, after approval. With no SMTP settings (as now) it records "draft only, not sent".
+
 ## D5. Matterport tokens
 
 **Decided (human):** read-only and server-side only.
