@@ -101,6 +101,22 @@ H is the story building outside the mapped flood zone, and the first building su
   - Assets: E 60 → 48, B 63 → 54, H 11 → 11.
 - **Confidence.** Small boxes (under about 50 × 50 of 1000), items more than 10 m away, and boxes cut by the left, right or top image edge each multiply confidence by 0.85.
 
+## D13. The agent (deepagents 0.7.38, 2026-11-14)
+
+- **Structure.** One orchestrator and six sub-agents (site-scout, interior-surveyor, market-analyst, scenario-builder, mitigation-planner, communications), each with only its own tools. The patterns follow `../hack-princeton-intro-to-deep-agents`.
+- **Harness features:**
+  - planning (`write_todos`);
+  - a dossier at `/dossier/<id>/` in `StateBackend`, copied to `data/cache/agent/dossier/` after each turn;
+  - memory at `/memories/` in a SQLite `StoreBackend`, holding human corrections written by PATCH and DELETE;
+  - skills `survey-method` and `loss-method`;
+  - a human-in-the-loop interrupt on `send_playbook`, with a SQLite checkpointer.
+- **Tools are the real survey, site, loss and report code.** They emit their own AgentEvents. Stream translation adds plan, re-plan, delegation, file and approval events. Every event is validated against the contract and saved for replay.
+- **Demo mode** offers only scan positions with cached vision answers, and the trace says so. Every model call is priced into `spend.json` and stopped before the budget.
+- **First complete live run on E:**
+  - 66 model calls; 393,758 input and 26,058 output tokens; $0.39; 127 s.
+  - An earlier run never called `send_playbook`, so the instruction now says to call the tool.
+- **Not built yet:** email delivery (Phase 5B). An approved send is recorded and nothing leaves the machine.
+
 ## D5. Matterport tokens
 
 **Decided (human):** read-only and server-side only.
