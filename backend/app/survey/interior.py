@@ -25,6 +25,7 @@ from PIL import Image
 
 from app.buildings import validate
 from app.config import BUILDINGS, MEDIA
+from app.loss import classes
 from app.loss import model as loss_model
 from app.sources import gemini, spend
 from app.sources.cache import CacheMiss, write_json
@@ -43,10 +44,11 @@ FABRIC = re.compile(r"\b(outlets?|receptacles?|switch(?!gear|board)\w*|sockets?|
 
 
 FABRIC_NOTE = " Building fabric: priced by the structure curve, not as contents (A-FIN)."
+VEHICLE_NOTE = " Road vehicle: a movable asset at risk, not counted in contents loss (V-VEHICLE)."
 
 
 def is_fabric(label: str) -> bool:
-    return bool(FABRIC.search(label or ""))
+    return classes.classify(label, "other") == "A-FIN"
 MESH_TOL_FT = 0.15          # geometry error (about +/-5 cm) on top of the measured box-edge spread
 CATEGORIES = ["electrical", "it", "hvac", "inventory", "equipment", "furniture", "other"]
 
@@ -180,9 +182,34 @@ def measure(mesh, pano: dict, face: int, box: list[int], bottom_y: int, floor_z:
         h = cast_pixel(mesh, CONV, pano["position"], pano["rotation"], face, cx, min(max(by + dy, 0), FACE_PX - 1), FACE_PX)
         if h and h["distance_m"] < 15 and floor_z is not None:
             zs.append((h["point"]["z"] - floor_z) / FT)
+    span = None
+    if len(zs) == 3:
+        ty = (ymin + 0.03 * (ymax - ymin)) * FACE_PX / 1000          # just inside the top edge of the box
+        top = cast_pixel(mesh, CONV, pano["position"], pano["rotation"], face, cx, ty, FACE_PX)
+        if top and floor_z is not None and top["distance_m"] < 15:
+            s = (top["point"]["z"] - floor_z) / FT - sum(zs) / 3
+            span = round(s, 2) if 0.1 <= s <= 15 else None
     return {"position": centre["point"] if centre and centre["distance_m"] < 20 else None,
-            "heights_ft": zs if len(zs) == 3 else None,
+            "heights_ft": zs if len(zs) == 3 else None, "span_ft": span,
             "distance_m": centre["distance_m"] if centre else None}
+
+
+SMALL_BOX = 2500     # box area in normalised units (0-1000 squared): about a 50 x 50 box
+FAR_M = 10.0
+EDGE = 10
+
+
+def confidence_notes(box: list, m: dict, conf: float, edges: bool = True) -> tuple[float, list[str]]:
+    """Lower confidence for small, distant or edge-cut boxes (x0.85 each). The bottom edge has its own rule."""
+    ymin, xmin, ymax, xmax = box
+    notes = []
+    if (ymax - ymin) * (xmax - xmin) < SMALL_BOX:
+        notes.append("small in the image")
+    if m.get("distance_m") and m["distance_m"] > FAR_M:
+        notes.append(f"{m['distance_m']:.0f} m from the camera")
+    if edges and (xmin <= EDGE or xmax >= 1000 - EDGE or ymin <= EDGE):
+        notes.append("cut by the image edge")
+    return round(conf * 0.85 ** len(notes), 2), notes
 
 
 TRUNCATED_Y = 985   # a box reaching this row (0-1000) runs off the bottom of the face: its lowest part is not visible
@@ -234,11 +261,14 @@ def survey_position(bid, mesh, mp, pos, log, cache_only: bool = False) -> list[d
             continue
         m = measure(mesh, pano, a["face"], a["box_2d"], a["vulnerable_bottom_y"], floor_z)
         lo, hi, conf, how = decide_height(a["height_ft_low"], a["height_ft_high"], float(a["confidence"]), m, a["box_2d"])
+        conf, notes = confidence_notes(a["box_2d"], m, conf)
+        cid = classes.classify(a["label"], a["category"])
         out.append({"pano": pano, "location": pos["location"], "room_id": pos["room_id"],
                     "room_type": room_types.get(a["face"], ""), "face": a["face"], "box": a["box_2d"],
-                    "category": "finishes" if is_fabric(a["label"]) else a["category"], "fabric": is_fabric(a["label"]),
-                    "label": a["label"].strip(), "height_ft_low": lo, "height_ft_high": hi,
-                    "confidence": conf, "how": how, "position": m["position"], "evidence": a["evidence"].strip(),
+                    "value_class": cid, "category": classes.category_for(cid, a["category"]),
+                    "fabric": cid == "A-FIN", "label": a["label"].strip(), "height_ft_low": lo, "height_ft_high": hi,
+                    "confidence": conf, "conf_notes": notes, "how": how, "position": m["position"],
+                    "span_ft": m["span_ft"], "evidence": a["evidence"].strip(),
                     "visual": [a["height_ft_low"], a["height_ft_high"]], "model": res["model"]})
     return out, flags
 
@@ -253,14 +283,46 @@ def observation(bid: str, d: dict) -> dict:
             "image_ref": image_ref(bid, d["pano"]["id"], d["face"], d["box"])}
 
 
+GENERIC = {"electrical", "industrial", "unit", "equipment", "machine", "large", "small", "heavy", "metal", "portable",
+           "mobile", "wall", "mounted", "floor", "ground", "white", "red", "blue", "green", "black", "grey", "gray",
+           "yellow", "orange", "silver", "with", "and", "the", "on", "in", "of", "for", "near", "stored", "storage",
+           "system", "area", "item", "assorted", "various", "pile", "group", "set", "row", "old", "new", "side",
+           "standing", "rolling", "wheeled", "wheel", "utility", "parked", "visible", "secondary", "control", "box",
+           "panel", "station", "stand", "frame", "base", "top", "assembly", "type", "style", "multiple", "two", "three"}
+NOUN_MERGE_M = 1.5   # sightings of one large object can land up to this far apart when the labels name the same thing
+
+
+def nouns(label: str) -> set[str]:
+    out = set()
+    for w in re.findall(r"[a-z]+", (label or "").lower()):
+        if len(w) > 3 and w.endswith("s") and not w.endswith("ss"):
+            w = w[:-1]
+        if len(w) > 2 and w not in GENERIC:
+            out.add(w)
+    return out
+
+
+def same_asset(d: dict, e: dict) -> tuple[bool, str]:
+    """Merge rule (human decisions 2026-11-14): same value class, and mesh positions within MERGE_M (0.5 m), or within
+    NOUN_MERGE_M (1.5 m) when the labels share a specific noun (generic words such as "electrical" do not count)."""
+    p, q = d["position"], e["position"]
+    if not (p and q) or d["value_class"] != e["value_class"]:
+        return False, ""
+    dist = math.dist((p["x"], p["y"], p["z"]), (q["x"], q["y"], q["z"]))
+    if dist < MERGE_M:
+        return True, f"{dist:.2f} m apart"
+    shared = nouns(d["label"]) & nouns(e["label"])
+    if dist < NOUN_MERGE_M and shared:
+        return True, f"{dist:.2f} m apart and both name {', '.join(sorted(shared))}"
+    return False, ""
+
+
 def merge(dets: list[dict]) -> list[list[dict]]:
-    """Group detections of the same category whose mesh positions are within MERGE_M (0.5 m).
-    Detections without a mesh position are never merged."""
+    """Group detections that are the same asset (same_asset). Detections without a mesh position are never merged."""
     groups: list[list[dict]] = []
     for d in sorted(dets, key=lambda d: -d["confidence"]):
         for g in groups:
-            p, q = d["position"], g[0]["position"]
-            if p and q and d["category"] == g[0]["category"] and math.dist((p["x"], p["y"], p["z"]), (q["x"], q["y"], q["z"])) < MERGE_M:
+            if same_asset(d, g[0])[0]:
                 g.append(d)
                 break
         else:
@@ -273,13 +335,10 @@ def remerge(groups: list[list[dict]]) -> tuple[list[list[dict]], list[str]]:
     kept: list[list[dict]] = []
     notes = []
     for g in sorted(groups, key=lambda g: -g[0]["confidence"]):
-        p = g[0]["position"]
         for k in kept:
-            q = k[0]["position"]
-            if p and q and g[0]["category"] == k[0]["category"] and \
-                    math.dist((p["x"], p["y"], p["z"]), (q["x"], q["y"], q["z"])) < MERGE_M:
-                notes.append(f"'{g[0]['label']}' merged into '{k[0]['label']}': after the re-look both views "
-                             f"point within {MERGE_M} m")
+            ok, why = same_asset(g[0], k[0])
+            if ok:
+                notes.append(f"'{g[0]['label']}' merged into '{k[0]['label']}' after the re-looks: {why}")
                 k.extend(g)
                 break
         else:
@@ -330,10 +389,12 @@ def relook(bid, mesh, mp, group, log, flags) -> dict | None:
     bottom = int((y0 + r["vulnerable_bottom_y"] * s) * 1000 / FACE_PX)
     m = measure(mesh, nb, face, box, bottom, floor_z_below(mesh, nb["position"]))
     lo, hi, conf, how = decide_height(r["height_ft_low"], r["height_ft_high"], float(r["confidence"]), m, r["box_2d"])
+    conf, notes = confidence_notes(r["box_2d"], m, conf, edges=False)    # crop edges are ours, not the object's
     loc = next(l for l in mp["locations"] if l["id"] == nb["location_id"])
     return {"pano": nb, "location": loc, "room_id": best["room_id"], "room_type": best["room_type"], "face": face,
-            "box": box, "category": best["category"], "fabric": best.get("fabric", False), "label": best["label"],
-            "height_ft_low": lo, "height_ft_high": hi,
+            "box": box, "value_class": best["value_class"], "category": best["category"],
+            "fabric": best.get("fabric", False), "label": best["label"],
+            "height_ft_low": lo, "height_ft_high": hi, "conf_notes": notes, "span_ft": m["span_ft"] or best.get("span_ft"),
             "confidence": conf, "how": how, "position": m["position"] or best["position"],
             "evidence": r.get("evidence", "").strip(), "visual": [r["height_ft_low"], r["height_ft_high"]], "model": res["model"]}
 
@@ -424,14 +485,18 @@ def run(bid: str, max_positions: int, max_relooks: int, cached_positions_only: b
     for n in log["merged_after_relook"]:
         print(f"  {n}", flush=True)
     write_json(BUILDINGS / bid / "screening.json", flags)
-    assets = []
+    assets, geometry = [], {}
     for n, g in enumerate(sorted(groups, key=lambda g: (g[0]["room_id"], g[0]["height_ft_low"], g[0]["label"])), 1):
         best = g[0]
         room = rooms.get(best["room_id"]) or {}
         label = room.get("label") or (best["room_type"].strip().title() if best["room_type"] else "Unlabelled room")
         fabric = bool(best.get("fabric"))
         category = best["category"]
-        va = loss_model.asset_assumption(category)
+        va = classes.value_class(best["value_class"])
+        span = next((d["span_ft"] for d in g if d.get("span_ft")), None)
+        notes = best.get("conf_notes") or []
+        extra = (FABRIC_NOTE if fabric else "") + (VEHICLE_NOTE if classes.is_movable(va["id"]) else "") + \
+            (f" Confidence lowered: {', '.join(notes)}." if notes else "")
         asset = {"id": f"{bid}-a{n}", "building_id": bid, "matterport_model_id": mp["model_id"],
                  "floor_id": (best["location"].get("floor") or {}).get("id"),
                  "room_id": best["room_id"] if best["room_id"] != "none" else None, "room": label,
@@ -440,12 +505,14 @@ def run(bid: str, max_positions: int, max_relooks: int, cached_positions_only: b
                  "confidence": round(best["confidence"], 2), "value_usd_low": va["low"], "value_usd_high": va["high"],
                  "value_basis": va["id"],
                  "position": {k: round(v, 3) for k, v in best["position"].items()} if best["position"] else None,
-                 "evidence": f"{best['evidence']} Height {best['how']}." + (FABRIC_NOTE if fabric else ""),
+                 "evidence": f"{best['evidence']} Height {best['how']}." + extra,
                  "image_ref": image_ref(bid, best["pano"]["id"], best["face"], best["box"]),
                  "observations": [observation(bid, d) for d in g], "source": "vision"}
         validate("asset", asset)
         assets.append(asset)
+        geometry[asset["id"]] = {"span_ft": span, "value_class": va["id"]}
     write_json(BUILDINGS / bid / "assets.json", assets)
+    write_json(BUILDINGS / bid / "asset_geometry.json", geometry)     # object height from the mesh, for the loss model
     log["finished_at"] = datetime.now(timezone.utc).isoformat()
     write_json(BUILDINGS / bid / "survey_log.json", log)
     if stop:

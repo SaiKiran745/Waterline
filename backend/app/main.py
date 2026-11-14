@@ -59,11 +59,13 @@ def list_buildings(fixture: int = 0):
 
 
 @app.get("/triage")
-def triage(depth_ft: int = Query(2)):
+def triage(depth_ft: int = Query(2), fixture: int = 0):
     """Triage ranking (not in contracts/ yet): every building ranked by total loss at 1, 2 or 4 ft, each labelled
     "surveyed" (with positions read and contents count) or "structure only"."""
     if str(depth_ft) not in map(str, rank.DEPTHS):
         raise HTTPException(422, f"depth_ft must be one of {list(rank.DEPTHS)}")
+    if fixture:
+        return fixtures.triage()
     rows = rank.triage(str(depth_ft))
     if not rows:
         raise HTTPException(503, "no triage ranking yet: run python -m app.loss.rank")
@@ -83,6 +85,14 @@ def scenario(bid: str, depth_ft: float = Query(..., ge=0, le=8)):
     if bid == FIX:
         return fixtures.scenario(depth_ft)
     return model.scenario(_real(bid), buildings.get_assets(bid), depth_ft)
+
+
+@app.get("/buildings/{bid}/scenario_table")
+def scenario_table(bid: str):
+    """Every slider step, 0 to 8 ft by 0.25 ft, with each asset's damage fraction per step (contracts v1.2)."""
+    if bid == FIX:
+        return fixtures.scenario_table()
+    return model.scenario_table(_real(bid), buildings.get_assets(bid))
 
 
 @app.get("/buildings/{bid}/mitigations")

@@ -85,6 +85,22 @@ H is the story building outside the mapped flood zone, and the first building su
 - **Re-look answers must be complete:** with optional fields the model answered "found" without heights, so every field is now required.
 - **Gemini budget:** see `data/cache/spend.json` and DATA_NOTES section 14. Calls are refused before the total would pass `GEMINI_BUDGET_USD` (3), and HTTP 402 stops a run.
 
+## D12. Contents values and depth damage (2026-11-14)
+
+- **Value classes (human).** The 7 broad categories became 15 value classes in `backend/app/loss/assumptions.yaml`, each with an id, a range, a critical height and a one-line basis.
+  - Examples: forklift $12,000–30,000, machine tool $8,000–40,000, racked inventory $2,000–12,000 per rack run.
+  - Classes are assigned from the cached vision labels by ordered keyword rules (`app/loss/classes.py`), with no new calls.
+  - They remain team assumptions (PLACEHOLDER) and are editable per asset through PATCH.
+- **Vehicles (human).** Road vehicles (`V-VEHICLE`) are not in contents loss. They are listed as movable assets at risk, with a "drive vehicles to high ground" mitigation (`M-MOVE-VEHICLES`) and playbook section. Forklifts and lifts stay equipment.
+- **Gradual damage (human; `C-CONTENTS-DEPTH`).**
+  - Damage fraction = (depth − lowest vulnerable point) ÷ critical height, capped at 1.
+  - The critical height is the class value, capped by the item's own height measured from the mesh (top of its box).
+  - Low end: lowest point at `height_ft_high`, low value. High end: lowest point at `height_ft_low`, high value.
+  - Tested: zero at zero depth, never decreasing, low ≤ high, including 200 random assets.
+- **Duplicates (human).** Sightings merge when they are the same value class and within 0.5 m, or within 1.5 m when the labels share a specific noun (generic words such as "electrical" don't count).
+  - Assets: E 60 → 48, B 63 → 54, H 11 → 11.
+- **Confidence.** Small boxes (under about 50 × 50 of 1000), items more than 10 m away, and boxes cut by the left, right or top image edge each multiply confidence by 0.85.
+
 ## D5. Matterport tokens
 
 **Decided (human):** read-only and server-side only.

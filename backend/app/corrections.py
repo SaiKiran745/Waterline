@@ -13,7 +13,8 @@ from app.config import BUILDINGS
 from app.loss import model as loss_model
 from app.sources.cache import write_json
 
-PATCHABLE = {"label", "category", "height_ft_low", "height_ft_high", "room"}
+PATCHABLE = {"label", "category", "height_ft_low", "height_ft_high", "room", "value_basis", "value_usd_low",
+             "value_usd_high"}
 CATEGORIES = {"electrical", "it", "hvac", "inventory", "equipment", "furniture", "finishes", "other"}
 
 
@@ -32,9 +33,14 @@ def load(bid: str) -> list[dict]:
 
 def _patched(asset: dict, changes: dict, rec: dict) -> dict:
     a = {**asset, **changes}
-    if "category" in changes:
-        va = loss_model.asset_assumption(a["category"])
-        a.update(value_usd_low=va["low"], value_usd_high=va["high"], value_basis=va["id"])
+    if "value_basis" in changes or "category" in changes:
+        va = (loss_model.assumption_by_id(changes["value_basis"]) if "value_basis" in changes
+              else loss_model.asset_assumption(a["category"]))
+        a.update(value_basis=va["id"], value_usd_low=changes.get("value_usd_low", va["low"]),
+                 value_usd_high=changes.get("value_usd_high", va["high"]))
+        if "category" not in changes:
+            from app.loss import classes
+            a["category"] = classes.category_for(va["id"], asset["category"])
     if {"height_ft_low", "height_ft_high"} & changes.keys():
         a["confidence"] = 1.0
     who = "a human reviewer" if rec["by"] == "human" else f"the agent, applying correction {rec['propagated_from']}"
@@ -76,6 +82,20 @@ def _validate_changes(asset: dict, changes: dict) -> dict:
     hi = c.get("height_ft_high", asset["height_ft_high"])
     if lo > hi:
         raise CorrectionError(f"height_ft_low {lo} is above height_ft_high {hi}")
+    if "value_basis" in c:
+        ids = {x["id"] for x in loss_model.assumptions()["assets"]}
+        if c["value_basis"] not in ids:
+            raise CorrectionError(f"value_basis must be one of {sorted(ids)}")
+    for k in ("value_usd_low", "value_usd_high"):
+        if k in c:
+            try:
+                c[k] = round(float(c[k]))
+            except (TypeError, ValueError):
+                raise CorrectionError(f"{k} must be a number")
+            if c[k] < 0:
+                raise CorrectionError(f"{k} must not be negative")
+    if c.get("value_usd_low", asset["value_usd_low"]) > c.get("value_usd_high", asset["value_usd_high"]):
+        raise CorrectionError("value_usd_low is above value_usd_high")
     if "category" in c and c["category"] not in CATEGORIES:
         raise CorrectionError(f"category must be one of {sorted(CATEGORIES)}")
     for k in ("label", "room"):

@@ -1,6 +1,6 @@
 # Contracts
 
-**FROZEN: version 1.1.0, 2026-11-14.** Change these files only when a human says both agents (Claude Code on `backend/`, Codex on `frontend/`) have been told.
+**FROZEN: version 1.2.0, 2026-11-14.** Change these files only when a human says both agents (Claude Code on `backend/`, Codex on `frontend/`) have been told.
 
 This folder is the source of truth for data shapes. Where it differs from the sketch in AGENTS.md section 8, this folder wins.
 
@@ -12,6 +12,8 @@ This folder is the source of truth for data shapes. Where it differs from the sk
 | `scenario_result.schema.json` | `fixtures/scenario_2ft.json`, `fixtures/scenarios.json` (0, 1, 2, 4, 8 ft) | The loss at one user-chosen depth |
 | `mitigation.schema.json` | `fixtures/mitigations.json` (5 fixes, each at 1, 2 and 4 ft) | One ranked fix |
 | `agent_event.schema.json` | `fixtures/agent_events.json` | One agent step on the SSE stream |
+| `scenario_table.schema.json` | `fixtures/scenario_table.json` | Every slider step (0 to 8 ft by 0.25 ft) for one building, with each asset's damage fraction per step |
+| `triage.schema.json` | `fixtures/triage.json` | The triage ranking: every building, labelled `surveyed` or `structure only` |
 
 All schemas are JSON Schema draft 2020-12 with `additionalProperties: false`. Every field is required; unknown values are `null`, never omitted. Each schema property's `description` names the source field it comes from.
 
@@ -56,6 +58,31 @@ Fixtures are fake ("FIXTURE, not real data") and contain no sponsor data. Phase 
 - Added `id` (sequence number), `building_id` and `data`.
 
 ## Changelog
+
+### 1.2.0 (2026-11-14, approved by the human)
+
+**New endpoints and schemas**
+- `GET /buildings/{id}/scenario_table` returns `ScenarioTable`: the loss at every slider step from 0 to 8 ft in 0.25 ft steps, with each asset's damage fraction per step. Each row equals `GET /scenario` at that depth. The fixture building supports it.
+- `GET /triage?depth_ft=1|2|4|6` returns `Triage`: every building ranked by total loss, labelled `surveyed` (with positions read and contents count) or `structure only`. `?fixture=1` returns the fixture row.
+
+**Contents loss is now gradual**
+- Each asset loses a fraction of its value that rises with the water above its lowest vulnerable point, reaching 1 at a class-specific critical height.
+- The low end uses the top of the height range and the class's low value; the high end uses the bottom of the range and the high value.
+- `likely` and `possible` keep their meaning. The method is assumption `C-CONTENTS-DEPTH`.
+- `ScenarioResult` is unchanged, but its contents numbers changed. `fixtures/scenarios.json`, `scenario_2ft.json` and `mitigations.json` were regenerated from the backend code; structure numbers are unchanged.
+
+**Values come from value classes**
+- `Asset.value_basis` is now one of 15 value classes in `backend/app/loss/assumptions.yaml` (for example `V-FORKLIFT`, `V-MACHINE-TOOL`, `V-RACKED-INV`), or `V-VEHICLE`, or `A-FIN`.
+- `V-VEHICLE` is a road vehicle: its value is 0 and it is not in contents loss. It is listed as a movable asset at risk (`ScenarioTable.assets[].movable`).
+- `A-FIN` is building fabric, already priced by the structure curve.
+
+**What Codex must change**
+1. Slider: fetch `/buildings/{id}/scenario_table` once per building. At step `i`, read `rows[i]` (contents, structure, totals, `assets_hit`) and each asset's `fraction_low[i]` and `fraction_high[i]`. Remove client-side loss computation.
+2. Asset colours: an asset is red when it is in `rows[i].assets_hit`. Shading by `fraction_high[i]` is optional.
+3. Triage map: call `/triage?depth_ft=2`, use `rank`, and show the `status` label. A `structure only` building must not look comparable to a surveyed one.
+4. Vehicles: show assets whose table entry has `movable: true` in a "Movable assets at risk" list, not in the contents total. "Drive vehicles to high ground" is a mitigation with `kind: "other"` and `basis: "M-MOVE-VEHICLES"`; its avoided loss is 0 by design, and its `payback_note` says why.
+5. Corrections: `PATCH /buildings/{id}/assets/{asset_id}` also accepts `value_basis` (a class id) and `value_usd_low` / `value_usd_high`. After a PATCH or DELETE, refetch `scenario_table`.
+6. Update any copies of the fixture numbers (contents values changed).
 
 ### 1.1.0 (2026-11-14, approved by the human; both agents told)
 

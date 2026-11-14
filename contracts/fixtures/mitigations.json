@@ -1,278 +1,278 @@
 [
- {
-  "id": "fixture-1-m3",
-  "building_id": "fixture-1",
-  "depth_ft": 1,
-  "rank": 1,
-  "kind": "entry_barrier",
-  "action": "FIXTURE: Deployable flood barrier (2 ft) at the drive-in door and storefront door",
-  "targets": [
-   "fixture-1-ep1",
-   "fixture-1-ep3"
-  ],
-  "cost_usd_low": 4000,
-  "cost_usd_high": 8000,
-  "avoided_loss_usd_low": 104300,
-  "avoided_loss_usd_high": 278700,
-  "payback_note": "FIXTURE: avoided loss is 31.9 times the cost at 1 ft",
-  "basis": "M-BARRIER-2FT"
- },
- {
-  "id": "fixture-1-m1",
-  "building_id": "fixture-1",
-  "depth_ft": 1,
-  "rank": 2,
-  "kind": "move_inventory",
-  "action": "FIXTURE: Move floor-level pallets onto racking above 3 ft before landfall",
-  "targets": [
-   "fixture-1-a12",
-   "fixture-1-a13"
-  ],
-  "cost_usd_low": 2000,
-  "cost_usd_high": 5000,
-  "avoided_loss_usd_low": 40000,
-  "avoided_loss_usd_high": 120000,
-  "payback_note": "FIXTURE: avoided loss is 22.9 times the cost at 1 ft",
-  "basis": "M-LABOR-MOVE"
- },
- {
-  "id": "fixture-1-m5",
-  "building_id": "fixture-1",
-  "depth_ft": 1,
-  "rank": 3,
-  "kind": "raise_asset",
-  "action": "FIXTURE: Lift desktop towers and floor power boxes onto desks and wall mounts",
-  "targets": [
-   "fixture-1-a1",
-   "fixture-1-a2",
-   "fixture-1-a3",
-   "fixture-1-a6"
-  ],
-  "cost_usd_low": 500,
-  "cost_usd_high": 1500,
-  "avoided_loss_usd_low": 3900,
-  "avoided_loss_usd_high": 7500,
-  "payback_note": "FIXTURE: avoided loss is 5.7 times the cost at 1 ft",
-  "basis": "M-LABOR-MOVE"
- },
- {
-  "id": "fixture-1-m2",
-  "building_id": "fixture-1",
-  "depth_ft": 1,
-  "rank": 4,
-  "kind": "raise_asset",
-  "action": "FIXTURE: Put the server rack and UPS on a 3 ft platform",
-  "targets": [
-   "fixture-1-a7",
-   "fixture-1-a8"
-  ],
-  "cost_usd_low": 3000,
-  "cost_usd_high": 7000,
-  "avoided_loss_usd_low": 12000,
-  "avoided_loss_usd_high": 24000,
-  "payback_note": "FIXTURE: avoided loss is 3.6 times the cost at 1 ft",
-  "basis": "M-PLATFORM"
- },
- {
-  "id": "fixture-1-m4",
-  "building_id": "fixture-1",
-  "depth_ft": 1,
-  "rank": 5,
-  "kind": "relocate_asset",
-  "action": "FIXTURE: Raise the main switchgear and air handler onto a 4 ft plinth",
-  "targets": [
-   "fixture-1-a24",
-   "fixture-1-a25"
-  ],
-  "cost_usd_low": 18000,
-  "cost_usd_high": 35000,
-  "avoided_loss_usd_low": 25000,
-  "avoided_loss_usd_high": 76000,
-  "payback_note": "FIXTURE: avoided loss is 1.9 times the cost at 1 ft",
-  "basis": "M-PLINTH"
- },
- {
-  "id": "fixture-1-m3",
-  "building_id": "fixture-1",
-  "depth_ft": 2,
-  "rank": 1,
-  "kind": "entry_barrier",
-  "action": "FIXTURE: Deployable flood barrier (2 ft) at the drive-in door and storefront door",
-  "targets": [
-   "fixture-1-ep1",
-   "fixture-1-ep3"
-  ],
-  "cost_usd_low": 4000,
-  "cost_usd_high": 8000,
-  "avoided_loss_usd_low": 113500,
-  "avoided_loss_usd_high": 321700,
-  "payback_note": "FIXTURE: avoided loss is 36.3 times the cost at 2 ft",
-  "basis": "M-BARRIER-2FT"
- },
- {
-  "id": "fixture-1-m1",
-  "building_id": "fixture-1",
-  "depth_ft": 2,
-  "rank": 2,
-  "kind": "move_inventory",
-  "action": "FIXTURE: Move floor-level pallets onto racking above 3 ft before landfall",
-  "targets": [
-   "fixture-1-a12",
-   "fixture-1-a13"
-  ],
-  "cost_usd_low": 2000,
-  "cost_usd_high": 5000,
-  "avoided_loss_usd_low": 40000,
-  "avoided_loss_usd_high": 120000,
-  "payback_note": "FIXTURE: avoided loss is 22.9 times the cost at 2 ft",
-  "basis": "M-LABOR-MOVE"
- },
- {
-  "id": "fixture-1-m5",
-  "building_id": "fixture-1",
-  "depth_ft": 2,
-  "rank": 3,
-  "kind": "raise_asset",
-  "action": "FIXTURE: Lift desktop towers and floor power boxes onto desks and wall mounts",
-  "targets": [
-   "fixture-1-a1",
-   "fixture-1-a2",
-   "fixture-1-a3",
-   "fixture-1-a6"
-  ],
-  "cost_usd_low": 500,
-  "cost_usd_high": 1500,
-  "avoided_loss_usd_low": 3900,
-  "avoided_loss_usd_high": 7500,
-  "payback_note": "FIXTURE: avoided loss is 5.7 times the cost at 2 ft",
-  "basis": "M-LABOR-MOVE"
- },
- {
-  "id": "fixture-1-m2",
-  "building_id": "fixture-1",
-  "depth_ft": 2,
-  "rank": 4,
-  "kind": "raise_asset",
-  "action": "FIXTURE: Put the server rack and UPS on a 3 ft platform",
-  "targets": [
-   "fixture-1-a7",
-   "fixture-1-a8"
-  ],
-  "cost_usd_low": 3000,
-  "cost_usd_high": 7000,
-  "avoided_loss_usd_low": 12000,
-  "avoided_loss_usd_high": 24000,
-  "payback_note": "FIXTURE: avoided loss is 3.6 times the cost at 2 ft",
-  "basis": "M-PLATFORM"
- },
- {
-  "id": "fixture-1-m4",
-  "building_id": "fixture-1",
-  "depth_ft": 2,
-  "rank": 5,
-  "kind": "relocate_asset",
-  "action": "FIXTURE: Raise the main switchgear and air handler onto a 4 ft plinth",
-  "targets": [
-   "fixture-1-a24",
-   "fixture-1-a25"
-  ],
-  "cost_usd_low": 18000,
-  "cost_usd_high": 35000,
-  "avoided_loss_usd_low": 33000,
-  "avoided_loss_usd_high": 76000,
-  "payback_note": "FIXTURE: avoided loss is 2.1 times the cost at 2 ft",
-  "basis": "M-PLINTH"
- },
- {
-  "id": "fixture-1-m1",
-  "building_id": "fixture-1",
-  "depth_ft": 4,
-  "rank": 1,
-  "kind": "move_inventory",
-  "action": "FIXTURE: Move floor-level pallets onto racking above 3 ft before landfall",
-  "targets": [
-   "fixture-1-a12",
-   "fixture-1-a13"
-  ],
-  "cost_usd_low": 2000,
-  "cost_usd_high": 5000,
-  "avoided_loss_usd_low": 40000,
-  "avoided_loss_usd_high": 120000,
-  "payback_note": "FIXTURE: avoided loss is 22.9 times the cost at 4 ft",
-  "basis": "M-LABOR-MOVE"
- },
- {
-  "id": "fixture-1-m5",
-  "building_id": "fixture-1",
-  "depth_ft": 4,
-  "rank": 2,
-  "kind": "raise_asset",
-  "action": "FIXTURE: Lift desktop towers and floor power boxes onto desks and wall mounts",
-  "targets": [
-   "fixture-1-a1",
-   "fixture-1-a2",
-   "fixture-1-a3",
-   "fixture-1-a6"
-  ],
-  "cost_usd_low": 500,
-  "cost_usd_high": 1500,
-  "avoided_loss_usd_low": 3900,
-  "avoided_loss_usd_high": 7500,
-  "payback_note": "FIXTURE: avoided loss is 5.7 times the cost at 4 ft",
-  "basis": "M-LABOR-MOVE"
- },
- {
-  "id": "fixture-1-m2",
-  "building_id": "fixture-1",
-  "depth_ft": 4,
-  "rank": 3,
-  "kind": "raise_asset",
-  "action": "FIXTURE: Put the server rack and UPS on a 3 ft platform",
-  "targets": [
-   "fixture-1-a7",
-   "fixture-1-a8"
-  ],
-  "cost_usd_low": 3000,
-  "cost_usd_high": 7000,
-  "avoided_loss_usd_low": 12000,
-  "avoided_loss_usd_high": 24000,
-  "payback_note": "FIXTURE: avoided loss is 3.6 times the cost at 4 ft",
-  "basis": "M-PLATFORM"
- },
- {
-  "id": "fixture-1-m4",
-  "building_id": "fixture-1",
-  "depth_ft": 4,
-  "rank": 4,
-  "kind": "relocate_asset",
-  "action": "FIXTURE: Raise the main switchgear and air handler onto a 4 ft plinth",
-  "targets": [
-   "fixture-1-a24",
-   "fixture-1-a25"
-  ],
-  "cost_usd_low": 18000,
-  "cost_usd_high": 35000,
-  "avoided_loss_usd_low": 33000,
-  "avoided_loss_usd_high": 76000,
-  "payback_note": "FIXTURE: avoided loss is 2.1 times the cost at 4 ft",
-  "basis": "M-PLINTH"
- },
- {
-  "id": "fixture-1-m3",
-  "building_id": "fixture-1",
-  "depth_ft": 4,
-  "rank": 5,
-  "kind": "entry_barrier",
-  "action": "FIXTURE: Deployable flood barrier (2 ft) at the drive-in door and storefront door",
-  "targets": [
-   "fixture-1-ep1",
-   "fixture-1-ep3"
-  ],
-  "cost_usd_low": 4000,
-  "cost_usd_high": 8000,
-  "avoided_loss_usd_low": 0,
-  "avoided_loss_usd_high": 0,
-  "payback_note": "FIXTURE: avoids no loss at 4 ft",
-  "basis": "M-BARRIER-2FT"
- }
+  {
+    "id": "fixture-1-m3",
+    "building_id": "fixture-1",
+    "depth_ft": 1,
+    "rank": 1,
+    "kind": "entry_barrier",
+    "action": "FIXTURE: Deployable flood barrier (2 ft) at the drive-in door and storefront door",
+    "targets": [
+      "fixture-1-ep1",
+      "fixture-1-ep3"
+    ],
+    "cost_usd_low": 4000,
+    "cost_usd_high": 8000,
+    "avoided_loss_usd_low": 131098,
+    "avoided_loss_usd_high": 397260,
+    "payback_note": "At 1 ft it avoids $131,098-397,260 for $4,000-8,000: about 44.0 times its cost in one event",
+    "basis": "M-BARRIER-2FT"
+  },
+  {
+    "id": "fixture-1-m1",
+    "building_id": "fixture-1",
+    "depth_ft": 1,
+    "rank": 2,
+    "kind": "move_inventory",
+    "action": "FIXTURE: Move floor-level pallets onto racking above 3 ft before landfall",
+    "targets": [
+      "fixture-1-a12",
+      "fixture-1-a13"
+    ],
+    "cost_usd_low": 2000,
+    "cost_usd_high": 5000,
+    "avoided_loss_usd_low": 13333,
+    "avoided_loss_usd_high": 80000,
+    "payback_note": "At 1 ft it avoids $13,333-80,000 for $2,000-5,000: about 13.3 times its cost in one event",
+    "basis": "M-LABOR-MOVE"
+  },
+  {
+    "id": "fixture-1-m5",
+    "building_id": "fixture-1",
+    "depth_ft": 1,
+    "rank": 3,
+    "kind": "raise_asset",
+    "action": "FIXTURE: Lift desktop towers and floor power boxes onto desks and wall mounts",
+    "targets": [
+      "fixture-1-a1",
+      "fixture-1-a2",
+      "fixture-1-a3",
+      "fixture-1-a6"
+    ],
+    "cost_usd_low": 500,
+    "cost_usd_high": 1500,
+    "avoided_loss_usd_low": 3600,
+    "avoided_loss_usd_high": 7500,
+    "payback_note": "At 1 ft it avoids $3,600-7,500 for $500-1,500: about 5.5 times its cost in one event",
+    "basis": "M-LABOR-MOVE"
+  },
+  {
+    "id": "fixture-1-m2",
+    "building_id": "fixture-1",
+    "depth_ft": 1,
+    "rank": 4,
+    "kind": "raise_asset",
+    "action": "FIXTURE: Put the server rack and UPS on a 3 ft platform",
+    "targets": [
+      "fixture-1-a7",
+      "fixture-1-a8"
+    ],
+    "cost_usd_low": 3000,
+    "cost_usd_high": 7000,
+    "avoided_loss_usd_low": 12000,
+    "avoided_loss_usd_high": 24000,
+    "payback_note": "At 1 ft it avoids $12,000-24,000 for $3,000-7,000: about 3.6 times its cost in one event",
+    "basis": "M-PLATFORM"
+  },
+  {
+    "id": "fixture-1-m4",
+    "building_id": "fixture-1",
+    "depth_ft": 1,
+    "rank": 5,
+    "kind": "relocate_asset",
+    "action": "FIXTURE: Raise the main switchgear and air handler onto a 4 ft plinth",
+    "targets": [
+      "fixture-1-a24",
+      "fixture-1-a25"
+    ],
+    "cost_usd_low": 18000,
+    "cost_usd_high": 35000,
+    "avoided_loss_usd_low": 0,
+    "avoided_loss_usd_high": 36000,
+    "payback_note": "At 1 ft it avoids $0-36,000 for $18,000-35,000: about 0.7 times its cost in one event",
+    "basis": "M-PLINTH"
+  },
+  {
+    "id": "fixture-1-m3",
+    "building_id": "fixture-1",
+    "depth_ft": 2,
+    "rank": 1,
+    "kind": "entry_barrier",
+    "action": "FIXTURE: Deployable flood barrier (2 ft) at the drive-in door and storefront door",
+    "targets": [
+      "fixture-1-ep1",
+      "fixture-1-ep3"
+    ],
+    "cost_usd_low": 4000,
+    "cost_usd_high": 8000,
+    "avoided_loss_usd_low": 284555,
+    "avoided_loss_usd_high": 658020,
+    "payback_note": "At 2 ft it avoids $284,555-658,020 for $4,000-8,000: about 78.5 times its cost in one event",
+    "basis": "M-BARRIER-2FT"
+  },
+  {
+    "id": "fixture-1-m1",
+    "building_id": "fixture-1",
+    "depth_ft": 2,
+    "rank": 2,
+    "kind": "move_inventory",
+    "action": "FIXTURE: Move floor-level pallets onto racking above 3 ft before landfall",
+    "targets": [
+      "fixture-1-a12",
+      "fixture-1-a13"
+    ],
+    "cost_usd_low": 2000,
+    "cost_usd_high": 5000,
+    "avoided_loss_usd_low": 40000,
+    "avoided_loss_usd_high": 120000,
+    "payback_note": "At 2 ft it avoids $40,000-120,000 for $2,000-5,000: about 22.9 times its cost in one event",
+    "basis": "M-LABOR-MOVE"
+  },
+  {
+    "id": "fixture-1-m5",
+    "building_id": "fixture-1",
+    "depth_ft": 2,
+    "rank": 3,
+    "kind": "raise_asset",
+    "action": "FIXTURE: Lift desktop towers and floor power boxes onto desks and wall mounts",
+    "targets": [
+      "fixture-1-a1",
+      "fixture-1-a2",
+      "fixture-1-a3",
+      "fixture-1-a6"
+    ],
+    "cost_usd_low": 500,
+    "cost_usd_high": 1500,
+    "avoided_loss_usd_low": 3900,
+    "avoided_loss_usd_high": 7500,
+    "payback_note": "At 2 ft it avoids $3,900-7,500 for $500-1,500: about 5.7 times its cost in one event",
+    "basis": "M-LABOR-MOVE"
+  },
+  {
+    "id": "fixture-1-m2",
+    "building_id": "fixture-1",
+    "depth_ft": 2,
+    "rank": 4,
+    "kind": "raise_asset",
+    "action": "FIXTURE: Put the server rack and UPS on a 3 ft platform",
+    "targets": [
+      "fixture-1-a7",
+      "fixture-1-a8"
+    ],
+    "cost_usd_low": 3000,
+    "cost_usd_high": 7000,
+    "avoided_loss_usd_low": 12000,
+    "avoided_loss_usd_high": 24000,
+    "payback_note": "At 2 ft it avoids $12,000-24,000 for $3,000-7,000: about 3.6 times its cost in one event",
+    "basis": "M-PLATFORM"
+  },
+  {
+    "id": "fixture-1-m4",
+    "building_id": "fixture-1",
+    "depth_ft": 2,
+    "rank": 5,
+    "kind": "relocate_asset",
+    "action": "FIXTURE: Raise the main switchgear and air handler onto a 4 ft plinth",
+    "targets": [
+      "fixture-1-a24",
+      "fixture-1-a25"
+    ],
+    "cost_usd_low": 18000,
+    "cost_usd_high": 35000,
+    "avoided_loss_usd_low": 25000,
+    "avoided_loss_usd_high": 70667,
+    "payback_note": "At 2 ft it avoids $25,000-70,667 for $18,000-35,000: about 1.8 times its cost in one event",
+    "basis": "M-PLINTH"
+  },
+  {
+    "id": "fixture-1-m1",
+    "building_id": "fixture-1",
+    "depth_ft": 4,
+    "rank": 1,
+    "kind": "move_inventory",
+    "action": "FIXTURE: Move floor-level pallets onto racking above 3 ft before landfall",
+    "targets": [
+      "fixture-1-a12",
+      "fixture-1-a13"
+    ],
+    "cost_usd_low": 2000,
+    "cost_usd_high": 5000,
+    "avoided_loss_usd_low": 26667,
+    "avoided_loss_usd_high": 40000,
+    "payback_note": "At 4 ft it avoids $26,667-40,000 for $2,000-5,000: about 9.5 times its cost in one event",
+    "basis": "M-LABOR-MOVE"
+  },
+  {
+    "id": "fixture-1-m4",
+    "building_id": "fixture-1",
+    "depth_ft": 4,
+    "rank": 2,
+    "kind": "relocate_asset",
+    "action": "FIXTURE: Raise the main switchgear and air handler onto a 4 ft plinth",
+    "targets": [
+      "fixture-1-a24",
+      "fixture-1-a25"
+    ],
+    "cost_usd_low": 18000,
+    "cost_usd_high": 35000,
+    "avoided_loss_usd_low": 33000,
+    "avoided_loss_usd_high": 76000,
+    "payback_note": "At 4 ft it avoids $33,000-76,000 for $18,000-35,000: about 2.1 times its cost in one event",
+    "basis": "M-PLINTH"
+  },
+  {
+    "id": "fixture-1-m5",
+    "building_id": "fixture-1",
+    "depth_ft": 4,
+    "rank": 3,
+    "kind": "raise_asset",
+    "action": "FIXTURE: Lift desktop towers and floor power boxes onto desks and wall mounts",
+    "targets": [
+      "fixture-1-a1",
+      "fixture-1-a2",
+      "fixture-1-a3",
+      "fixture-1-a6"
+    ],
+    "cost_usd_low": 500,
+    "cost_usd_high": 1500,
+    "avoided_loss_usd_low": 300,
+    "avoided_loss_usd_high": 0,
+    "payback_note": "Avoids no loss at 4 ft",
+    "basis": "M-LABOR-MOVE"
+  },
+  {
+    "id": "fixture-1-m2",
+    "building_id": "fixture-1",
+    "depth_ft": 4,
+    "rank": 4,
+    "kind": "raise_asset",
+    "action": "FIXTURE: Put the server rack and UPS on a 3 ft platform",
+    "targets": [
+      "fixture-1-a7",
+      "fixture-1-a8"
+    ],
+    "cost_usd_low": 3000,
+    "cost_usd_high": 7000,
+    "avoided_loss_usd_low": 0,
+    "avoided_loss_usd_high": 0,
+    "payback_note": "Avoids no loss at 4 ft",
+    "basis": "M-PLATFORM"
+  },
+  {
+    "id": "fixture-1-m3",
+    "building_id": "fixture-1",
+    "depth_ft": 4,
+    "rank": 5,
+    "kind": "entry_barrier",
+    "action": "FIXTURE: Deployable flood barrier (2 ft) at the drive-in door and storefront door",
+    "targets": [
+      "fixture-1-ep1",
+      "fixture-1-ep3"
+    ],
+    "cost_usd_low": 4000,
+    "cost_usd_high": 8000,
+    "avoided_loss_usd_low": 0,
+    "avoided_loss_usd_high": 0,
+    "payback_note": "Avoids no loss at 4 ft",
+    "basis": "M-BARRIER-2FT"
+  }
 ]

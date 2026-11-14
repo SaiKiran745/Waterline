@@ -338,3 +338,26 @@ data/cache/costar/, matterport/, vexcel/, public/   Phase 0 discovery files
   - Installed and pinned: deepagents 0.7.38, langchain 1.5.0, langchain-core 1.8.0, langchain-google-genai 4.5.0, langgraph 1.2.22, langgraph-checkpoint-sqlite 3.1.3.
   - `StoreBackend` resolves its namespace with runtime=None outside a graph, so the API can write `/memories/` directly. `CompositeBackend` strips the route prefix (`/memories/x` is stored as `/x`).
   - The docs warn against `FilesystemBackend` in a web server (the agent could read `.env`), so the dossier stays in `StateBackend` and only `/memories/` persists (SQLite).
+
+## 15. Hazus contents and inventory curves (VERIFIED, used as a sanity check)
+
+- **Source:** `HazusFloodDamageFunctions_Hazus61_contents.csv` and `_inventory.csv`, from the same NHERI SimCenter DLML folder as the structural curves. Cached in `data/cache/public/hazus/`.
+- **Default contents functions** (USACE Galveston, % of contents value lost):
+
+  | Occupancy | 1 ft | 2 ft | 3 ft | 4 ft | 6 ft | 8 ft |
+  |---|---|---|---|---|---|---|
+  | COM2 | 16 | 27 | 36 | 49 | 63 | 72 |
+  | IND2 | 9 | 23 | 35 | 44 | 58 | 65 |
+  | COM1 | 26 | 42 | 56 | 68 | 83 | 87 |
+
+  (At 0 ft: COM2 3%, IND2 0%, COM1 2%.)
+- **Shape check:** our curve is steeper. On E at 2 ft we lose 51–78% of the surveyed contents value (Hazus COM2: 27%); at 4 ft, 90–96% (Hazus: 49%). The survey lists only items low enough to flood, mostly on the floor, while Hazus averages over a building's whole contents, including stock stored high.
+- **Totals check,** setting contents value equal to the structure basis (improvement value × scan coverage; the ratio was not re-verified this session):
+
+  | | Ours, 2 ft | Hazus-style, 2 ft | Ours, 4 ft | Hazus-style, 4 ft |
+  |---|---|---|---|---|
+  | E | $18,201–153,308 | $188,332 | $32,125–187,815 | $341,788 |
+  | B | $102,842–616,382 | $84,806 | $177,403–873,700 | $153,907 |
+
+  E is a sparsely stocked warehouse with its vehicles excluded; B is a dense machine shop with a low assessed improvement value. Both are within a factor of about 2–3, which is plausible. The Hazus curves are not used in the numbers.
+

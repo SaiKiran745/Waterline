@@ -1,0 +1,5336 @@
+{
+  "building_id": "fixture-1",
+  "depth_reference": "interior water depth above ground-floor slab",
+  "step_ft": 0.25,
+  "steps_ft": [
+    0.0,
+    0.25,
+    0.5,
+    0.75,
+    1.0,
+    1.25,
+    1.5,
+    1.75,
+    2.0,
+    2.25,
+    2.5,
+    2.75,
+    3.0,
+    3.25,
+    3.5,
+    3.75,
+    4.0,
+    4.25,
+    4.5,
+    4.75,
+    5.0,
+    5.25,
+    5.5,
+    5.75,
+    6.0,
+    6.25,
+    6.5,
+    6.75,
+    7.0,
+    7.25,
+    7.5,
+    7.75,
+    8.0
+  ],
+  "rows": [
+    {
+      "depth_ft": 0.0,
+      "loss_usd_low": 0,
+      "loss_usd_high": 0,
+      "structure_loss_usd_low": 0,
+      "structure_loss_usd_high": 0,
+      "total_usd_low": 0,
+      "total_usd_high": 0,
+      "assets_hit": []
+    },
+    {
+      "depth_ft": 0.25,
+      "loss_usd_low": 1100,
+      "loss_usd_high": 35690,
+      "structure_loss_usd_low": 23250,
+      "structure_loss_usd_high": 54250,
+      "total_usd_low": 24350,
+      "total_usd_high": 89940,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "possible"
+        }
+      ]
+    },
+    {
+      "depth_ft": 0.5,
+      "loss_usd_low": 4640,
+      "loss_usd_high": 83380,
+      "structure_loss_usd_low": 46500,
+      "structure_loss_usd_high": 108500,
+      "total_usd_low": 51140,
+      "total_usd_high": 191880,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "possible"
+        }
+      ]
+    },
+    {
+      "depth_ft": 0.75,
+      "loss_usd_low": 21569,
+      "loss_usd_high": 134820,
+      "structure_loss_usd_low": 69750,
+      "structure_loss_usd_high": 162750,
+      "total_usd_low": 91319,
+      "total_usd_high": 297570,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "possible"
+        }
+      ]
+    },
+    {
+      "depth_ft": 1.0,
+      "loss_usd_low": 38098,
+      "loss_usd_high": 180260,
+      "structure_loss_usd_low": 93000,
+      "structure_loss_usd_high": 217000,
+      "total_usd_low": 131098,
+      "total_usd_high": 397260,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "possible"
+        }
+      ]
+    },
+    {
+      "depth_ft": 1.25,
+      "loss_usd_low": 54202,
+      "loss_usd_high": 222117,
+      "structure_loss_usd_low": 116250,
+      "structure_loss_usd_high": 255750,
+      "total_usd_low": 170452,
+      "total_usd_high": 477867,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "possible"
+        }
+      ]
+    },
+    {
+      "depth_ft": 1.5,
+      "loss_usd_low": 68907,
+      "loss_usd_high": 257973,
+      "structure_loss_usd_low": 139500,
+      "structure_loss_usd_high": 294500,
+      "total_usd_low": 208407,
+      "total_usd_high": 552473,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a18",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "possible"
+        }
+      ]
+    },
+    {
+      "depth_ft": 1.75,
+      "loss_usd_low": 83731,
+      "loss_usd_high": 271997,
+      "structure_loss_usd_low": 162750,
+      "structure_loss_usd_high": 333250,
+      "total_usd_low": 246481,
+      "total_usd_high": 605247,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a18",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "possible"
+        }
+      ]
+    },
+    {
+      "depth_ft": 2.0,
+      "loss_usd_low": 98555,
+      "loss_usd_high": 286020,
+      "structure_loss_usd_low": 186000,
+      "structure_loss_usd_high": 372000,
+      "total_usd_low": 284555,
+      "total_usd_high": 658020,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a18",
+          "status": "possible"
+        }
+      ]
+    },
+    {
+      "depth_ft": 2.25,
+      "loss_usd_low": 101796,
+      "loss_usd_high": 296693,
+      "structure_loss_usd_low": 205375,
+      "structure_loss_usd_high": 403000,
+      "total_usd_low": 307171,
+      "total_usd_high": 699693,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a18",
+          "status": "possible"
+        }
+      ]
+    },
+    {
+      "depth_ft": 2.5,
+      "loss_usd_low": 105037,
+      "loss_usd_high": 307367,
+      "structure_loss_usd_low": 224750,
+      "structure_loss_usd_high": 434000,
+      "total_usd_low": 329787,
+      "total_usd_high": 741367,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a18",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a17",
+          "status": "possible"
+        }
+      ]
+    },
+    {
+      "depth_ft": 2.75,
+      "loss_usd_low": 110765,
+      "loss_usd_high": 315783,
+      "structure_loss_usd_low": 244125,
+      "structure_loss_usd_high": 465000,
+      "total_usd_low": 354890,
+      "total_usd_high": 780783,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a18",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a17",
+          "status": "possible"
+        }
+      ]
+    },
+    {
+      "depth_ft": 3.0,
+      "loss_usd_low": 115853,
+      "loss_usd_high": 324200,
+      "structure_loss_usd_low": 263500,
+      "structure_loss_usd_high": 496000,
+      "total_usd_low": 379353,
+      "total_usd_high": 820200,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a18",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a11",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a17",
+          "status": "possible"
+        }
+      ]
+    },
+    {
+      "depth_ft": 3.25,
+      "loss_usd_low": 120057,
+      "loss_usd_high": 326950,
+      "structure_loss_usd_low": 282875,
+      "structure_loss_usd_high": 527000,
+      "total_usd_low": 402932,
+      "total_usd_high": 853950,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a18",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a11",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a17",
+          "status": "possible"
+        }
+      ]
+    },
+    {
+      "depth_ft": 3.5,
+      "loss_usd_low": 124260,
+      "loss_usd_high": 329700,
+      "structure_loss_usd_low": 302250,
+      "structure_loss_usd_high": 558000,
+      "total_usd_low": 426510,
+      "total_usd_high": 887700,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a17",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a18",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a11",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a23",
+          "status": "possible"
+        }
+      ]
+    },
+    {
+      "depth_ft": 3.75,
+      "loss_usd_low": 127755,
+      "loss_usd_high": 334200,
+      "structure_loss_usd_low": 321625,
+      "structure_loss_usd_high": 589000,
+      "total_usd_low": 449380,
+      "total_usd_high": 923200,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a17",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a18",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a11",
+          "status": "possible"
+        },
+        {
+          "asset_id": "fixture-1-a23",
+          "status": "possible"
+        }
+      ]
+    },
+    {
+      "depth_ft": 4.0,
+      "loss_usd_low": 131250,
+      "loss_usd_high": 338700,
+      "structure_loss_usd_low": 341000,
+      "structure_loss_usd_high": 620000,
+      "total_usd_low": 472250,
+      "total_usd_high": 958700,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a11",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a17",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a18",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a23",
+          "status": "possible"
+        }
+      ]
+    },
+    {
+      "depth_ft": 4.25,
+      "loss_usd_low": 132625,
+      "loss_usd_high": 341700,
+      "structure_loss_usd_low": 354562,
+      "structure_loss_usd_high": 643250,
+      "total_usd_low": 487187,
+      "total_usd_high": 984950,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a11",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a17",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a18",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a23",
+          "status": "possible"
+        }
+      ]
+    },
+    {
+      "depth_ft": 4.5,
+      "loss_usd_low": 134000,
+      "loss_usd_high": 344700,
+      "structure_loss_usd_low": 368125,
+      "structure_loss_usd_high": 666500,
+      "total_usd_low": 502125,
+      "total_usd_high": 1011200,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a11",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a17",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a18",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a23",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a9",
+          "status": "possible"
+        }
+      ]
+    },
+    {
+      "depth_ft": 4.75,
+      "loss_usd_low": 136250,
+      "loss_usd_high": 346950,
+      "structure_loss_usd_low": 381688,
+      "structure_loss_usd_high": 689750,
+      "total_usd_low": 517938,
+      "total_usd_high": 1036700,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a11",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a17",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a18",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a23",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a9",
+          "status": "possible"
+        }
+      ]
+    },
+    {
+      "depth_ft": 5.0,
+      "loss_usd_low": 138500,
+      "loss_usd_high": 349200,
+      "structure_loss_usd_low": 395250,
+      "structure_loss_usd_high": 713000,
+      "total_usd_low": 533750,
+      "total_usd_high": 1062200,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a9",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a11",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a17",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a18",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a23",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "likely"
+        }
+      ]
+    },
+    {
+      "depth_ft": 5.25,
+      "loss_usd_low": 141000,
+      "loss_usd_high": 349200,
+      "structure_loss_usd_low": 408812,
+      "structure_loss_usd_high": 736250,
+      "total_usd_low": 549812,
+      "total_usd_high": 1085450,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a9",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a11",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a17",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a18",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a23",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "likely"
+        }
+      ]
+    },
+    {
+      "depth_ft": 5.5,
+      "loss_usd_low": 143500,
+      "loss_usd_high": 349200,
+      "structure_loss_usd_low": 422375,
+      "structure_loss_usd_high": 759500,
+      "total_usd_low": 565875,
+      "total_usd_high": 1108700,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a9",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a11",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a17",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a18",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a23",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "likely"
+        }
+      ]
+    },
+    {
+      "depth_ft": 5.75,
+      "loss_usd_low": 143500,
+      "loss_usd_high": 349200,
+      "structure_loss_usd_low": 435938,
+      "structure_loss_usd_high": 782750,
+      "total_usd_low": 579438,
+      "total_usd_high": 1131950,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a9",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a11",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a17",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a18",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a23",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "likely"
+        }
+      ]
+    },
+    {
+      "depth_ft": 6.0,
+      "loss_usd_low": 143500,
+      "loss_usd_high": 349200,
+      "structure_loss_usd_low": 449500,
+      "structure_loss_usd_high": 806000,
+      "total_usd_low": 593000,
+      "total_usd_high": 1155200,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a9",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a11",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a17",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a18",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a23",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "likely"
+        }
+      ]
+    },
+    {
+      "depth_ft": 6.25,
+      "loss_usd_low": 143500,
+      "loss_usd_high": 349200,
+      "structure_loss_usd_low": 463062,
+      "structure_loss_usd_high": 829250,
+      "total_usd_low": 606562,
+      "total_usd_high": 1178450,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a9",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a11",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a17",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a18",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a23",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "likely"
+        }
+      ]
+    },
+    {
+      "depth_ft": 6.5,
+      "loss_usd_low": 143500,
+      "loss_usd_high": 349200,
+      "structure_loss_usd_low": 476625,
+      "structure_loss_usd_high": 852500,
+      "total_usd_low": 620125,
+      "total_usd_high": 1201700,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a9",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a11",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a17",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a18",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a23",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a10",
+          "status": "possible"
+        }
+      ]
+    },
+    {
+      "depth_ft": 6.75,
+      "loss_usd_low": 143500,
+      "loss_usd_high": 350033,
+      "structure_loss_usd_low": 490188,
+      "structure_loss_usd_high": 875750,
+      "total_usd_low": 633688,
+      "total_usd_high": 1225783,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a9",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a11",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a17",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a18",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a23",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a10",
+          "status": "possible"
+        }
+      ]
+    },
+    {
+      "depth_ft": 7.0,
+      "loss_usd_low": 143500,
+      "loss_usd_high": 350867,
+      "structure_loss_usd_low": 503750,
+      "structure_loss_usd_high": 899000,
+      "total_usd_low": 647250,
+      "total_usd_high": 1249867,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a9",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a10",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a11",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a17",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a18",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a23",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "likely"
+        }
+      ]
+    },
+    {
+      "depth_ft": 7.25,
+      "loss_usd_low": 143917,
+      "loss_usd_high": 351700,
+      "structure_loss_usd_low": 517312,
+      "structure_loss_usd_high": 922250,
+      "total_usd_low": 661229,
+      "total_usd_high": 1273950,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a9",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a10",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a11",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a17",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a18",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a23",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "likely"
+        }
+      ]
+    },
+    {
+      "depth_ft": 7.5,
+      "loss_usd_low": 144333,
+      "loss_usd_high": 352533,
+      "structure_loss_usd_low": 530875,
+      "structure_loss_usd_high": 945500,
+      "total_usd_low": 675208,
+      "total_usd_high": 1298033,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a9",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a10",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a11",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a17",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a18",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a23",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "likely"
+        }
+      ]
+    },
+    {
+      "depth_ft": 7.75,
+      "loss_usd_low": 144750,
+      "loss_usd_high": 353367,
+      "structure_loss_usd_low": 544438,
+      "structure_loss_usd_high": 968750,
+      "total_usd_low": 689188,
+      "total_usd_high": 1322117,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a9",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a10",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a11",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a17",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a18",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a23",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "likely"
+        }
+      ]
+    },
+    {
+      "depth_ft": 8.0,
+      "loss_usd_low": 145167,
+      "loss_usd_high": 354200,
+      "structure_loss_usd_low": 558000,
+      "structure_loss_usd_high": 992000,
+      "total_usd_low": 703167,
+      "total_usd_high": 1346200,
+      "assets_hit": [
+        {
+          "asset_id": "fixture-1-a1",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a2",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a3",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a4",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a6",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a9",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a10",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a11",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a16",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a17",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a18",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a19",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a20",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a21",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a23",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "status": "likely"
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "status": "likely"
+        }
+      ]
+    }
+  ],
+  "assets": [
+    {
+      "asset_id": "fixture-1-a1",
+      "value_basis": "A-IT-DESKTOP",
+      "value_usd_low": 800,
+      "value_usd_high": 1500,
+      "critical_ft": 0.5,
+      "movable": false,
+      "fraction_low": [
+        0.0,
+        0.0,
+        0.4,
+        0.9,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fraction_high": [
+        0.0,
+        0.5,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "asset_id": "fixture-1-a2",
+      "value_basis": "A-IT-DESKTOP",
+      "value_usd_low": 800,
+      "value_usd_high": 1500,
+      "critical_ft": 0.5,
+      "movable": false,
+      "fraction_low": [
+        0.0,
+        0.0,
+        0.4,
+        0.9,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fraction_high": [
+        0.0,
+        0.5,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "asset_id": "fixture-1-a3",
+      "value_basis": "A-IT-DESKTOP",
+      "value_usd_low": 800,
+      "value_usd_high": 1500,
+      "critical_ft": 0.5,
+      "movable": false,
+      "fraction_low": [
+        0.0,
+        0.0,
+        0.2,
+        0.7,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fraction_high": [
+        0.0,
+        0.5,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "asset_id": "fixture-1-a4",
+      "value_basis": "A-FURN-CHAIR",
+      "value_usd_low": 1200,
+      "value_usd_high": 2400,
+      "critical_ft": 2.5,
+      "movable": false,
+      "fraction_low": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7,
+        0.8,
+        0.9,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fraction_high": [
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7,
+        0.8,
+        0.9,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "asset_id": "fixture-1-a5",
+      "value_basis": "A-FIN-CARPET",
+      "value_usd_low": 6000,
+      "value_usd_high": 11000,
+      "critical_ft": 1.0,
+      "movable": false,
+      "fraction_low": [
+        0.0,
+        0.15,
+        0.4,
+        0.65,
+        0.9,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fraction_high": [
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "asset_id": "fixture-1-a6",
+      "value_basis": "A-ELEC-FLOORBOX",
+      "value_usd_low": 1500,
+      "value_usd_high": 3000,
+      "critical_ft": 1.0,
+      "movable": false,
+      "fraction_low": [
+        0.0,
+        0.05,
+        0.3,
+        0.55,
+        0.8,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fraction_high": [
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "asset_id": "fixture-1-a7",
+      "value_basis": "A-IT-RACK",
+      "value_usd_low": 8000,
+      "value_usd_high": 15000,
+      "critical_ft": 0.5,
+      "movable": false,
+      "fraction_low": [
+        0.0,
+        0.0,
+        0.0,
+        0.5,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fraction_high": [
+        0.0,
+        0.0,
+        0.4,
+        0.9,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "asset_id": "fixture-1-a8",
+      "value_basis": "A-IT-UPS",
+      "value_usd_low": 4000,
+      "value_usd_high": 9000,
+      "critical_ft": 0.5,
+      "movable": false,
+      "fraction_low": [
+        0.0,
+        0.0,
+        0.0,
+        0.5,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fraction_high": [
+        0.0,
+        0.5,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "asset_id": "fixture-1-a9",
+      "value_basis": "A-IT-SWITCH",
+      "value_usd_low": 2000,
+      "value_usd_high": 4500,
+      "critical_ft": 0.5,
+      "movable": false,
+      "fraction_low": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.5,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fraction_high": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.5,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "asset_id": "fixture-1-a10",
+      "value_basis": "A-HVAC-SPLIT",
+      "value_usd_low": 2500,
+      "value_usd_high": 5000,
+      "critical_ft": 1.5,
+      "movable": false,
+      "fraction_low": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.167,
+        0.333,
+        0.5,
+        0.667
+      ],
+      "fraction_high": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.167,
+        0.333,
+        0.5,
+        0.667,
+        0.833,
+        1.0
+      ]
+    },
+    {
+      "asset_id": "fixture-1-a11",
+      "value_basis": "A-ELEC-SUBPANEL",
+      "value_usd_low": 3000,
+      "value_usd_high": 6000,
+      "critical_ft": 1.0,
+      "movable": false,
+      "fraction_low": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fraction_high": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "asset_id": "fixture-1-a12",
+      "value_basis": "A-INV-PALLET",
+      "value_usd_low": 20000,
+      "value_usd_high": 60000,
+      "critical_ft": 1.5,
+      "movable": false,
+      "fraction_low": [
+        0.0,
+        0.0,
+        0.0,
+        0.167,
+        0.333,
+        0.5,
+        0.667,
+        0.833,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fraction_high": [
+        0.0,
+        0.167,
+        0.333,
+        0.5,
+        0.667,
+        0.833,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "asset_id": "fixture-1-a13",
+      "value_basis": "A-INV-PALLET",
+      "value_usd_low": 20000,
+      "value_usd_high": 60000,
+      "critical_ft": 1.5,
+      "movable": false,
+      "fraction_low": [
+        0.0,
+        0.0,
+        0.0,
+        0.167,
+        0.333,
+        0.5,
+        0.667,
+        0.833,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fraction_high": [
+        0.0,
+        0.167,
+        0.333,
+        0.5,
+        0.667,
+        0.833,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "asset_id": "fixture-1-a14",
+      "value_basis": "A-INV-RACK1",
+      "value_usd_low": 15000,
+      "value_usd_high": 40000,
+      "critical_ft": 1.5,
+      "movable": false,
+      "fraction_low": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.167,
+        0.333,
+        0.5,
+        0.667,
+        0.833,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fraction_high": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.167,
+        0.333,
+        0.5,
+        0.667,
+        0.833,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "asset_id": "fixture-1-a15",
+      "value_basis": "A-EQUIP-FORKLIFT",
+      "value_usd_low": 6000,
+      "value_usd_high": 14000,
+      "critical_ft": 2.0,
+      "movable": false,
+      "fraction_low": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.125,
+        0.25,
+        0.375,
+        0.5,
+        0.625,
+        0.75,
+        0.875,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fraction_high": [
+        0.0,
+        0.125,
+        0.25,
+        0.375,
+        0.5,
+        0.625,
+        0.75,
+        0.875,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "asset_id": "fixture-1-a16",
+      "value_basis": "A-EQUIP-WRAPPER",
+      "value_usd_low": 3000,
+      "value_usd_high": 7000,
+      "critical_ft": 2.0,
+      "movable": false,
+      "fraction_low": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.1,
+        0.225,
+        0.35,
+        0.475,
+        0.6,
+        0.725,
+        0.85,
+        0.975,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fraction_high": [
+        0.0,
+        0.125,
+        0.25,
+        0.375,
+        0.5,
+        0.625,
+        0.75,
+        0.875,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "asset_id": "fixture-1-a17",
+      "value_basis": "A-ELEC-CHARGER",
+      "value_usd_low": 2500,
+      "value_usd_high": 5000,
+      "critical_ft": 1.0,
+      "movable": false,
+      "fraction_low": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fraction_high": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "asset_id": "fixture-1-a18",
+      "value_basis": "A-HVAC-WH",
+      "value_usd_low": 1500,
+      "value_usd_high": 3000,
+      "critical_ft": 1.5,
+      "movable": false,
+      "fraction_low": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.167,
+        0.333,
+        0.5,
+        0.667,
+        0.833,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fraction_high": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.167,
+        0.333,
+        0.5,
+        0.667,
+        0.833,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "asset_id": "fixture-1-a19",
+      "value_basis": "A-EQUIP-APPLIANCE",
+      "value_usd_low": 900,
+      "value_usd_high": 1800,
+      "critical_ft": 2.0,
+      "movable": false,
+      "fraction_low": [
+        0.0,
+        0.0,
+        0.0,
+        0.125,
+        0.25,
+        0.375,
+        0.5,
+        0.625,
+        0.75,
+        0.875,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fraction_high": [
+        0.0,
+        0.125,
+        0.25,
+        0.375,
+        0.5,
+        0.625,
+        0.75,
+        0.875,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "asset_id": "fixture-1-a20",
+      "value_basis": "A-EQUIP-APPLIANCE",
+      "value_usd_low": 2000,
+      "value_usd_high": 4000,
+      "critical_ft": 2.0,
+      "movable": false,
+      "fraction_low": [
+        0.0,
+        0.0,
+        0.0,
+        0.075,
+        0.2,
+        0.325,
+        0.45,
+        0.575,
+        0.7,
+        0.825,
+        0.95,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fraction_high": [
+        0.0,
+        0.125,
+        0.25,
+        0.375,
+        0.5,
+        0.625,
+        0.75,
+        0.875,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "asset_id": "fixture-1-a21",
+      "value_basis": "A-FURN-CABINET",
+      "value_usd_low": 3000,
+      "value_usd_high": 6000,
+      "critical_ft": 2.5,
+      "movable": false,
+      "fraction_low": [
+        0.0,
+        0.0,
+        0.08,
+        0.18,
+        0.28,
+        0.38,
+        0.48,
+        0.58,
+        0.68,
+        0.78,
+        0.88,
+        0.98,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fraction_high": [
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7,
+        0.8,
+        0.9,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "asset_id": "fixture-1-a22",
+      "value_basis": "A-FIN-DRYWALL",
+      "value_usd_low": 2500,
+      "value_usd_high": 5000,
+      "critical_ft": 1.0,
+      "movable": false,
+      "fraction_low": [
+        0.0,
+        0.05,
+        0.3,
+        0.55,
+        0.8,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fraction_high": [
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "asset_id": "fixture-1-a23",
+      "value_basis": "A-ELEC-PANEL",
+      "value_usd_low": 6000,
+      "value_usd_high": 12000,
+      "critical_ft": 1.0,
+      "movable": false,
+      "fraction_low": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fraction_high": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "asset_id": "fixture-1-a24",
+      "value_basis": "A-ELEC-SWITCHGEAR",
+      "value_usd_low": 25000,
+      "value_usd_high": 60000,
+      "critical_ft": 1.0,
+      "movable": false,
+      "fraction_low": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fraction_high": [
+        0.0,
+        0.0,
+        0.1,
+        0.35,
+        0.6,
+        0.85,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "asset_id": "fixture-1-a25",
+      "value_basis": "A-HVAC-AHU",
+      "value_usd_low": 8000,
+      "value_usd_high": 16000,
+      "critical_ft": 1.5,
+      "movable": false,
+      "fraction_low": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.167,
+        0.333,
+        0.5,
+        0.667,
+        0.833,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fraction_high": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.167,
+        0.333,
+        0.5,
+        0.667,
+        0.833,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "A-ELEC-CHARGER",
+      "text": "FIXTURE: replacement range for A-ELEC-CHARGER",
+      "source": "FIXTURE",
+      "placeholder": true
+    },
+    {
+      "id": "A-ELEC-FLOORBOX",
+      "text": "FIXTURE: replacement range for A-ELEC-FLOORBOX",
+      "source": "FIXTURE",
+      "placeholder": true
+    },
+    {
+      "id": "A-ELEC-PANEL",
+      "text": "FIXTURE: replacement range for A-ELEC-PANEL",
+      "source": "FIXTURE",
+      "placeholder": true
+    },
+    {
+      "id": "A-ELEC-SUBPANEL",
+      "text": "FIXTURE: replacement range for A-ELEC-SUBPANEL",
+      "source": "FIXTURE",
+      "placeholder": true
+    },
+    {
+      "id": "A-ELEC-SWITCHGEAR",
+      "text": "FIXTURE: replacement range for A-ELEC-SWITCHGEAR",
+      "source": "FIXTURE",
+      "placeholder": true
+    },
+    {
+      "id": "A-EQUIP-APPLIANCE",
+      "text": "FIXTURE: replacement range for A-EQUIP-APPLIANCE",
+      "source": "FIXTURE",
+      "placeholder": true
+    },
+    {
+      "id": "A-EQUIP-FORKLIFT",
+      "text": "FIXTURE: replacement range for A-EQUIP-FORKLIFT",
+      "source": "FIXTURE",
+      "placeholder": true
+    },
+    {
+      "id": "A-EQUIP-WRAPPER",
+      "text": "FIXTURE: replacement range for A-EQUIP-WRAPPER",
+      "source": "FIXTURE",
+      "placeholder": true
+    },
+    {
+      "id": "A-FIN-CARPET",
+      "text": "FIXTURE: replacement range for A-FIN-CARPET",
+      "source": "FIXTURE",
+      "placeholder": true
+    },
+    {
+      "id": "A-FIN-DRYWALL",
+      "text": "FIXTURE: replacement range for A-FIN-DRYWALL",
+      "source": "FIXTURE",
+      "placeholder": true
+    },
+    {
+      "id": "A-FURN-CABINET",
+      "text": "FIXTURE: replacement range for A-FURN-CABINET",
+      "source": "FIXTURE",
+      "placeholder": true
+    },
+    {
+      "id": "A-FURN-CHAIR",
+      "text": "FIXTURE: replacement range for A-FURN-CHAIR",
+      "source": "FIXTURE",
+      "placeholder": true
+    },
+    {
+      "id": "A-HVAC-AHU",
+      "text": "FIXTURE: replacement range for A-HVAC-AHU",
+      "source": "FIXTURE",
+      "placeholder": true
+    },
+    {
+      "id": "A-HVAC-SPLIT",
+      "text": "FIXTURE: replacement range for A-HVAC-SPLIT",
+      "source": "FIXTURE",
+      "placeholder": true
+    },
+    {
+      "id": "A-HVAC-WH",
+      "text": "FIXTURE: replacement range for A-HVAC-WH",
+      "source": "FIXTURE",
+      "placeholder": true
+    },
+    {
+      "id": "A-INV-PALLET",
+      "text": "FIXTURE: replacement range for A-INV-PALLET",
+      "source": "FIXTURE",
+      "placeholder": true
+    },
+    {
+      "id": "A-INV-RACK1",
+      "text": "FIXTURE: replacement range for A-INV-RACK1",
+      "source": "FIXTURE",
+      "placeholder": true
+    },
+    {
+      "id": "A-IT-DESKTOP",
+      "text": "FIXTURE: replacement range for A-IT-DESKTOP",
+      "source": "FIXTURE",
+      "placeholder": true
+    },
+    {
+      "id": "A-IT-RACK",
+      "text": "FIXTURE: replacement range for A-IT-RACK",
+      "source": "FIXTURE",
+      "placeholder": true
+    },
+    {
+      "id": "A-IT-SWITCH",
+      "text": "FIXTURE: replacement range for A-IT-SWITCH",
+      "source": "FIXTURE",
+      "placeholder": true
+    },
+    {
+      "id": "A-IT-UPS",
+      "text": "FIXTURE: replacement range for A-IT-UPS",
+      "source": "FIXTURE",
+      "placeholder": true
+    },
+    {
+      "id": "C-CONTENTS-DEPTH",
+      "text": "Contents damage rises with water above each item's lowest vulnerable point: fraction = (depth - lowest point) / critical height, capped at 1. Critical height is set per value class and never exceeds the item's own height measured from the 3D scan. Low end: lowest point at the top of its range and the class's low value; high end: lowest point at the bottom of its range and the high value.",
+      "source": "Waterline method; totals sanity-checked against FEMA Hazus 6.1 contents curves (USACE Galveston, COM2/IND2)",
+      "placeholder": false
+    },
+    {
+      "id": "C-STRUCT-FIXTURE",
+      "text": "FIXTURE: placeholder depth-damage curve on improvement value, not a FEMA figure",
+      "source": "FIXTURE",
+      "placeholder": true
+    }
+  ]
+}

@@ -1,860 +1,884 @@
 [
- {
-  "building_id": "fixture-1",
-  "depth_ft": 0,
-  "depth_reference": "interior water depth above ground-floor slab",
-  "loss_usd_low": 0,
-  "loss_usd_high": 0,
-  "assets_hit": [],
-  "structure_loss_usd_low": 0,
-  "structure_loss_usd_high": 0,
-  "assumptions": [
-   {
-    "id": "C-STRUCT-FIXTURE",
-    "text": "FIXTURE: placeholder depth-damage curve on improvement value, not a FEMA figure",
-    "source": "FIXTURE",
-    "placeholder": true
-   }
-  ]
- },
- {
-  "building_id": "fixture-1",
-  "depth_ft": 1,
-  "depth_reference": "interior water depth above ground-floor slab",
-  "loss_usd_low": 104300,
-  "loss_usd_high": 278700,
-  "assets_hit": [
-   {
-    "asset_id": "fixture-1-a1",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a2",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a3",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a5",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a6",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a7",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a8",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a12",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a13",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a15",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a16",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a19",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a20",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a21",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a22",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a24",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a4",
-    "status": "possible"
-   },
-   {
-    "asset_id": "fixture-1-a25",
-    "status": "possible"
-   }
-  ],
-  "structure_loss_usd_low": 93000,
-  "structure_loss_usd_high": 217000,
-  "assumptions": [
-   {
-    "id": "A-ELEC-FLOORBOX",
-    "text": "FIXTURE: replacement range for A-ELEC-FLOORBOX",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-ELEC-SWITCHGEAR",
-    "text": "FIXTURE: replacement range for A-ELEC-SWITCHGEAR",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-EQUIP-APPLIANCE",
-    "text": "FIXTURE: replacement range for A-EQUIP-APPLIANCE",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-EQUIP-FORKLIFT",
-    "text": "FIXTURE: replacement range for A-EQUIP-FORKLIFT",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-EQUIP-WRAPPER",
-    "text": "FIXTURE: replacement range for A-EQUIP-WRAPPER",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-FIN-CARPET",
-    "text": "FIXTURE: replacement range for A-FIN-CARPET",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-FIN-DRYWALL",
-    "text": "FIXTURE: replacement range for A-FIN-DRYWALL",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-FURN-CABINET",
-    "text": "FIXTURE: replacement range for A-FURN-CABINET",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-FURN-CHAIR",
-    "text": "FIXTURE: replacement range for A-FURN-CHAIR",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-HVAC-AHU",
-    "text": "FIXTURE: replacement range for A-HVAC-AHU",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-INV-PALLET",
-    "text": "FIXTURE: replacement range for A-INV-PALLET",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-IT-DESKTOP",
-    "text": "FIXTURE: replacement range for A-IT-DESKTOP",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-IT-RACK",
-    "text": "FIXTURE: replacement range for A-IT-RACK",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-IT-UPS",
-    "text": "FIXTURE: replacement range for A-IT-UPS",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "C-STRUCT-FIXTURE",
-    "text": "FIXTURE: placeholder depth-damage curve on improvement value, not a FEMA figure",
-    "source": "FIXTURE",
-    "placeholder": true
-   }
-  ]
- },
- {
-  "building_id": "fixture-1",
-  "depth_ft": 2,
-  "depth_reference": "interior water depth above ground-floor slab",
-  "loss_usd_low": 113500,
-  "loss_usd_high": 321700,
-  "assets_hit": [
-   {
-    "asset_id": "fixture-1-a1",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a2",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a3",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a4",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a5",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a6",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a7",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a8",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a12",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a13",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a15",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a16",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a19",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a20",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a21",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a22",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a24",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a25",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a14",
-    "status": "possible"
-   },
-   {
-    "asset_id": "fixture-1-a18",
-    "status": "possible"
-   }
-  ],
-  "structure_loss_usd_low": 186000,
-  "structure_loss_usd_high": 372000,
-  "assumptions": [
-   {
-    "id": "A-ELEC-FLOORBOX",
-    "text": "FIXTURE: replacement range for A-ELEC-FLOORBOX",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-ELEC-SWITCHGEAR",
-    "text": "FIXTURE: replacement range for A-ELEC-SWITCHGEAR",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-EQUIP-APPLIANCE",
-    "text": "FIXTURE: replacement range for A-EQUIP-APPLIANCE",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-EQUIP-FORKLIFT",
-    "text": "FIXTURE: replacement range for A-EQUIP-FORKLIFT",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-EQUIP-WRAPPER",
-    "text": "FIXTURE: replacement range for A-EQUIP-WRAPPER",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-FIN-CARPET",
-    "text": "FIXTURE: replacement range for A-FIN-CARPET",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-FIN-DRYWALL",
-    "text": "FIXTURE: replacement range for A-FIN-DRYWALL",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-FURN-CABINET",
-    "text": "FIXTURE: replacement range for A-FURN-CABINET",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-FURN-CHAIR",
-    "text": "FIXTURE: replacement range for A-FURN-CHAIR",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-HVAC-AHU",
-    "text": "FIXTURE: replacement range for A-HVAC-AHU",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-HVAC-WH",
-    "text": "FIXTURE: replacement range for A-HVAC-WH",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-INV-PALLET",
-    "text": "FIXTURE: replacement range for A-INV-PALLET",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-INV-RACK1",
-    "text": "FIXTURE: replacement range for A-INV-RACK1",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-IT-DESKTOP",
-    "text": "FIXTURE: replacement range for A-IT-DESKTOP",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-IT-RACK",
-    "text": "FIXTURE: replacement range for A-IT-RACK",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-IT-UPS",
-    "text": "FIXTURE: replacement range for A-IT-UPS",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "C-STRUCT-FIXTURE",
-    "text": "FIXTURE: placeholder depth-damage curve on improvement value, not a FEMA figure",
-    "source": "FIXTURE",
-    "placeholder": true
-   }
-  ]
- },
- {
-  "building_id": "fixture-1",
-  "depth_ft": 4,
-  "depth_reference": "interior water depth above ground-floor slab",
-  "loss_usd_low": 135500,
-  "loss_usd_high": 344700,
-  "assets_hit": [
-   {
-    "asset_id": "fixture-1-a1",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a2",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a3",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a4",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a5",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a6",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a7",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a8",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a11",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a12",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a13",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a14",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a15",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a16",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a17",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a18",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a19",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a20",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a21",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a22",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a24",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a25",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a23",
-    "status": "possible"
-   }
-  ],
-  "structure_loss_usd_low": 341000,
-  "structure_loss_usd_high": 620000,
-  "assumptions": [
-   {
-    "id": "A-ELEC-CHARGER",
-    "text": "FIXTURE: replacement range for A-ELEC-CHARGER",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-ELEC-FLOORBOX",
-    "text": "FIXTURE: replacement range for A-ELEC-FLOORBOX",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-ELEC-PANEL",
-    "text": "FIXTURE: replacement range for A-ELEC-PANEL",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-ELEC-SUBPANEL",
-    "text": "FIXTURE: replacement range for A-ELEC-SUBPANEL",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-ELEC-SWITCHGEAR",
-    "text": "FIXTURE: replacement range for A-ELEC-SWITCHGEAR",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-EQUIP-APPLIANCE",
-    "text": "FIXTURE: replacement range for A-EQUIP-APPLIANCE",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-EQUIP-FORKLIFT",
-    "text": "FIXTURE: replacement range for A-EQUIP-FORKLIFT",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-EQUIP-WRAPPER",
-    "text": "FIXTURE: replacement range for A-EQUIP-WRAPPER",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-FIN-CARPET",
-    "text": "FIXTURE: replacement range for A-FIN-CARPET",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-FIN-DRYWALL",
-    "text": "FIXTURE: replacement range for A-FIN-DRYWALL",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-FURN-CABINET",
-    "text": "FIXTURE: replacement range for A-FURN-CABINET",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-FURN-CHAIR",
-    "text": "FIXTURE: replacement range for A-FURN-CHAIR",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-HVAC-AHU",
-    "text": "FIXTURE: replacement range for A-HVAC-AHU",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-HVAC-WH",
-    "text": "FIXTURE: replacement range for A-HVAC-WH",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-INV-PALLET",
-    "text": "FIXTURE: replacement range for A-INV-PALLET",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-INV-RACK1",
-    "text": "FIXTURE: replacement range for A-INV-RACK1",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-IT-DESKTOP",
-    "text": "FIXTURE: replacement range for A-IT-DESKTOP",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-IT-RACK",
-    "text": "FIXTURE: replacement range for A-IT-RACK",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-IT-UPS",
-    "text": "FIXTURE: replacement range for A-IT-UPS",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "C-STRUCT-FIXTURE",
-    "text": "FIXTURE: placeholder depth-damage curve on improvement value, not a FEMA figure",
-    "source": "FIXTURE",
-    "placeholder": true
-   }
-  ]
- },
- {
-  "building_id": "fixture-1",
-  "depth_ft": 8,
-  "depth_reference": "interior water depth above ground-floor slab",
-  "loss_usd_low": 146000,
-  "loss_usd_high": 354200,
-  "assets_hit": [
-   {
-    "asset_id": "fixture-1-a1",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a2",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a3",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a4",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a5",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a6",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a7",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a8",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a9",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a10",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a11",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a12",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a13",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a14",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a15",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a16",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a17",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a18",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a19",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a20",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a21",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a22",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a23",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a24",
-    "status": "likely"
-   },
-   {
-    "asset_id": "fixture-1-a25",
-    "status": "likely"
-   }
-  ],
-  "structure_loss_usd_low": 558000,
-  "structure_loss_usd_high": 992000,
-  "assumptions": [
-   {
-    "id": "A-ELEC-CHARGER",
-    "text": "FIXTURE: replacement range for A-ELEC-CHARGER",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-ELEC-FLOORBOX",
-    "text": "FIXTURE: replacement range for A-ELEC-FLOORBOX",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-ELEC-PANEL",
-    "text": "FIXTURE: replacement range for A-ELEC-PANEL",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-ELEC-SUBPANEL",
-    "text": "FIXTURE: replacement range for A-ELEC-SUBPANEL",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-ELEC-SWITCHGEAR",
-    "text": "FIXTURE: replacement range for A-ELEC-SWITCHGEAR",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-EQUIP-APPLIANCE",
-    "text": "FIXTURE: replacement range for A-EQUIP-APPLIANCE",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-EQUIP-FORKLIFT",
-    "text": "FIXTURE: replacement range for A-EQUIP-FORKLIFT",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-EQUIP-WRAPPER",
-    "text": "FIXTURE: replacement range for A-EQUIP-WRAPPER",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-FIN-CARPET",
-    "text": "FIXTURE: replacement range for A-FIN-CARPET",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-FIN-DRYWALL",
-    "text": "FIXTURE: replacement range for A-FIN-DRYWALL",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-FURN-CABINET",
-    "text": "FIXTURE: replacement range for A-FURN-CABINET",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-FURN-CHAIR",
-    "text": "FIXTURE: replacement range for A-FURN-CHAIR",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-HVAC-AHU",
-    "text": "FIXTURE: replacement range for A-HVAC-AHU",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-HVAC-SPLIT",
-    "text": "FIXTURE: replacement range for A-HVAC-SPLIT",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-HVAC-WH",
-    "text": "FIXTURE: replacement range for A-HVAC-WH",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-INV-PALLET",
-    "text": "FIXTURE: replacement range for A-INV-PALLET",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-INV-RACK1",
-    "text": "FIXTURE: replacement range for A-INV-RACK1",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-IT-DESKTOP",
-    "text": "FIXTURE: replacement range for A-IT-DESKTOP",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-IT-RACK",
-    "text": "FIXTURE: replacement range for A-IT-RACK",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-IT-SWITCH",
-    "text": "FIXTURE: replacement range for A-IT-SWITCH",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "A-IT-UPS",
-    "text": "FIXTURE: replacement range for A-IT-UPS",
-    "source": "FIXTURE",
-    "placeholder": true
-   },
-   {
-    "id": "C-STRUCT-FIXTURE",
-    "text": "FIXTURE: placeholder depth-damage curve on improvement value, not a FEMA figure",
-    "source": "FIXTURE",
-    "placeholder": true
-   }
-  ]
- }
+  {
+    "building_id": "fixture-1",
+    "depth_ft": 0,
+    "depth_reference": "interior water depth above ground-floor slab",
+    "loss_usd_low": 0,
+    "loss_usd_high": 0,
+    "assets_hit": [],
+    "structure_loss_usd_low": 0,
+    "structure_loss_usd_high": 0,
+    "assumptions": [
+      {
+        "id": "C-STRUCT-FIXTURE",
+        "text": "FIXTURE: placeholder depth-damage curve on improvement value, not a FEMA figure",
+        "source": "FIXTURE",
+        "placeholder": true
+      }
+    ]
+  },
+  {
+    "building_id": "fixture-1",
+    "depth_ft": 1,
+    "depth_reference": "interior water depth above ground-floor slab",
+    "loss_usd_low": 38098,
+    "loss_usd_high": 180260,
+    "assets_hit": [
+      {
+        "asset_id": "fixture-1-a1",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a2",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a3",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a5",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a6",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a7",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a8",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a12",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a13",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a15",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a16",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a19",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a20",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a21",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a22",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a24",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a4",
+        "status": "possible"
+      },
+      {
+        "asset_id": "fixture-1-a25",
+        "status": "possible"
+      }
+    ],
+    "structure_loss_usd_low": 93000,
+    "structure_loss_usd_high": 217000,
+    "assumptions": [
+      {
+        "id": "A-ELEC-FLOORBOX",
+        "text": "FIXTURE: replacement range for A-ELEC-FLOORBOX",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-ELEC-SWITCHGEAR",
+        "text": "FIXTURE: replacement range for A-ELEC-SWITCHGEAR",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-EQUIP-APPLIANCE",
+        "text": "FIXTURE: replacement range for A-EQUIP-APPLIANCE",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-EQUIP-FORKLIFT",
+        "text": "FIXTURE: replacement range for A-EQUIP-FORKLIFT",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-EQUIP-WRAPPER",
+        "text": "FIXTURE: replacement range for A-EQUIP-WRAPPER",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-FIN-CARPET",
+        "text": "FIXTURE: replacement range for A-FIN-CARPET",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-FIN-DRYWALL",
+        "text": "FIXTURE: replacement range for A-FIN-DRYWALL",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-FURN-CABINET",
+        "text": "FIXTURE: replacement range for A-FURN-CABINET",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-FURN-CHAIR",
+        "text": "FIXTURE: replacement range for A-FURN-CHAIR",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-HVAC-AHU",
+        "text": "FIXTURE: replacement range for A-HVAC-AHU",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-INV-PALLET",
+        "text": "FIXTURE: replacement range for A-INV-PALLET",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-IT-DESKTOP",
+        "text": "FIXTURE: replacement range for A-IT-DESKTOP",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-IT-RACK",
+        "text": "FIXTURE: replacement range for A-IT-RACK",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-IT-UPS",
+        "text": "FIXTURE: replacement range for A-IT-UPS",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "C-CONTENTS-DEPTH",
+        "text": "Contents damage rises with water above each item's lowest vulnerable point: fraction = (depth - lowest point) / critical height, capped at 1. Critical height is set per value class and never exceeds the item's own height measured from the 3D scan. Low end: lowest point at the top of its range and the class's low value; high end: lowest point at the bottom of its range and the high value.",
+        "source": "Waterline method; totals sanity-checked against FEMA Hazus 6.1 contents curves (USACE Galveston, COM2/IND2)",
+        "placeholder": false
+      },
+      {
+        "id": "C-STRUCT-FIXTURE",
+        "text": "FIXTURE: placeholder depth-damage curve on improvement value, not a FEMA figure",
+        "source": "FIXTURE",
+        "placeholder": true
+      }
+    ]
+  },
+  {
+    "building_id": "fixture-1",
+    "depth_ft": 2,
+    "depth_reference": "interior water depth above ground-floor slab",
+    "loss_usd_low": 98555,
+    "loss_usd_high": 286020,
+    "assets_hit": [
+      {
+        "asset_id": "fixture-1-a1",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a2",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a3",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a4",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a5",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a6",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a7",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a8",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a12",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a13",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a15",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a16",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a19",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a20",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a21",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a22",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a24",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a25",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a14",
+        "status": "possible"
+      },
+      {
+        "asset_id": "fixture-1-a18",
+        "status": "possible"
+      }
+    ],
+    "structure_loss_usd_low": 186000,
+    "structure_loss_usd_high": 372000,
+    "assumptions": [
+      {
+        "id": "A-ELEC-FLOORBOX",
+        "text": "FIXTURE: replacement range for A-ELEC-FLOORBOX",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-ELEC-SWITCHGEAR",
+        "text": "FIXTURE: replacement range for A-ELEC-SWITCHGEAR",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-EQUIP-APPLIANCE",
+        "text": "FIXTURE: replacement range for A-EQUIP-APPLIANCE",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-EQUIP-FORKLIFT",
+        "text": "FIXTURE: replacement range for A-EQUIP-FORKLIFT",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-EQUIP-WRAPPER",
+        "text": "FIXTURE: replacement range for A-EQUIP-WRAPPER",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-FIN-CARPET",
+        "text": "FIXTURE: replacement range for A-FIN-CARPET",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-FIN-DRYWALL",
+        "text": "FIXTURE: replacement range for A-FIN-DRYWALL",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-FURN-CABINET",
+        "text": "FIXTURE: replacement range for A-FURN-CABINET",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-FURN-CHAIR",
+        "text": "FIXTURE: replacement range for A-FURN-CHAIR",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-HVAC-AHU",
+        "text": "FIXTURE: replacement range for A-HVAC-AHU",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-HVAC-WH",
+        "text": "FIXTURE: replacement range for A-HVAC-WH",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-INV-PALLET",
+        "text": "FIXTURE: replacement range for A-INV-PALLET",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-INV-RACK1",
+        "text": "FIXTURE: replacement range for A-INV-RACK1",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-IT-DESKTOP",
+        "text": "FIXTURE: replacement range for A-IT-DESKTOP",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-IT-RACK",
+        "text": "FIXTURE: replacement range for A-IT-RACK",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-IT-UPS",
+        "text": "FIXTURE: replacement range for A-IT-UPS",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "C-CONTENTS-DEPTH",
+        "text": "Contents damage rises with water above each item's lowest vulnerable point: fraction = (depth - lowest point) / critical height, capped at 1. Critical height is set per value class and never exceeds the item's own height measured from the 3D scan. Low end: lowest point at the top of its range and the class's low value; high end: lowest point at the bottom of its range and the high value.",
+        "source": "Waterline method; totals sanity-checked against FEMA Hazus 6.1 contents curves (USACE Galveston, COM2/IND2)",
+        "placeholder": false
+      },
+      {
+        "id": "C-STRUCT-FIXTURE",
+        "text": "FIXTURE: placeholder depth-damage curve on improvement value, not a FEMA figure",
+        "source": "FIXTURE",
+        "placeholder": true
+      }
+    ]
+  },
+  {
+    "building_id": "fixture-1",
+    "depth_ft": 4,
+    "depth_reference": "interior water depth above ground-floor slab",
+    "loss_usd_low": 131250,
+    "loss_usd_high": 338700,
+    "assets_hit": [
+      {
+        "asset_id": "fixture-1-a1",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a2",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a3",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a4",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a5",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a6",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a7",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a8",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a11",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a12",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a13",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a14",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a15",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a16",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a17",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a18",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a19",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a20",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a21",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a22",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a24",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a25",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a23",
+        "status": "possible"
+      }
+    ],
+    "structure_loss_usd_low": 341000,
+    "structure_loss_usd_high": 620000,
+    "assumptions": [
+      {
+        "id": "A-ELEC-CHARGER",
+        "text": "FIXTURE: replacement range for A-ELEC-CHARGER",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-ELEC-FLOORBOX",
+        "text": "FIXTURE: replacement range for A-ELEC-FLOORBOX",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-ELEC-PANEL",
+        "text": "FIXTURE: replacement range for A-ELEC-PANEL",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-ELEC-SUBPANEL",
+        "text": "FIXTURE: replacement range for A-ELEC-SUBPANEL",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-ELEC-SWITCHGEAR",
+        "text": "FIXTURE: replacement range for A-ELEC-SWITCHGEAR",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-EQUIP-APPLIANCE",
+        "text": "FIXTURE: replacement range for A-EQUIP-APPLIANCE",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-EQUIP-FORKLIFT",
+        "text": "FIXTURE: replacement range for A-EQUIP-FORKLIFT",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-EQUIP-WRAPPER",
+        "text": "FIXTURE: replacement range for A-EQUIP-WRAPPER",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-FIN-CARPET",
+        "text": "FIXTURE: replacement range for A-FIN-CARPET",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-FIN-DRYWALL",
+        "text": "FIXTURE: replacement range for A-FIN-DRYWALL",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-FURN-CABINET",
+        "text": "FIXTURE: replacement range for A-FURN-CABINET",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-FURN-CHAIR",
+        "text": "FIXTURE: replacement range for A-FURN-CHAIR",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-HVAC-AHU",
+        "text": "FIXTURE: replacement range for A-HVAC-AHU",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-HVAC-WH",
+        "text": "FIXTURE: replacement range for A-HVAC-WH",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-INV-PALLET",
+        "text": "FIXTURE: replacement range for A-INV-PALLET",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-INV-RACK1",
+        "text": "FIXTURE: replacement range for A-INV-RACK1",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-IT-DESKTOP",
+        "text": "FIXTURE: replacement range for A-IT-DESKTOP",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-IT-RACK",
+        "text": "FIXTURE: replacement range for A-IT-RACK",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-IT-UPS",
+        "text": "FIXTURE: replacement range for A-IT-UPS",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "C-CONTENTS-DEPTH",
+        "text": "Contents damage rises with water above each item's lowest vulnerable point: fraction = (depth - lowest point) / critical height, capped at 1. Critical height is set per value class and never exceeds the item's own height measured from the 3D scan. Low end: lowest point at the top of its range and the class's low value; high end: lowest point at the bottom of its range and the high value.",
+        "source": "Waterline method; totals sanity-checked against FEMA Hazus 6.1 contents curves (USACE Galveston, COM2/IND2)",
+        "placeholder": false
+      },
+      {
+        "id": "C-STRUCT-FIXTURE",
+        "text": "FIXTURE: placeholder depth-damage curve on improvement value, not a FEMA figure",
+        "source": "FIXTURE",
+        "placeholder": true
+      }
+    ]
+  },
+  {
+    "building_id": "fixture-1",
+    "depth_ft": 8,
+    "depth_reference": "interior water depth above ground-floor slab",
+    "loss_usd_low": 145167,
+    "loss_usd_high": 354200,
+    "assets_hit": [
+      {
+        "asset_id": "fixture-1-a1",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a2",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a3",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a4",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a5",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a6",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a7",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a8",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a9",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a10",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a11",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a12",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a13",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a14",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a15",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a16",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a17",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a18",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a19",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a20",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a21",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a22",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a23",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a24",
+        "status": "likely"
+      },
+      {
+        "asset_id": "fixture-1-a25",
+        "status": "likely"
+      }
+    ],
+    "structure_loss_usd_low": 558000,
+    "structure_loss_usd_high": 992000,
+    "assumptions": [
+      {
+        "id": "A-ELEC-CHARGER",
+        "text": "FIXTURE: replacement range for A-ELEC-CHARGER",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-ELEC-FLOORBOX",
+        "text": "FIXTURE: replacement range for A-ELEC-FLOORBOX",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-ELEC-PANEL",
+        "text": "FIXTURE: replacement range for A-ELEC-PANEL",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-ELEC-SUBPANEL",
+        "text": "FIXTURE: replacement range for A-ELEC-SUBPANEL",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-ELEC-SWITCHGEAR",
+        "text": "FIXTURE: replacement range for A-ELEC-SWITCHGEAR",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-EQUIP-APPLIANCE",
+        "text": "FIXTURE: replacement range for A-EQUIP-APPLIANCE",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-EQUIP-FORKLIFT",
+        "text": "FIXTURE: replacement range for A-EQUIP-FORKLIFT",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-EQUIP-WRAPPER",
+        "text": "FIXTURE: replacement range for A-EQUIP-WRAPPER",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-FIN-CARPET",
+        "text": "FIXTURE: replacement range for A-FIN-CARPET",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-FIN-DRYWALL",
+        "text": "FIXTURE: replacement range for A-FIN-DRYWALL",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-FURN-CABINET",
+        "text": "FIXTURE: replacement range for A-FURN-CABINET",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-FURN-CHAIR",
+        "text": "FIXTURE: replacement range for A-FURN-CHAIR",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-HVAC-AHU",
+        "text": "FIXTURE: replacement range for A-HVAC-AHU",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-HVAC-SPLIT",
+        "text": "FIXTURE: replacement range for A-HVAC-SPLIT",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-HVAC-WH",
+        "text": "FIXTURE: replacement range for A-HVAC-WH",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-INV-PALLET",
+        "text": "FIXTURE: replacement range for A-INV-PALLET",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-INV-RACK1",
+        "text": "FIXTURE: replacement range for A-INV-RACK1",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-IT-DESKTOP",
+        "text": "FIXTURE: replacement range for A-IT-DESKTOP",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-IT-RACK",
+        "text": "FIXTURE: replacement range for A-IT-RACK",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-IT-SWITCH",
+        "text": "FIXTURE: replacement range for A-IT-SWITCH",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "A-IT-UPS",
+        "text": "FIXTURE: replacement range for A-IT-UPS",
+        "source": "FIXTURE",
+        "placeholder": true
+      },
+      {
+        "id": "C-CONTENTS-DEPTH",
+        "text": "Contents damage rises with water above each item's lowest vulnerable point: fraction = (depth - lowest point) / critical height, capped at 1. Critical height is set per value class and never exceeds the item's own height measured from the 3D scan. Low end: lowest point at the top of its range and the class's low value; high end: lowest point at the bottom of its range and the high value.",
+        "source": "Waterline method; totals sanity-checked against FEMA Hazus 6.1 contents curves (USACE Galveston, COM2/IND2)",
+        "placeholder": false
+      },
+      {
+        "id": "C-STRUCT-FIXTURE",
+        "text": "FIXTURE: placeholder depth-damage curve on improvement value, not a FEMA figure",
+        "source": "FIXTURE",
+        "placeholder": true
+      }
+    ]
+  }
 ]

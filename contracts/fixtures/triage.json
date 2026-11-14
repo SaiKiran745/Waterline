@@ -1,0 +1,69 @@
+[
+  {
+    "building_id": "fixture-1",
+    "rank": 1,
+    "status": "surveyed",
+    "positions_read": 12,
+    "scan_positions": 40,
+    "contents_assets": 23,
+    "note": "FIXTURE, not real data.",
+    "loss_by_depth_ft": {
+      "1": {
+        "contents": [
+          38098,
+          180260
+        ],
+        "structure": [
+          93000,
+          217000
+        ],
+        "total": [
+          131098,
+          397260
+        ]
+      },
+      "2": {
+        "contents": [
+          98555,
+          286020
+        ],
+        "structure": [
+          186000,
+          372000
+        ],
+        "total": [
+          284555,
+          658020
+        ]
+      },
+      "4": {
+        "contents": [
+          131250,
+          338700
+        ],
+        "structure": [
+          341000,
+          620000
+        ],
+        "total": [
+          472250,
+          958700
+        ]
+      },
+      "6": {
+        "contents": [
+          143500,
+          349200
+        ],
+        "structure": [
+          449500,
+          806000
+        ],
+        "total": [
+          593000,
+          1155200
+        ]
+      }
+    }
+  }
+]

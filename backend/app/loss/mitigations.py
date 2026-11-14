@@ -39,6 +39,14 @@ def candidates(bid: str, assets: list[dict], entry_points: list[dict]) -> list[d
             specs.append({"kind": "raise_asset", "basis": c["id"], "raise_by_ft": c["raise_by_ft"],
                           "action": f"Raise {n} {cat if cat != 'it' else 'IT'} item{'s' if n > 1 else ''} in {room} by {c['raise_by_ft']:g} ft on platforms or wall mounts",
                           "targets": [a["id"] for a in items], "cost": (c["low"] * n, c["high"] * n), "group": (room_key, cat)})
+    vehicles = [a for a in assets if (model.assumption_by_id(a["value_basis"]) or {}).get("movable")]
+    if vehicles:
+        c = cost("M-MOVE-VEHICLES")
+        n = len(vehicles)
+        specs.append({"kind": "other", "basis": c["id"], "movable": True,
+                      "action": f"Drive {n} road vehicle{'s' if n > 1 else ''} and trailers to high ground before landfall",
+                      "targets": [a["id"] for a in vehicles], "cost": (c["low"] * n, c["high"] * n),
+                      "group": ("all", "vehicles")})
     if entry_points:
         c = cost("M-BARRIER")
         n = len(entry_points)
@@ -80,7 +88,10 @@ def ranked(bid: str, specs: list[dict], assets: list[dict], depth_ft: float, los
         a_lo, a_hi = evaluate(s, assets, depth_ft, loss)
         c_lo, c_hi = s["cost"]
         ratio = ((a_lo + a_hi) / 2) / ((c_lo + c_hi) / 2)
-        if a_hi > 0:
+        if s.get("movable"):
+            note = (f"Protects {len(s['targets'])} movable asset{'s' if len(s['targets']) > 1 else ''} at risk; "
+                    "vehicle value is not in the contents loss, so the avoided loss is not priced")
+        elif a_hi > 0:
             note = (f"At {depth_ft:g} ft it avoids ${a_lo:,.0f}-{a_hi:,.0f} for ${c_lo:,.0f}-{c_hi:,.0f}: "
                     f"about {ratio:.1f} times its cost in one event")
         else:

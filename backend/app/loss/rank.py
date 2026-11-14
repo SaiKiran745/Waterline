@@ -10,7 +10,7 @@ from app.config import BUILDINGS, CACHE
 from app.loss import model
 from app.sources.cache import write_json
 
-DEPTHS = (1, 2, 4)
+DEPTHS = (1, 2, 4, 6)
 RANK_FILE = CACHE / "rank.json"
 
 

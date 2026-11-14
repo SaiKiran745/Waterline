@@ -99,7 +99,9 @@ Both tools work on `main` in the same folder. Claude Code commits only `backend/
 
 ## 8. Contracts (frozen)
 
-**`contracts/` v1.1.0 is the source of truth.** Read `contracts/README.md` for the schemas (Building, EntryPoint, Asset, ScenarioResult, Mitigation, AgentEvent), the fixtures, and the changelog.
+**`contracts/` v1.2.0 is the source of truth.** Read `contracts/README.md` for the schemas (Building, EntryPoint, Asset, ScenarioResult, Mitigation, AgentEvent), the fixtures, and the changelog.
+
+v1.2.0 added `ScenarioTable` (`GET /buildings/{id}/scenario_table`) and `Triage` (`GET /triage`), made contents loss gradual and added value classes. Codex's change list is in the `contracts/README.md` changelog.
 
 v1.1.0 changed three things:
 - Building ids are slugs such as `building-h`. They appear in URLs and as `building_id` everywhere.
@@ -114,6 +116,8 @@ API (backend):
 - `GET /buildings/{id}/media` media manifest (mesh, aerial images, panorama faces cleared by the privacy screen)
 - `GET /media/{path}` cached meshes, panoramas and aerial images (served to localhost only)
 - `GET /buildings/{id}/scenario?depth_ft=` ScenarioResult (must answer in under 100 ms: pure computation over cached assets, so the slider is smooth; the front end may also compute client-side from the same data)
+- `GET /buildings/{id}/scenario_table` every slider step with per-asset damage fractions (v1.2)
+- `GET /triage?depth_ft=` triage ranking labelled surveyed / structure only (v1.2)
 - `GET /buildings/{id}/mitigations?depth_ft=`
 - `POST /buildings/{id}/run` starts the agent; `GET /buildings/{id}/events` SSE stream of AgentEvent
 - `GET /buildings/{id}/report`, `GET /buildings/{id}/playbook`
@@ -123,9 +127,11 @@ API (backend):
 
 - The slider sets **interior water depth above the ground-floor slab**, 0 to 8 ft. Entry points explain where water enters first; they do not need to drive a hydraulic model.
 - An asset is **likely** hit when `depth >= height_ft_high`, **possible** when `depth >= height_ft_low`.
-- `loss_low` = sum of `value_usd_low` over likely assets. `loss_high` = sum of `value_usd_high` over likely and possible assets.
+- Contents damage is gradual (human decision 2026-11-14, assumption `C-CONTENTS-DEPTH`). Each asset loses a fraction of its value: (depth − lowest vulnerable point) ÷ the critical height of its value class, capped at 1. The critical height is capped by the item's own height from the mesh.
+- `loss_low` uses `value_usd_low` with the lowest point at `height_ft_high`, so only likely hits count. `loss_high` uses `value_usd_high` with the lowest point at `height_ft_low`, so likely and possible hits count.
+- Road vehicles (`V-VEHICLE`) are listed as movable assets at risk and are not in contents loss.
 - Structure and finishes loss comes from a depth-damage curve per property type in `curves.yaml`, applied to a value basis from CoStar data. Source the curves from FEMA Hazus documentation if you can retrieve and cite them. If you cannot, write a clearly labelled placeholder curve, set `placeholder: true`, and show that label in the UI. Never present a placeholder as a FEMA figure.
-- Asset replacement values come from `assumptions.yaml`: a small table of low-high ranges by asset category. These are assumptions, each with an id, shown in the UI.
+- Asset replacement values come from `assumptions.yaml`: 15 value classes with low-high ranges and critical heights. These are assumptions, each with an id, shown in the UI.
 - Unit-test the model: zero depth gives zero loss; loss never decreases as depth rises; low is never above high.
 
 ## 10. Agent design (deepagents)

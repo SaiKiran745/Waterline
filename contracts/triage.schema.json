@@ -1,0 +1,233 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "waterline/contracts/triage.schema.json",
+  "title": "Triage",
+  "description": "GET /triage?depth_ft=1|2|4|6: every building ranked by total loss (high end) at that depth, each labelled 'surveyed' or 'structure only' so the map ranking says what it compares.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "building_id",
+      "rank",
+      "status",
+      "positions_read",
+      "scan_positions",
+      "contents_assets",
+      "note",
+      "loss_by_depth_ft"
+    ],
+    "properties": {
+      "building_id": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+      },
+      "rank": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "surveyed",
+          "structure only"
+        ],
+        "description": "structure only = no interior survey yet; its loss is the structure curve alone and is not comparable with surveyed buildings."
+      },
+      "positions_read": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "Scan positions the interior survey read."
+      },
+      "scan_positions": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "Scan positions (panoramas) in the Matterport model."
+      },
+      "contents_assets": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "Surveyed assets that are not building fabric."
+      },
+      "note": {
+        "type": "string"
+      },
+      "loss_by_depth_ft": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "1",
+          "2",
+          "4",
+          "6"
+        ],
+        "properties": {
+          "1": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "contents",
+              "structure",
+              "total"
+            ],
+            "properties": {
+              "contents": {
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "[low, high] in USD"
+              },
+              "structure": {
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "[low, high] in USD"
+              },
+              "total": {
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "[low, high] in USD"
+              }
+            }
+          },
+          "2": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "contents",
+              "structure",
+              "total"
+            ],
+            "properties": {
+              "contents": {
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "[low, high] in USD"
+              },
+              "structure": {
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "[low, high] in USD"
+              },
+              "total": {
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "[low, high] in USD"
+              }
+            }
+          },
+          "4": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "contents",
+              "structure",
+              "total"
+            ],
+            "properties": {
+              "contents": {
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "[low, high] in USD"
+              },
+              "structure": {
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "[low, high] in USD"
+              },
+              "total": {
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "[low, high] in USD"
+              }
+            }
+          },
+          "6": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "contents",
+              "structure",
+              "total"
+            ],
+            "properties": {
+              "contents": {
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "[low, high] in USD"
+              },
+              "structure": {
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "[low, high] in USD"
+              },
+              "total": {
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "[low, high] in USD"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

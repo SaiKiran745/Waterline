@@ -1,0 +1,210 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "waterline/contracts/scenario_table.schema.json",
+  "title": "ScenarioTable",
+  "description": "GET /buildings/{id}/scenario_table: the loss at every slider step (0 to 8 ft by 0.25 ft) and each asset's damage fraction per step, so the front end looks values up instead of computing them. Each row equals GET /scenario at that depth.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "building_id",
+    "depth_reference",
+    "step_ft",
+    "steps_ft",
+    "rows",
+    "assets",
+    "assumptions"
+  ],
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "depth_reference": {
+      "type": "string",
+      "description": "Always 'interior water depth above ground-floor slab'."
+    },
+    "step_ft": {
+      "type": "number",
+      "description": "0.25"
+    },
+    "steps_ft": {
+      "type": "array",
+      "items": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 8
+      },
+      "description": "0, 0.25, ... 8 (33 steps). rows[i] and every fraction_*[i] are for steps_ft[i]."
+    },
+    "rows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "depth_ft",
+          "loss_usd_low",
+          "loss_usd_high",
+          "structure_loss_usd_low",
+          "structure_loss_usd_high",
+          "total_usd_low",
+          "total_usd_high",
+          "assets_hit"
+        ],
+        "properties": {
+          "depth_ft": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 8
+          },
+          "loss_usd_low": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Contents loss, low (as ScenarioResult)."
+          },
+          "loss_usd_high": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Contents loss, high (as ScenarioResult)."
+          },
+          "structure_loss_usd_low": {
+            "type": "number",
+            "minimum": 0
+          },
+          "structure_loss_usd_high": {
+            "type": "number",
+            "minimum": 0
+          },
+          "total_usd_low": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Contents + structure, low."
+          },
+          "total_usd_high": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Contents + structure, high."
+          },
+          "assets_hit": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "asset_id",
+                "status"
+              ],
+              "properties": {
+                "asset_id": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "likely",
+                    "possible"
+                  ]
+                }
+              }
+            },
+            "description": "Same as ScenarioResult.assets_hit: likely first, then possible."
+          }
+        }
+      }
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "asset_id",
+          "value_basis",
+          "value_usd_low",
+          "value_usd_high",
+          "critical_ft",
+          "movable",
+          "fraction_low",
+          "fraction_high"
+        ],
+        "properties": {
+          "asset_id": {
+            "type": "string"
+          },
+          "value_basis": {
+            "type": "string",
+            "description": "Value class id in backend/app/loss/assumptions.yaml (Asset.value_basis)."
+          },
+          "value_usd_low": {
+            "type": "number",
+            "minimum": 0
+          },
+          "value_usd_high": {
+            "type": "number",
+            "minimum": 0
+          },
+          "critical_ft": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Water depth above the lowest vulnerable point at which the item is a total loss (class value, capped by the item's height from the mesh)."
+          },
+          "movable": {
+            "type": "boolean",
+            "description": "true = road vehicle: a movable asset at risk, value not in contents loss."
+          },
+          "fraction_low": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "description": "Share of value lost at each step, low case (lowest point at height_ft_high). Loss low = value_usd_low x fraction_low."
+          },
+          "fraction_high": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "description": "High case (lowest point at height_ft_low). Loss high = value_usd_high x fraction_high."
+          }
+        }
+      }
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/assumption"
+      }
+    }
+  },
+  "$defs": {
+    "assumption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "text",
+        "source",
+        "placeholder"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "placeholder": {
+          "type": "boolean",
+          "description": "true = PLACEHOLDER value; the UI must label it."
+        }
+      }
+    }
+  }
+}

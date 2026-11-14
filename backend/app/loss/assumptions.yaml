@@ -9,18 +9,37 @@ structure:
     source: "CoStar sale comp, deed-level assessment matched by APN"
     placeholder: false
 
-assets:   # replacement value per surveyed item or group, USD
-  - {id: A-ELEC,  category: electrical, low: 3000, high: 25000, text: "Electrical gear: panel, switchgear, transformer, charger, per item", source: "team assumption", placeholder: true}
-  - {id: A-IT,    category: it,         low: 1000, high: 15000, text: "IT equipment: server rack, network cabinet, computers, per item or group", source: "team assumption", placeholder: true}
-  - {id: A-HVAC,  category: hvac,       low: 2000, high: 15000, text: "HVAC and plumbing equipment: air handler, water heater, condensing unit, per item", source: "team assumption", placeholder: true}
-  - {id: A-INV,   category: inventory,  low: 5000, high: 50000, text: "Stored inventory, per floor or rack zone", source: "team assumption", placeholder: true}
-  - {id: A-EQUIP, category: equipment,  low: 1000, high: 20000, text: "Equipment and machinery: forklift, compressor, appliance, tools, per item", source: "team assumption", placeholder: true}
-  - {id: A-FURN,  category: furniture,  low: 500,  high: 5000,  text: "Furniture, per room group", source: "team assumption", placeholder: true}
-  - {id: A-FIN,   category: finishes,   low: 0,    high: 0,     text: "Finishes are covered by the structure curve, not valued as assets", source: "Waterline method", placeholder: false}
-  - {id: A-OTHER, category: other,      low: 250,  high: 3000,  text: "Other vulnerable items, per item", source: "team assumption", placeholder: true}
+contents:
+  - id: C-CONTENTS-DEPTH
+    text: "Contents damage rises with water above each item's lowest vulnerable point: fraction = (depth - lowest point) / critical height, capped at 1. Critical height is set per value class and never exceeds the item's own height measured from the 3D scan. Low end: lowest point at the top of its range and the class's low value; high end: lowest point at the bottom of its range and the high value."
+    source: "Waterline method; totals sanity-checked against FEMA Hazus 6.1 contents curves (USACE Galveston, COM2/IND2)"
+    placeholder: false
+
+# Value classes: replacement value per surveyed item or group, USD, and critical height in ft (water depth above the
+# item's lowest vulnerable point at which it is a total loss). Team assumptions, labelled PLACEHOLDER in the UI and
+# editable per asset through PATCH /buildings/{id}/assets/{asset_id}. Assigned from the vision label (app/loss/classes.py).
+assets:
+  - {id: V-FORKLIFT,     category: equipment,  low: 12000, high: 30000, critical_ft: 2.0, text: "Forklift: used electric or LPG warehouse truck; battery, controller and drive motor sit low", source: "team assumption", placeholder: true}
+  - {id: V-AERIAL-LIFT,  category: equipment,  low: 15000, high: 45000, critical_ft: 2.5, text: "Boom or scissor lift: used unit; batteries, hydraulics and controls in the base", source: "team assumption", placeholder: true}
+  - {id: V-PALLET-JACK,  category: equipment,  low: 300,   high: 3000,  critical_ft: 1.0, text: "Pallet jack or hand truck: manual to electric", source: "team assumption", placeholder: true}
+  - {id: V-MACHINE-TOOL, category: equipment,  low: 8000,  high: 40000, critical_ft: 3.0, text: "Machine tool or fixed production machine (lathe, press, saw, burn table, oven): motors and controls", source: "team assumption", placeholder: true}
+  - {id: V-SHOP-EQUIP,   category: equipment,  low: 1500,  high: 6000,  critical_ft: 1.5, text: "Portable shop equipment: welder, compressor, generator, heater, pump", source: "team assumption", placeholder: true}
+  - {id: V-HAND-TOOLS,   category: equipment,  low: 300,   high: 2500,  critical_ft: 1.5, text: "Hand tools, tool carts, toolboxes, workbenches with tools", source: "team assumption", placeholder: true}
+  - {id: V-RACKED-INV,   category: inventory,  low: 2000,  high: 12000, critical_ft: 6.0, text: "Racked or shelved stock, per rack run; damage climbs shelf by shelf", source: "team assumption", placeholder: true}
+  - {id: V-FLOOR-INV,    category: inventory,  low: 300,   high: 3000,  critical_ft: 1.5, text: "Floor-stored stock and materials, per pallet or pile; cardboard wicks water", source: "team assumption", placeholder: true}
+  - {id: V-OFFICE-FURN,  category: furniture,  low: 500,   high: 4000,  critical_ft: 2.5, text: "Office furniture, per room group (desks, chairs, tables, cabinets)", source: "team assumption", placeholder: true}
+  - {id: V-APPLIANCE,    category: equipment,  low: 400,   high: 3500,  critical_ft: 1.0, text: "Appliance: refrigerator, vending machine, washer, water cooler; compressor and controls sit low", source: "team assumption", placeholder: true}
+  - {id: V-IT,           category: it,         low: 500,   high: 6000,  critical_ft: 0.5, text: "IT equipment: computers, monitors, printers, network gear; fails on contact", source: "team assumption", placeholder: true}
+  - {id: V-ELEC-GEAR,    category: electrical, low: 2500,  high: 12000, critical_ft: 1.0, text: "Electrical gear: panel, disconnect, transformer, charger; replaced once wet", source: "team assumption", placeholder: true}
+  - {id: V-HVAC,         category: hvac,       low: 2000,  high: 10000, critical_ft: 1.5, text: "HVAC or plumbing equipment: air handler, AC unit, water heater", source: "team assumption", placeholder: true}
+  - {id: V-SMALL,        category: other,      low: 20,    high: 400,   critical_ft: 1.0, text: "Small items: fans, trash cans, buckets, extinguishers, ladders, cords", source: "team assumption", placeholder: true}
+  - {id: V-OTHER,        category: other,      low: 250,   high: 2500,  critical_ft: 2.0, text: "Other vulnerable items, per item", source: "team assumption", placeholder: true}
+  - {id: V-VEHICLE,      category: other,      low: 0,     high: 0,     critical_ft: 1.5, movable: true, text: "Road vehicle (pickup, car, trailer): not building contents, so not in contents loss; listed as a movable asset at risk", source: "human decision 2026-11-14", placeholder: false}
+  - {id: A-FIN,          category: finishes,   low: 0,     high: 0,     critical_ft: 1.0, text: "Building fabric (outlets, switches, fixed cabinetry, finishes): covered by the structure curve, not valued as contents", source: "Waterline method", placeholder: false}
 
 mitigations:   # cost per action unit, USD, and the height the action moves things to
   - {id: M-PLATFORM,   kind: raise_asset,    low: 800,  high: 4000,  unit: item, raise_by_ft: 3.0, text: "Raise an item onto a 3 ft platform or wall mount", source: "team assumption", placeholder: true}
   - {id: M-ELEC-RAISE, kind: relocate_asset, low: 4000, high: 15000, unit: item, target_ft: 5.0, text: "Electrician relocates electrical gear so its lowest live part is above 5 ft", source: "team assumption", placeholder: true}
   - {id: M-MOVE-INV,   kind: move_inventory, low: 500,  high: 3000,  unit: room, target_ft: 4.0, text: "Pre-storm labour to move floor-level inventory onto racking above 4 ft", source: "team assumption", placeholder: true}
+  - {id: M-MOVE-VEHICLES, kind: other,      low: 0,    high: 300,  unit: vehicle, text: "Drive road vehicles and trailers to high ground before landfall (staff time); vehicle value is not in contents loss", source: "team assumption", placeholder: true}
   - {id: M-BARRIER,    kind: entry_barrier,  low: 1500, high: 6000,  unit: opening, rating_ft: 2.0, text: "Deployable 2 ft flood barrier at every ground-level opening; keeps water out only up to its rating", source: "team assumption", placeholder: true}

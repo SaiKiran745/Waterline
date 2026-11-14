@@ -38,12 +38,10 @@ def _interp(depth: float, points: list[tuple[float, float, float]]) -> tuple[flo
 def scenario(depth_ft: float) -> dict:
     """AGENTS.md section 9 rule over the fixture assets. Depth 0 means no water, so nothing is hit.
     Structure loss interpolates the fixture's placeholder curve (FIXTURE, labelled placeholder)."""
+    from app.loss import model
     rows = assets()
-    if depth_ft <= 0:
-        likely, possible = [], []
-    else:
-        likely = [a for a in rows if depth_ft >= a["height_ft_high"]]
-        possible = [a for a in rows if a["height_ft_low"] <= depth_ft < a["height_ft_high"]]
+    likely, possible = model.hits(rows, depth_ft)
+    c_lo, c_hi = model.contents_loss(rows, depth_ft)
     scen = load("scenarios.json")
     points = [(s["depth_ft"], s["structure_loss_usd_low"], s["structure_loss_usd_high"]) for s in scen]
     s_low, s_high = _interp(depth_ft, points)
@@ -52,12 +50,13 @@ def scenario(depth_ft: float) -> dict:
     return {
         "building_id": FIXTURE_ID, "depth_ft": depth_ft,
         "depth_reference": "interior water depth above ground-floor slab",
-        "loss_usd_low": sum(a["value_usd_low"] for a in likely),
-        "loss_usd_high": sum(a["value_usd_high"] for a in likely + possible),
+        "loss_usd_low": round(c_lo), "loss_usd_high": round(c_hi),
         "assets_hit": [{"asset_id": a["id"], "status": "likely"} for a in likely]
                       + [{"asset_id": a["id"], "status": "possible"} for a in possible],
         "structure_loss_usd_low": round(s_low), "structure_loss_usd_high": round(s_high),
-        "assumptions": [known[u] for u in used if u in known] + [known["C-STRUCT-FIXTURE"]],
+        "assumptions": [known[u] for u in used if u in known]
+                       + ([model.as_entry(model.assumption_by_id("C-CONTENTS-DEPTH"))] if likely or possible else [])
+                       + [known["C-STRUCT-FIXTURE"]],
     }
 
 
@@ -111,3 +110,28 @@ def playbook_html() -> str:
                   for a in sorted(items, key=lambda a: a["height_ft_low"]))
         + "</ul>" for room, items in rooms.items())
     return f"<article><h1>FIXTURE 72-hour pre-storm playbook</h1><p>FIXTURE, not real data.</p>{body}</article>"
+
+
+def scenario_table() -> dict:
+    """The FIXTURE building's slider table: same contents method as real buildings, fixture structure curve."""
+    from app.loss import model
+    scen = load("scenarios.json")
+    points = [(x["depth_ft"], x["structure_loss_usd_low"], x["structure_loss_usd_high"]) for x in scen]
+    t = model.scenario_table(building(), assets(), structure_fn=lambda d: _interp(d, points))
+    known = {a["id"]: a for x in scen for a in x["assumptions"]}
+    t["assumptions"] = [known[u] for u in sorted({a["value_basis"] for a in assets()}) if u in known] + \
+        [model.as_entry(model.assumption_by_id("C-CONTENTS-DEPTH")), known["C-STRUCT-FIXTURE"]]
+    return t
+
+
+def triage() -> list[dict]:
+    """FIXTURE triage: one row, the FIXTURE building (shape of GET /triage)."""
+    rows = assets()
+    def at(d):
+        sc = scenario(d)
+        c = [sc["loss_usd_low"], sc["loss_usd_high"]]
+        st = [sc["structure_loss_usd_low"], sc["structure_loss_usd_high"]]
+        return {"contents": c, "structure": st, "total": [c[0] + st[0], c[1] + st[1]]}
+    return [{"building_id": FIXTURE_ID, "rank": 1, "status": "surveyed", "positions_read": 12, "scan_positions": 40,
+             "contents_assets": sum(1 for a in rows if a["category"] != "finishes"),
+             "note": "FIXTURE, not real data.", "loss_by_depth_ft": {str(d): at(d) for d in (1, 2, 4, 6)}}]

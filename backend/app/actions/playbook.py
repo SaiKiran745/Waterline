@@ -12,7 +12,8 @@ def render(building: dict, assets: list[dict], entry_points: list[dict], depth_f
     by_asset = {t: m for m in mits for t in m["targets"]}
     rooms: dict[str, list[dict]] = {}
     for a in assets:
-        rooms.setdefault(a["room"], []).append(a)
+        if a["value_basis"] != "V-VEHICLE":
+            rooms.setdefault(a["room"], []).append(a)
     room_value = {r: sum(by_asset[a["id"]]["avoided_loss_usd_high"] for a in items if a["id"] in by_asset)
                   for r, items in rooms.items()}
     sections = []
@@ -29,6 +30,12 @@ def render(building: dict, assets: list[dict], entry_points: list[dict], depth_f
                         f"<h3>At risk</h3><ul>{items}</ul>")
     barrier = next((m for m in mits if m["kind"] == "entry_barrier"), None)
     lead = f"<p>Before anything else: {e(barrier['action'])}.</p>" if barrier and barrier["avoided_loss_usd_high"] > 0 else ""
+    move = next((m for m in mits if m["basis"] == "M-MOVE-VEHICLES"), None)
+    if move:
+        listed = {a["id"]: a for a in assets}
+        names = "".join(f"<li>{e(listed[t]['label'])} ({e(listed[t]['room'])})</li>" for t in move["targets"] if t in listed)
+        lead += (f"<h2>Movable assets at risk</h2><p>{e(move['action'])}. {e(move['payback_note'])}.</p>"
+                 f"<ul>{names}</ul>")
     return (f"<article><h1>72-hour pre-storm playbook: {e(building['name'] or building['address'])}</h1>"
             f"<p>Planned for {depth_ft:g} ft of water above the ground-floor slab (a scenario, not a forecast). "
             f"Rooms are ordered by the loss their actions avoid.</p>{lead}{''.join(sections) or '<p>No surveyed assets yet.</p>'}</article>")

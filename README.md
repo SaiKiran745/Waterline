@@ -62,11 +62,12 @@ All responses follow `contracts/`. CORS allows `http://localhost:3000`.
 | `GET /buildings` | Building list, ranked by precomputed loss at 2 ft. `?fixture=1` returns the FIXTURE building |
 | `GET /buildings/{id}` | `{"building", "entry_points", "assets"}`; ids are slugs such as `building-h` |
 | `GET /buildings/{id}/scenario?depth_ft=` | ScenarioResult at any depth from 0 to 8 ft |
+| `GET /buildings/{id}/scenario_table` | Every slider step (0 to 8 ft by 0.25 ft) with each asset's damage fraction per step (contracts v1.2) |
 | `GET /buildings/{id}/mitigations?depth_ft=` | Mitigations ranked at exactly that depth; ids are stable across depths |
 | `GET /buildings/{id}/media` | Media manifest: mesh, aerial images, and panorama faces cleared by the privacy screen |
-| `PATCH /buildings/{id}/assets/{asset_id}?depth_ft=` | Human correction: any of `label`, `category`, `height_ft_low`, `height_ft_high`, `room`, plus an optional `note`. Saved, applied on every read, written to the agent's memory. Returns `{correction, asset, similar_asset_ids, scenario, mitigations}` |
+| `PATCH /buildings/{id}/assets/{asset_id}?depth_ft=` | Human correction: any of `label`, `category`, `height_ft_low`, `height_ft_high`, `room`, `value_basis` (a value class), `value_usd_low`, `value_usd_high`, plus an optional `note`. Saved, applied on every read, written to the agent's memory. Returns `{correction, asset, similar_asset_ids, scenario, mitigations}` |
 | `DELETE /buildings/{id}/assets/{asset_id}?depth_ft=` | Removes a wrong asset (optional body `{"note"}`). Returns the same shape, with `asset: null` |
-| `GET /triage?depth_ft=1\|2\|4` | Every building ranked by total loss, labelled `surveyed` (with positions read and contents count) or `structure only`. Not in `contracts/` yet |
+| `GET /triage?depth_ft=1\|2\|4\|6` | Every building ranked by total loss, labelled `surveyed` (with positions read and contents count) or `structure only` (contracts v1.2; `?fixture=1` for the fixture) |
 | `POST /buildings/{id}/run` | Starts the agent (fixture: trace replay) |
 | `GET /buildings/{id}/events?speed=` | SSE stream of AgentEvent (`event: agent_event`, then `event: end`) |
 | `GET /buildings/{id}/report?depth_ft=`, `/playbook?depth_ft=` | HTML |
