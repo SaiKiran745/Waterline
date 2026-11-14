@@ -95,7 +95,7 @@ Each layer changes the result; take one away and a number changes or disappears.
 - **Live trace.** Every plan, delegation, tool call, decision, re-plan, file write, skill load and approval wait is an AgentEvent, streamed over SSE and saved for replay.
 - **Numbers guard.** Every dollar figure the orchestrator writes, and every one in the report and playbook, must match a figure from a tool result or dossier file. An unmatched figure is removed and the removal is logged in the trace.
 
-A full run on E reads all 49 scan positions (cached), in three batches, largest area first. Then it prices at 1 ft, re-plans at 4 ft, drafts and waits for approval. It takes 57 s, $0.11 and 28 model calls.
+A full run on E reads all 49 scan positions (cached), in three batches, largest area first. Then it prices at 1 ft, re-plans at 4 ft, drafts and waits for approval. The pinned demo run took 48 s, 29 model calls and $0.13 (`docs/DEMO_FACTS.md`).
 
 ## Run it
 
@@ -122,6 +122,7 @@ python3.14 -m venv .venv && .venv/bin/pip install -r requirements.txt
 cd frontend && npm install && npm run dev        # http://localhost:3000
 ```
 
+- **Demo:** `python -m app.demo reset` (or `POST /demo/reset`) restores the starting state: full stored surveys, one human correction on E, no agent session, depth 1 ft. `python -m app.demo pin building-e` pins the latest run as the demo replay.
 - `DEMO_MODE=1` (in `.env` or in front of the uvicorn command) serves everything from `data/cache/` with no network except the 3D viewer.
   - `POST /run` then serves "Replay last run": the saved trace, labelled as a replay.
   - `{"live": true}` still starts a live run when the network is on.

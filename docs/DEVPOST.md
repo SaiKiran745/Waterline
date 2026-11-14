@@ -46,7 +46,7 @@ Waterline is an AI agent for a commercial building's owner, manager, lender or i
 
 - **All three data layers change the answer.** Matterport gives what and how high, CoStar gives what it is worth and checks the door count, and Vexcel gives where water enters.
 - **The agent visibly reasons.** It plans, splits work across six specialists, re-looks at uncertain items, re-plans when the depth changes, applies a person's correction to similar items and stops for approval.
-- **A full four-turn run on E costs about $0.11 and takes about a minute.** That covers assessing, re-planning, drafting and approval.
+- **A full four-turn run on E costs about $0.13 and takes 48 seconds.** That covers assessing, re-planning, drafting and approval.
 - **Honest numbers.** Every figure is a range with its assumption ids. Team-set values are shown as "assumed range, editable", and an audit lists the source of every number.
 
 ## What we learned

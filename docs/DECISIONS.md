@@ -163,7 +163,7 @@ H is the story building outside the mapped flood zone, and the first building su
 - **Full runs:**
   - E: 57.1 s, $0.113, 28 model calls (assess 38.2 s, re-plan 12.9 s, send 4.2 s, approval 1.8 s).
   - B: 43.4 s, $0.089, 25 calls.
-  - Both are under the 75 s and $0.20 targets. The survey reads from the vision cache; a first survey from scratch adds about $0.003 per position.
+  - Both are under the 75 s and $0.20 targets. The survey reads from the vision cache; a first survey from scratch adds about $0.006 per position (median of 133 survey calls in the spend log).
 - **Numbers guard (`backend/app/agent/guard.py`).** Every dollar figure in the orchestrator's messages, the report and the playbook must match a number from a tool result or dossier file, at the precision written ("$75k" matches 75,300; "$73k" does not match 9,340). An unmatched figure is replaced by "[figure removed]" and logged as an observation event. Every building's report and playbook pass at 1 and 4 ft (tested).
 - **Demo mode.** With `DEMO_MODE=1`, `POST /run` serves "Replay last run": the saved trace, labelled REPLAY with its run id and recording time. `{"live": true}` still starts a live run when the network is on. Sends never touch the network in demo mode. A test blocks all sockets and walks the demo path.
 - **Budget** raised to $8, with a warning at $6.
