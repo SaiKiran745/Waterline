@@ -39,7 +39,6 @@ Waterline is an AI agent for a commercial building's owner, manager, lender or i
 ## Challenges we ran into
 
 - **Small models paraphrase numbers.** Flash-Lite restated "$9,340–75,300" as "$73k–75k" and invented costs. We made each sub-agent's reply its tool's exact output. We also added a numbers guard: any dollar figure the agent writes that matches no tool result is removed, and the removal is logged in the trace.
-- **Being honest about coverage.** We first gave the agent a budget of 12 scan positions and let it choose. It found less than random picks did: 17–23% of the full survey's contents value, while random sets of 12 averaged about 30%. We dropped that claim. The agent now reads every position in batches, largest areas first, and the stored survey never shrinks.
 - **Mapping panoramas to the mesh.** Turning a pixel in a panorama face into a point on the 3D mesh took a calibration pass before heights could be trusted.
 - **Order-dependent results.** The same 49 positions gave 71 or 73 assets depending on read order. We fixed the merge order so a building's survey is reproducible.
 
@@ -48,20 +47,21 @@ Waterline is an AI agent for a commercial building's owner, manager, lender or i
 - **All three data layers change the answer.** Matterport gives what and how high, CoStar gives what it is worth and checks the door count, and Vexcel gives where water enters.
 - **The agent visibly reasons.** It plans, splits work across six specialists, re-looks at uncertain items, re-plans when the depth changes, applies a person's correction to similar items and stops for approval.
 - **A full four-turn run on E costs about $0.11 and takes about a minute.** That covers assessing, re-planning, drafting and approval.
-- **Honest numbers.** Every figure is a range with its assumption ids. Placeholders are labelled, and an audit lists the source of every number.
+- **Honest numbers.** Every figure is a range with its assumption ids. Team-set values are shown as "assumed range, editable", and an audit lists the source of every number.
 
 ## What we learned
 
 - Showing where a number comes from matters as much as the number.
 - Small models are fast and cheap for tool calls, but they should never restate figures.
 - A partial survey needs to say it is partial. "12 of 49 positions" changes how a reader should treat the total.
+- Picking a subset of scan positions did not beat chance: on E, 12 positions found 28–34% of the full survey's contents value, about what random sets of 12 found (27–31%), so we read every position.
 
 ## What's next
 
-- Replace the placeholder value ranges with sourced replacement costs and let owners upload their own asset lists.
+- Replace the assumed value ranges with sourced replacement costs and let owners upload their own asset lists.
 - Measure door thresholds and slab height from the 3D scan, so the depth inside is tied to water outside.
 - Survey the remaining scan positions on the six partly surveyed buildings and add more cities.
-- Connect the playbook to calendar and email so the 72 hours before a storm become assigned tasks.
+- Connect the playbook to calendar and email so each step becomes an assigned task.
 
 ## Built with
 

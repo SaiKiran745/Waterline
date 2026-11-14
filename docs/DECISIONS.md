@@ -138,6 +138,19 @@ H is the story building outside the mapped flood zone, and the first building su
 - **Layer cross-check.** When the aerial door count disagrees with CoStar, the site scout reports a discrepancy and lowers confidence by 20%. On E: 3 drive-in doors seen, 4 recorded. On B: 2 seen, 4 recorded.
 - **Email.** `actions/send.py` sends over SMTP to `ALLOWED_RECIPIENTS` only, after approval. With no SMTP settings (as now) it records "draft only, not sent".
 
+## D16. Demo readiness (2026-11-14, human decisions)
+
+- **Quick scan is development-only.** `--quick-scan N` stays on the command line. The API ignores `quick_scan`, and the agent's prompt and skill no longer mention it. The finding is kept as one line under Limitations and in DEVPOST's "what we learned".
+- **"Pre-storm playbook"** everywhere, with no timeline claims.
+- **Team-set values** (value classes, mitigation costs) keep `placeholder: true` in the data. The API source text, report and documents call them "assumed range, editable" with their id.
+- **The fixture building's size** is now 72,000 sq ft (scan coverage 0.25). The old round number matched H's real size by coincidence.
+- **Agent copies of a correction that match no asset** after a survey rebuild are marked inactive and never shown (`corrections.deactivate_orphans`). A person's own corrections stay active.
+- **Demo reset (`python -m app.demo reset`, `POST /demo/reset`)** restores a snapshot of every stored survey and of the corrections: one human correction on E, no agent copies. It then rebuilds the agent's memory from those corrections, clears the dossiers (keeping the send log), recomputes the triage ranking, and checks positions read, asset counts and corrections against the snapshot. It makes no model calls. The API call also forgets agent sessions.
+- **Hero run pinned.** `python -m app.demo pin building-e` pins a saved run. Under `DEMO_MODE=1`, replay serves the pinned run.
+- **Integration fixes:**
+  - `POST /send` with no recipient uses the first allowed address (it returned 403).
+  - `GET /events?after=` (or `Last-Event-ID`) skips events already sent.
+
 ## D15. Full survey, stored survey, numbers guard, demo replay (2026-11-14, human decisions)
 
 - **The stored survey never shrinks.** `interior.run` reads the positions it is given plus every position the stored survey already read, from the vision cache at no cost. Re-looks made earlier are carried over. `survey_log.json` is the stored survey, with a history of runs. Detections are merged in a fixed position order, so the same positions always give the same assets, whatever order they were read in.

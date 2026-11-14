@@ -14,7 +14,7 @@ The depth is interior water above the ground-floor slab, 0 to 8 ft. It is a scen
   - The critical height never exceeds the item's own height measured from the 3D scan.
 - The low end uses the top of the height range and the class's low value. The high end uses the bottom of the range and the high value.
 - An asset is **likely** hit when the depth reaches its height range's top, and **possible** when it reaches the bottom.
-- Values come from 15 value classes (for example V-FORKLIFT, V-MACHINE-TOOL, V-RACKED-INV). They are team assumptions, labelled PLACEHOLDER.
+- Values come from 15 value classes (for example V-FORKLIFT, V-MACHINE-TOOL, V-RACKED-INV). They are team-set assumptions, shown as "assumed range, editable" with their id.
 - Road vehicles (V-VEHICLE) are movable assets at risk, not contents. Recommend driving them to high ground.
 - Building fabric (A-FIN) is priced by the structure curve.
 

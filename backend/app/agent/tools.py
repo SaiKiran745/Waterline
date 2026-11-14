@@ -69,6 +69,10 @@ def _reply(role: str, tool_call_id: str, summary: dict | str, files: dict[str, s
     return Command(update=update)
 
 
+def _n(n: int, word: str) -> str:
+    return f"{n} {word}{'' if n == 1 else 's'}"
+
+
 def _usd(r) -> str:
     return f"${r[0]:,.0f}-{r[1]:,.0f}"
 
@@ -266,9 +270,9 @@ def survey_area(building_id: str, area_ids: list[str], reason: str,
     names = " + ".join(f"{a['name']} ({a['id']})" for a in picked) or "nothing"
     total = sum(len(a["locs"]) for a in areas.values())
     _call("interior-surveyor", "survey_area", {"building_id": building_id, "areas": [a["id"] for a in picked]},
-          f"survey_area batch {k}: {names}, {len(new)} positions")
+          f"survey_area batch {k}: {names}, {_n(len(new), 'position')}")
     events.emit("interior-surveyor", "decision",
-                f"Batch {k}: {names}, {len(new)} of {total} positions ({len(new) / total:.0%} of the scan). "
+                f"Batch {k}: {names}, {len(new)} of {_n(total, 'position')} ({len(new) / total:.0%} of the scan). "
                 f"Why now: {reason.strip()}",
                 refs=[c["location_id"] for c in new], data={"batch": k, "areas": [a["id"] for a in picked],
                                                             "positions": len(new)})
@@ -292,10 +296,11 @@ def survey_area(building_id: str, area_ids: list[str], reason: str,
                "vehicles": sum(per.get(i, {}).get("vehicles", 0) for i in ids)}
         batch.append(row)
         events.emit("interior-surveyor", "observation",
-                    f"Batch {k}, {a['name']}: {len(ids)} positions ({len(ids) - live} from cache, {live} live); seen as "
-                    f"{'an' if row['seen_as'][:1].lower() in 'aeiou' else 'a'} {row['seen_as']}; {len(items)} contents sightings"
+                    f"Batch {k}, {a['name']}: {_n(len(ids), 'position')} ({len(ids) - live} from cache, {live} live); "
+                    f"seen as {'an' if row['seen_as'][:1].lower() in 'aeiou' else 'a'} {row['seen_as']}; "
+                    f"{_n(len(items), 'contents sighting')}"
                     + (f" ({', '.join(row['examples'])})" if row["examples"] else "")
-                    + (f"; {row['vehicles']} vehicle sightings" if row["vehicles"] else ""), refs=ids, data=row)
+                    + (f"; {_n(row['vehicles'], 'vehicle sighting')}" if row["vehicles"] else ""), refs=ids, data=row)
     contents = [a for a in buildings.get_assets(building_id) if a["value_basis"] not in ("A-FIN", "V-VEHICLE")]
     value = [sum(a["value_usd_low"] for a in contents), sum(a["value_usd_high"] for a in contents)]
     low = sorted([a for a in contents if a["confidence"] < interior.LOW_CONF], key=lambda a: -a["value_usd_high"])
@@ -431,7 +436,7 @@ def run_scenario(building_id: str, depth_ft: float, tool_call_id: Annotated[str,
     doc = [f"# Scenario {d:g} ft: {building_id}", "", f"- Contents: {_usd(c)}", f"- Structure: {_usd(st)}",
            f"- Total: {_usd(tot)}", f"- Assets hit: {likely} likely, {len(s['assets_hit']) - likely} possible",
            f"- Vehicles at risk (not in contents loss): {vehicles}", "", "## Assumptions"]
-    doc += [f"- {x['id']}{' (PLACEHOLDER)' if x['placeholder'] else ''}: {x['text']}" for x in s["assumptions"]]
+    doc += [f"- {x['id']}{' (assumed range, editable)' if x['placeholder'] else ''}: {x['text']}" for x in s["assumptions"]]
     path = f"/dossier/{building_id}/scenario-{d:g}ft.md"
     return _reply("scenario-builder", tool_call_id, {
         "depth_ft": d, "contents": _usd(c), "structure": _usd(st), "total": _usd(tot), "likely_hit": likely,

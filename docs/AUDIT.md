@@ -1,6 +1,6 @@
 # Audit: every number and claim, with its source
 
-Checked 2026-11-14 against the code on `main`. "Source" names a data field or a computation over sourced data. "Assumption" names an id in `backend/app/loss/assumptions.yaml` or `curves.yaml`; the UI and report show these ids. **FLAG** marks a number or claim with neither: it is a method constant chosen by the team, set in code. Flags are listed together in section 6, and every PLACEHOLDER still in use is listed in section 7.
+Checked 2026-11-14 against the code on `main`. "Source" names a data field or a computation over sourced data. "Assumption" names an id in `backend/app/loss/assumptions.yaml` or `curves.yaml`; the UI and report show these ids. **FLAG** marks a number or claim with neither: it is a method constant chosen by the team, set in code. Flags are listed together in section 6, and every team-set assumption (`placeholder: true`) still in use is listed in section 7.
 
 Buildings are named by letter. Real values live only in the git-ignored cache.
 
@@ -41,7 +41,7 @@ Each field's source is written in its schema description, `contracts/building.sc
 | "Below confidence 0.6", re-look trigger | **FLAG:** `LOW_CONF = 0.6` |
 | One asset per object | **FLAG:** sightings merge within 0.5 m with the same class, or within 1.5 m when the labels share a specific noun. This sets the asset count and so the contents loss. |
 | `value_basis` | Keyword rules over the label (`loss/classes.py`); **FLAG** for the rules themselves. The class values are assumptions below. |
-| `value_usd_low` / `value_usd_high` | V-* value class (PLACEHOLDER, section 7), or a human correction (`corrections.json`, id `corr-*`) |
+| `value_usd_low` / `value_usd_high` | V-* value class (assumed range, editable; section 7), or a human correction (`corrections.json`, id `corr-*`) |
 | `room` | Matterport room label, else the room type Gemini saw most there; duplicates are numbered ("Office 2") |
 | `position` | Mesh ray cast of the box centre |
 | "N of M positions read" | The stored survey (`survey_log.json`): the same count everywhere (section 5) |
@@ -77,18 +77,18 @@ Each field's source is written in its schema description, `contracts/building.sc
 | Run time, model calls, tokens, cost (`/agent`, runs files) | LangChain usage metadata × `PRICES_PER_M` (aistudio.google.com/docs/pricing, Standard tier, checked 2026-11-14) |
 | Replay label "REPLAY of the last saved run (id, recorded at)" | The saved trace's first event time and file name |
 | Report: building facts, FEMA zone | Section 1 |
-| Report: contents and structure loss, assets table, mitigations table, assumptions list with PLACEHOLDER labels | Sections 3 and 4. Every dollar figure passes the numbers guard (tested for every building at 1 and 4 ft). |
+| Report: contents and structure loss, assets table, mitigations table, assumptions list, each team-set one marked "assumed range, editable" | Sections 3 and 4. Every dollar figure passes the numbers guard (tested for every building at 1 and 4 ft). |
 | Report: "the 3D scan covers X sq ft, Y% of the building" | `scan_area_sqft`, `scan_coverage` |
 | Report and playbook: "Interior survey read N of M scan positions; K contents assets" | Stored survey (`rank.survey_status`) |
 | Playbook steps and "avoids $a-b" | Ranked mitigations at the depth |
 | Playbook room order | **FLAG:** method: by the high end of the avoided loss of the room's actions |
-| Playbook title "72-hour pre-storm playbook" | **FLAG:** nothing in the model computes a 72-hour timeline; the steps carry no times. Suggest renaming it "Pre-storm playbook" or adding a sourced timeline. |
+| Playbook title "Pre-storm playbook" | Renamed from "72-hour pre-storm playbook" (human decision 2026-11-14): the steps carry no times, so no timeline is claimed |
 | Send status `sent` / `draft_only` / `refused` / `failed` | `actions/send.py`: approval, `ALLOWED_RECIPIENTS`, SMTP settings, `DEMO_MODE` |
 | Media manifest: which panorama faces are shown | Gemini privacy screen per face (identifiable people, children's spaces, personal documents); unscreened faces are never served |
 
 ## 6. Flags: numbers and claims with no source and no assumption id
 
-These are team method choices set in code. Each changes a number shown, so each should get an assumption id (or be noted in the UI) if time allows.
+These are team method choices set in code. Each changes a number shown, so each should get an assumption id (or be noted in the UI) if time allows. Item 11 is resolved.
 
 1. Entry point confidence × 0.8 on a CoStar count mismatch (`survey/site.py` `DISCREPANCY_FACTOR`).
 2. Entry point rank order by kind (`KIND_ORDER`).
@@ -100,13 +100,13 @@ These are team method choices set in code. Each changes a number shown, so each 
 8. Minimum critical height of 0.25 ft (`MIN_CRITICAL_FT`), not stated in C-CONTENTS-DEPTH.
 9. Mitigation ranking and the payback ratio (midpoint ÷ midpoint).
 10. Playbook room order.
-11. **Playbook title "72-hour".** This is a claim without support, the only flagged item that is not a method constant.
+11. ~~Playbook title "72-hour"~~: resolved, renamed "Pre-storm playbook".
 
 No dollar figure in an API response, the report or the playbook lacks a source or assumption id: each traces to a value class, a mitigation cost, a Hazus curve × CoStar assessor value, or a human correction.
 
-## 7. PLACEHOLDER values in use
+## 7. Team-set assumptions in use ("assumed range, editable")
 
-Every one is labelled PLACEHOLDER in `assumptions.yaml`, in the scenario `assumptions` list, in the UI and in the report.
+Each keeps `placeholder: true` in `assumptions.yaml` and in the scenario `assumptions` list, so the UI can badge it. The API source text, the report and the documents call it "assumed range, editable" with its id.
 
 - **Value classes (all 15 in use across the eight buildings):** V-FORKLIFT, V-AERIAL-LIFT, V-PALLET-JACK, V-MACHINE-TOOL, V-SHOP-EQUIP, V-HAND-TOOLS, V-RACKED-INV, V-FLOOR-INV, V-OFFICE-FURN, V-APPLIANCE, V-IT, V-ELEC-GEAR, V-HVAC, V-SMALL, V-OTHER. Each is a team-assumed replacement range and critical height.
 - **Mitigation costs (all 5 in use):** M-PLATFORM, M-ELEC-RAISE, M-MOVE-INV, M-MOVE-VEHICLES, M-BARRIER.

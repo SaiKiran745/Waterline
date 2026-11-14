@@ -92,7 +92,7 @@ def report_html() -> str:
     mit = "".join(f"<li>{html.escape(m['action'])}: cost ${m['cost_usd_low']:,}-{m['cost_usd_high']:,}, "
                   f"avoided ${m['avoided_loss_usd_low']:,}-{m['avoided_loss_usd_high']:,}</li>" for m in mitigations(2))
     assumptions = "".join(f"<li>{html.escape(a['id'])}: {html.escape(a['text'])}"
-                          f"{' (PLACEHOLDER)' if a['placeholder'] else ''}</li>" for a in s["assumptions"])
+                          f"{' (assumed range, editable)' if a['placeholder'] else ''}</li>" for a in s["assumptions"])
     return (f"<article><h1>FIXTURE resilience report: {html.escape(b['name'])}</h1>"
             f"<p>FIXTURE, not real data. Scenario: 2 ft of water above the ground-floor slab.</p>"
             f"<p>Contents loss ${s['loss_usd_low']:,}-{s['loss_usd_high']:,}; structure loss "
@@ -109,7 +109,7 @@ def playbook_html() -> str:
         + "".join(f"<li>{html.escape(a['label'])}: lowest vulnerable part {a['height_ft_low']}-{a['height_ft_high']} ft</li>"
                   for a in sorted(items, key=lambda a: a["height_ft_low"]))
         + "</ul>" for room, items in rooms.items())
-    return f"<article><h1>FIXTURE 72-hour pre-storm playbook</h1><p>FIXTURE, not real data.</p>{body}</article>"
+    return f"<article><h1>FIXTURE pre-storm playbook</h1><p>FIXTURE, not real data.</p>{body}</article>"
 
 
 def scenario_table() -> dict:

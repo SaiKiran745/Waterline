@@ -138,7 +138,7 @@ def main() -> None:
     ap.add_argument("--new-depth", type=float, default=4.0)
     ap.add_argument("--approve", action="store_true")
     ap.add_argument("--quick-scan", type=int, default=None, metavar="N",
-                    help="optional quick scan: read only N scan positions, split across areas by size (off by default)")
+                    help="DEVELOPMENT ONLY, not exposed to the UI: read only N scan positions, split across areas by size")
     ap.add_argument("--cached-only", action="store_true", help="offer only positions with cached vision answers")
     a = ap.parse_args()
     recipient = next((r.strip() for r in os.environ.get("ALLOWED_RECIPIENTS", "").split(",") if r.strip()), "")

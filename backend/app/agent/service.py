@@ -33,11 +33,11 @@ def _run(bid: str, fn) -> None:
     t.start()
 
 
-def start(bid: str, depth_ft: float, quick_scan: int | None = None) -> dict:
+def start(bid: str, depth_ft: float) -> dict:
     from app.agent.run import Session               # imported here: building the agent loads LangChain
     if bid in _threads and _threads[bid].is_alive():
         raise Busy(f"the agent is already working on {bid}")
-    s = Session(bid, echo=False, quick_scan=quick_scan)
+    s = Session(bid, echo=False)
     _sessions[bid] = s
     _run(bid, lambda: s.assess(depth_ft))
     return status(bid)
@@ -89,10 +89,21 @@ def has_live(bid: str) -> bool:
     return bid in _sessions
 
 
-async def live(bid: str, poll_s: float = 0.25) -> AsyncIterator[str]:
-    """Every event of the current session so far, then new ones as they arrive, until the turn ends."""
+def clear() -> None:
+    """Forget every finished session (demo reset). Refuses while an agent is working."""
+    busy = [b for b in _threads if running(b)]
+    if busy:
+        raise Busy(f"the agent is still working on {', '.join(busy)}")
+    _sessions.clear()
+    _threads.clear()
+    _errors.clear()
+
+
+async def live(bid: str, poll_s: float = 0.25, after: int = -1) -> AsyncIterator[str]:
+    """Events of the current session after id `after` (all of them by default), then new ones as they arrive, until
+    the turn ends."""
     s = _sessions[bid]
-    sent = 0
+    sent = max(after + 1, 0)
     while True:
         evs = s.trace.events
         while sent < len(evs):

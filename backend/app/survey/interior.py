@@ -647,6 +647,8 @@ def run(bid: str, max_positions: int, max_relooks: int, cached_positions_only: b
     log["history"].append({"started_at": log["started_at"], "finished_at": log["finished_at"],
                            "new_positions": sum(1 for p in read if p["first_read_at"] == log["started_at"]),
                            "positions_read": len(read), "assets": len(assets)})
+    from app import corrections                     # agent copies that no longer match any asset never show
+    log["corrections_deactivated"] = corrections.deactivate_orphans(bid)
     write_json(BUILDINGS / bid / "survey_log.json", log)
     if stop:
         raise Stop(stop)

@@ -51,18 +51,39 @@ def read_corrections(bid: str) -> str:
     return "\n".join(c) if isinstance(c, list) else str(c or "")
 
 
-def record_correction(rec: dict, asset: dict) -> None:
-    """Append one human (or propagated) correction as a line the agent can act on."""
-    existing = read_corrections(rec["building_id"])
-    if not existing:
-        existing = (f"# Corrections for {rec['building_id']}\n\n"
-                    "Each line is a correction a person made (or the agent propagated). Apply the same correction to "
-                    "similar assets in this building, then re-run the scenario and the mitigation ranking.\n")
+HEADER = ("# Corrections for {bid}\n\n"
+          "Each line is a correction a person made (or the agent propagated). Apply the same correction to "
+          "similar assets in this building, then re-run the scenario and the mitigation ranking.\n")
+
+
+def _line(rec: dict, asset: dict) -> str:
     if rec["action"] == "delete":
         what = f"DELETED {asset['id']} '{asset['label']}' ({asset['category']}, room {asset['room']})"
     else:
         what = (f"CHANGED {asset['id']} '{asset['label']}' ({asset['category']}, room {asset['room']}): "
                 + "; ".join(f"{k} {rec['before'].get(k)!r} -> {v!r}" for k, v in rec["changes"].items()))
     who = "human" if rec["by"] == "human" else f"agent, propagating {rec['propagated_from']}"
-    line = f"- {rec['ts'][:19]}Z [{rec['id']}] by {who}: {what}" + (f". Reason: {rec['note']}" if rec.get("note") else "")
-    backend().write(_key(rec["building_id"]), existing.rstrip("\n") + "\n" + line + "\n")
+    return f"- {rec['ts'][:19]}Z [{rec['id']}] by {who}: {what}" + (f". Reason: {rec['note']}" if rec.get("note") else "")
+
+
+def rewrite(bid: str, recs: list[dict]) -> None:
+    """Rebuild a building's memory file from its active corrections (after a reset or when one goes inactive)."""
+    if not recs:
+        store().delete(NAMESPACE, _key(bid))
+        return
+    lines = [_line(r, {"id": r["asset_id"], **(r.get("before") or {})}) for r in recs]
+    _overwrite(bid, HEADER.format(bid=bid).rstrip("\n") + "\n" + "\n".join(lines) + "\n")
+
+
+def _overwrite(bid: str, content: str) -> None:
+    store().delete(NAMESPACE, _key(bid))
+    backend().write(_key(bid), content)
+
+
+def record_correction(rec: dict, asset: dict) -> None:
+    """Append one human (or propagated) correction as a line the agent can act on."""
+    existing = read_corrections(rec["building_id"])
+    if not existing:
+        existing = HEADER.format(bid=rec["building_id"])
+    line = _line(rec, asset)
+    _overwrite(rec["building_id"], existing.rstrip("\n") + "\n" + line + "\n")

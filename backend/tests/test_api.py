@@ -157,3 +157,18 @@ def test_agent_routes_guard_their_order():
     st = local.get(f"/buildings/{bid}/agent").json()
     assert st["building_id"] == bid
     assert local.get("/buildings/fixture-1/events", params={"speed": 0}).status_code == 200
+
+
+def test_approve_without_recipient_uses_the_first_allowed_address(monkeypatch, tmp_path):
+    from app.actions import send as send_action
+    monkeypatch.setattr(send_action, "LOG_DIR", tmp_path)
+    monkeypatch.setenv("ALLOWED_RECIPIENTS", "ops@example.com, other@example.com")
+    for k in send_action.SETTINGS:
+        monkeypatch.delenv(k, raising=False)
+    r = local.post("/buildings/fixture-1/send", json={"approved": True})
+    assert r.status_code == 200 and r.json()["recipient"] == "ops@example.com"
+    assert local.post("/buildings/fixture-1/send", json={"approved": True, "recipient": "x@evil.test"}).status_code == 403
+
+
+def test_demo_reset_is_localhost_only():
+    assert remote.post("/demo/reset").status_code == 403

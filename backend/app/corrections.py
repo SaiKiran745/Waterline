@@ -27,9 +27,34 @@ def _path(bid: str):
     return BUILDINGS / bid / "corrections.json"
 
 
-def load(bid: str) -> list[dict]:
+def load(bid: str, include_inactive: bool = False) -> list[dict]:
+    """The building's corrections. Inactive ones (see deactivate_orphans) are kept in the file but never shown."""
     p = _path(bid)
-    return json.loads(p.read_text()) if p.exists() else []
+    recs = json.loads(p.read_text()) if p.exists() else []
+    return recs if include_inactive else [r for r in recs if not r.get("inactive")]
+
+
+def deactivate_orphans(bid: str) -> list[str]:
+    """Mark agent-propagated corrections that match no asset in the stored survey as inactive, so they never show
+    (in the API, the agent's memory or the trace). A person's own corrections stay active."""
+    recs = load(bid, include_inactive=True)
+    if not recs:
+        return []
+    from app.buildings import get_survey_assets
+    raw = {a["id"]: a for a in get_survey_assets(bid)}
+    gone = []
+    for r in recs:
+        if r.get("inactive") or r["by"] == "human" or r["action"] != "patch":
+            continue
+        if _match(r, raw) is None:
+            r["inactive"] = {"at": datetime.now(timezone.utc).isoformat(),
+                             "reason": "matches no asset in the stored survey"}
+            gone.append(r["id"])
+    if gone:
+        write_json(_path(bid), recs)
+        from app.agent import memory
+        memory.rewrite(bid, load(bid))
+    return gone
 
 
 def _patched(asset: dict, changes: dict, rec: dict) -> dict:
@@ -153,7 +178,7 @@ def record(bid: str, current: list[dict], asset_id: str, action: str, changes: d
             raise CorrectionError(f"corrected asset would not match the Asset contract: {str(e).splitlines()[0]}")
     elif action != "delete":
         raise CorrectionError(f"unknown action {action}")
-    log = load(bid)
+    log = load(bid, include_inactive=True)
     log.append(rec)
     write_json(_path(bid), log)
     from app.agent import memory

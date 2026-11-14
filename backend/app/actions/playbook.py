@@ -1,4 +1,4 @@
-"""72-hour pre-storm playbook (HTML), grouped by room and ordered by avoided loss."""
+"""Pre-storm playbook (HTML), grouped by room and ordered by avoided loss."""
 import html
 
 from app.actions import report
@@ -37,6 +37,6 @@ def render(building: dict, assets: list[dict], entry_points: list[dict], depth_f
         names = "".join(f"<li>{e(listed[t]['label'])} ({e(listed[t]['room'])})</li>" for t in move["targets"] if t in listed)
         lead += (f"<h2>Movable assets at risk</h2><p>{e(move['action'])}. {e(move['payback_note'])}.</p>"
                  f"<ul>{names}</ul>")
-    return (f"<article><h1>72-hour pre-storm playbook: {e(building['name'] or building['address'])}</h1>"
+    return (f"<article><h1>Pre-storm playbook: {e(building['name'] or building['address'])}</h1>"
             f"<p>Planned for {depth_ft:g} ft of water above the ground-floor slab (a scenario, not a forecast). "
             f"Rooms are ordered by the loss their actions avoid. {e(report.survey_line(building['id'], assets))}</p>{lead}{''.join(sections) or '<p>No surveyed assets yet.</p>'}</article>")

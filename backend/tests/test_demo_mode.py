@@ -53,11 +53,15 @@ def test_demo_path_runs_from_cache_with_network_off(offline):
     assert sent["status"] == "draft_only" and "DEMO_MODE" in sent["detail"]      # SMTP set, but no network
 
 
-def test_replay_last_run_is_labelled(offline):
+def test_replay_last_run_is_labelled(offline, monkeypatch):
     if replay_mod.last_run(BID) is None:
         pytest.skip("no saved agent run for building-e")
+    from app import demo
+    applied = []
+    monkeypatch.setattr(demo, "apply_replay_outcome", lambda bid: applied.append(bid) or True)   # no real writes
     r = offline.post(f"/buildings/{BID}/run", json={"depth_ft": 1}).json()        # demo mode: replay, not live
     assert r["status"] == "replay" and r["label"].startswith("REPLAY") and r["events_url"].endswith("replay=1")
+    assert applied == [BID] and r["outcome_applied"] is True
     body = offline.get(f"/buildings/{BID}/events?replay=1&speed=0").text
     blocks = [b for b in body.split("\n\n") if b.strip()]
     assert blocks[0].startswith("event: replay")

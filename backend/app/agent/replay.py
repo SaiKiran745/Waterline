@@ -19,7 +19,18 @@ def sse(event: str, data, event_id=None) -> str:
 def last_run(bid: str) -> dict | None:
     """The last saved agent run for a building: its trace and stats (data/cache/agent/traces|runs/<id>/)."""
     from app.agent.events import TRACES
-    from app.config import CACHE
+    from app.config import CACHE, demo_mode
+    if demo_mode():                                  # DEMO_MODE replays the pinned hero run (app/demo.py)
+        from app import demo
+        p = demo.pinned(bid)
+        if p:
+            run_id, events, stats = p
+            recorded = events[0]["ts"] if events else None
+            return {"building_id": bid, "run_id": run_id, "recorded_at": recorded, "events": len(events),
+                    "seconds": stats.get("seconds"), "cost_usd": stats.get("cost_usd"),
+                    "model_calls": stats.get("model_calls"), "turns": stats.get("turns"), "replay": True,
+                    "label": f"REPLAY of a recorded live run ({run_id}, recorded {recorded}): not a live run",
+                    "_events": events}
     tdir = TRACES / bid
     traces = sorted((p for p in tdir.glob("*.json") if p.name != "latest.json"), key=lambda p: p.stat().st_mtime) \
         if tdir.exists() else []

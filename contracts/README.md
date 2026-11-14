@@ -65,12 +65,18 @@ Fixtures are fake ("FIXTURE, not real data") and contain no sponsor data. Phase 
 - **`Triage.positions_read` / `scan_positions`** is the stored survey, shown as "N of M positions read" for every building. Only the description text changed.
 - **`Triage.contents_assets`** now excludes road vehicles (`V-VEHICLE`) as well as building fabric (`A-FIN`). This is the same count the agent reports. Vehicles are named in `note`.
 - **Room names are unique within a building** (`Asset.room`): two rooms the scan calls "Office" become "Office" and "Office 2", so each mitigation names one room.
-- **Agent replay:** `POST /buildings/{id}/run` with `{"replay": true}`, or any `/run` under `DEMO_MODE=1` without `{"live": true}`, returns the last saved run labelled `REPLAY`. `GET /buildings/{id}/events?replay=1` streams it: a first `replay` SSE event carries the label, run id and recording time, and `end` repeats `replay: true`. `GET /buildings/{id}/runs/latest` returns the same label. `{"quick_scan": N}` on `/run` is an optional partial survey, off by default.
+- **Agent replay:** `POST /buildings/{id}/run` with `{"replay": true}`, or any `/run` under `DEMO_MODE=1` without `{"live": true}`, returns the last saved run labelled `REPLAY`. `GET /buildings/{id}/events?replay=1` streams it: a first `replay` SSE event carries the label, run id and recording time, and `end` repeats `replay: true`. `GET /buildings/{id}/runs/latest` returns the same label. Under `DEMO_MODE=1` the replay is the pinned hero run.
 
 **What Codex must change**
 1. Show "N of M positions read" from `/triage` (`positions_read`, `scan_positions`) on the map and on the building page.
 2. "Replay last run" button: `POST /run {"replay": true}`, then open `events_url`. While it plays, show the `label` from the `replay` event ("REPLAY … not a live run").
-3. Any quick-scan control must be labelled "Quick scan (partial survey)" and off by default.
+3. Remove any quick-scan control and the `quick_scan` field from `POST /run`: it is a development-only flag now and the API ignores it.
+4. Assumptions with `placeholder: true` (value classes V-*, mitigation costs M-*): badge them and call them "assumed range, editable" with the id, not PLACEHOLDER. The flag stays `true` in the data.
+5. The playbook is the "Pre-storm playbook" (no "72-hour").
+6. `GET /events?after=<last event id>` (or the `Last-Event-ID` header) sends only events you have not seen; without it, each connection resends the session from its start.
+7. `POST /send` with `{"approved": true}` and no recipient uses the first allowed address.
+8. Demo reset: `POST /demo/reset` (localhost) returns the starting state with `depth_ft: 1`; `GET /demo/state` returns it again.
+9. Fixture: `fixtures/building.json` `size_sqft` is now 72,000 and `scan_coverage` 0.25 (it matched a real building's size by coincidence).
 
 ### 1.2.0 (2026-11-14, approved by the human)
 

@@ -174,19 +174,21 @@ def _recipient(body: dict) -> str:
 @app.post("/buildings/{bid}/run")
 def run(bid: str, body: dict | None = Body(default=None)):
     """Starts the live agent (turn 1: assess at depth_ft, default 1). FIXTURE: trace replay.
-    {"replay": true}, or DEMO_MODE=1 without {"live": true}: "Replay last run", the saved trace, labelled as a replay.
-    The interior survey reads every scan position. Optional {"quick_scan": N}: read only N positions, split across
-    areas by size (off by default). Demo mode: only cached vision answers are used."""
+    {"replay": true}, or DEMO_MODE=1 without {"live": true}: "Replay last run", the saved trace, labelled as a replay
+    (in DEMO_MODE the pinned demo run, see app/demo.py). The interior survey reads every scan position."""
     body = body or {}
     if bid == FIX:
         return {"status": "replay", "building_id": bid, "depth_ft": body.get("depth_ft"),
                 "events_url": f"/buildings/{bid}/events", "note": "FIXTURE trace replay"}
     _real(bid)
     if body.get("replay") or (demo_mode() and not body.get("live")):
-        return _replay_info(bid)
+        info = _replay_info(bid)
+        if demo_mode():                              # the replayed run's outcome, so the UI's numbers match its trace
+            from app import demo
+            info["outcome_applied"] = demo.apply_replay_outcome(bid)
+        return info
     try:
-        q = body.get("quick_scan")
-        return agent_service.start(bid, float(body.get("depth_ft", 1)), int(q) if q else None)
+        return agent_service.start(bid, float(body.get("depth_ft", 1)))
     except agent_service.Busy as e:
         raise HTTPException(409, str(e))
 
@@ -230,6 +232,34 @@ def _replay_info(bid: str) -> dict:
             "events_url": f"/buildings/{bid}/events?replay=1"}
 
 
+def _local(request: Request) -> None:
+    if (request.client.host if request.client else "") not in LOCAL_HOSTS:
+        raise HTTPException(403, "localhost only")
+
+
+@app.post("/demo/reset")
+def demo_reset(request: Request):
+    """Put the demo in its known starting state (app/demo.py): full stored surveys, exactly one human correction on
+    E, no agent session, depth 1 ft. From cache, no model calls; safe to repeat. Localhost only."""
+    _local(request)
+    from app import demo
+    try:
+        agent_service.clear()
+    except agent_service.Busy as e:
+        raise HTTPException(409, str(e))
+    try:
+        return demo.reset()
+    except demo.DemoError as e:
+        raise HTTPException(409, str(e))
+
+
+@app.get("/demo/state")
+def demo_state():
+    """The starting state the last reset set (depth_ft 1, positions read and corrections per building)."""
+    from app import demo
+    return demo.state()
+
+
 @app.get("/buildings/{bid}/runs/latest")
 def latest_run(bid: str):
     """The last saved agent run (for "Replay last run"): run id, when it was recorded, time, cost, turns."""
@@ -238,14 +268,18 @@ def latest_run(bid: str):
 
 
 @app.get("/buildings/{bid}/events")
-def events(bid: str, speed: float = Query(1.0, ge=0, le=100), replay_: int = Query(0, alias="replay")):
+def events(request: Request, bid: str, speed: float = Query(1.0, ge=0, le=100),
+           replay_: int = Query(0, alias="replay"), after: int = Query(-1, ge=-1)):
     """Live trace while the agent runs; otherwise (or with ?replay=1) the last saved run, sent as a replay: a first
-    "replay" event carries the label, and "end" repeats it. FIXTURE: fixture trace."""
+    "replay" event carries the label, and "end" repeats it. FIXTURE: fixture trace.
+    Live: ?after=<event id> (or the Last-Event-ID header a reconnecting EventSource sends) skips events already seen."""
     if bid == FIX:
         return _sse(replay(fixtures.load("agent_events.json"), speed))
     _real(bid)
     if agent_service.has_live(bid) and not replay_:
-        return _sse(agent_service.live(bid))
+        last = request.headers.get("last-event-id", "")
+        seen = max(after, int(last) if last.isdigit() else -1)
+        return _sse(agent_service.live(bid, after=seen))
     r = last_run(bid)
     if r is None:
         raise HTTPException(404, "no agent run for this building yet: POST /run")
@@ -282,9 +316,7 @@ def send(bid: str, body: dict = Body(...), depth_ft: float = Query(2, ge=0, le=8
         return agent_service.decide(bid, False, str(body.get("note") or ""))
     if body.get("approved") is not True:
         raise HTTPException(400, 'sending requires {"approved": true}')
-    recipient = str(body.get("recipient", "")).strip().lower()
-    if recipient not in send_action.allowed():
-        raise HTTPException(403, "recipient is not in ALLOWED_RECIPIENTS")
+    recipient = _recipient(body).lower()             # defaults to the first allowed address; 403 if not allowed
     if bid != FIX and agent_service.waiting_for_approval(bid):
         return agent_service.decide(bid, True)      # resumes the agent; its send_playbook tool sends
     if bid == FIX:

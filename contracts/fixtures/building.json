@@ -6,7 +6,7 @@
   "lng": -95.4,
   "property_type": "Industrial",
   "property_subtype": "Industrial_Warehouse",
-  "size_sqft": 60000,
+  "size_sqft": 72000,
   "size_basis": "GBA",
   "year_built": 1985,
   "stories": 1,
@@ -25,7 +25,7 @@
     "FIXTURE0001"
   ],
   "scan_area_sqft": 18000,
-  "scan_coverage": 0.3,
+  "scan_coverage": 0.25,
   "in_mapped_flood_zone": true,
   "flood_zone": "AE",
   "flood_zone_subtype": null,

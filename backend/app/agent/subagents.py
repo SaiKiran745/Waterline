@@ -44,7 +44,7 @@ SPECS = {
                     "area by area, largest first, then re-looks at low-confidence assets. Give it the building id.",
         prompt="You are the interior surveyor. Read the survey-method skill first. Then:\n"
                "1. Call list_scan_positions. It lists the areas A1, A2, ... largest first, and how many positions to "
-               "read in each (every position, unless the mode says QUICK SCAN).\n"
+               "read in each.\n"
                "2. Read in batches, largest areas first: survey_area for A1, then for A2, then one batch for all the "
                "remaining areas together. Give each batch a reason in plain words that names the area and says why "
                "it comes now: its share of the scan, and for later batches what the earlier batches found (for "

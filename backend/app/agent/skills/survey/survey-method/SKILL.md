@@ -9,7 +9,6 @@ description: How Waterline surveys a building's interior from its Matterport sca
 - Call `list_scan_positions` first. It lists the areas (rooms of the scan) largest first, with how many positions to read in each.
 - By default every scan position is read. Read in batches, largest areas first: the largest room, the next largest, then all the small rooms together.
 - Give each batch one short, specific reason in plain words. For example: "the largest room first: 27 of 49 positions, most of the floor and most of what water can reach".
-- Quick scan is an optional mode, off by default: a position budget split across areas by size. Say "quick scan" whenever it is on; its result covers part of the building only.
 - The stored survey never shrinks: every batch adds to it. Report the stored survey ("N of M positions read"), not just this run.
 - In demo mode only cached vision answers are used. Say so.
 

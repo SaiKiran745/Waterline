@@ -72,7 +72,7 @@ Each layer changes the result; take one away and a number changes or disappears.
 - **Depth is a scenario.** The slider sets water depth above the slab, 0 to 8 ft. It is not a forecast.
 - **Contents damage is gradual.** Each item loses (depth − lowest vulnerable point) ÷ its class's critical height, capped at 1.
   - The low end uses the top of the height range and the class's low value. The high end uses the bottom and the high value.
-  - Values come from 15 value classes (forklift, machine tool, racked inventory, IT, and so on). Every class is a labelled PLACEHOLDER.
+  - Values come from 15 value classes (forklift, machine tool, racked inventory, IT, and so on). Each is a team-set "assumed range, editable", shown with its id.
 - **Structure loss** = the Hazus 6.1 curve × assessor improvement value × scan coverage.
 - **Every dollar figure is a low–high range,** and every assumption id appears in the UI and the report.
 
@@ -111,7 +111,8 @@ python3.14 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python -m app.survey.interior building-e   # vision survey (adds to the stored survey; --cached-positions-only)
 .venv/bin/python -m app.survey.site building-e       # entry points from the aerial images
 .venv/bin/python -m app.loss.rank                 # loss at 1, 2, 4, 6 ft for the triage map
-.venv/bin/python -m app.agent.run building-e --depth 1 --new-depth 4 --approve   # live agent run; --quick-scan N is optional
+.venv/bin/python -m app.agent.run building-e --depth 1 --new-depth 4 --approve   # live agent run
+.venv/bin/python -m app.demo reset                # demo starting state (from cache, no model calls; repeatable)
 .venv/bin/python -m pytest -q
 
 # serve the API for the front end (keep it running)
@@ -148,12 +149,13 @@ All responses follow `contracts/`. CORS allows `http://localhost:3000`. The buil
 | `GET /buildings/{id}/mitigations?depth_ft=` | Ranked fixes at that depth |
 | `GET /buildings/{id}/media` | Mesh, aerial images, and panorama faces cleared by the privacy screen |
 | `PATCH` / `DELETE /buildings/{id}/assets/{asset_id}` | Human correction or removal: saved, applied on every read, written to the agent's memory |
-| `POST /buildings/{id}/run` | Starts the live agent (`{"depth_ft": 1}`). `{"replay": true}`, or demo mode, gives the last saved run, labelled REPLAY. `{"quick_scan": N}` is an optional partial survey, off by default |
+| `POST /buildings/{id}/run` | Starts the live agent (`{"depth_ft": 1}`). `{"replay": true}`, or demo mode, gives the last saved run (in demo mode the pinned hero run), labelled REPLAY |
 | `POST /buildings/{id}/depth` | `{"depth_ft": 4}`: the agent re-plans, re-prices and re-ranks |
 | `POST /buildings/{id}/request_send` | The agent drafts the documents and calls `send_playbook`, which waits for approval |
 | `POST /buildings/{id}/send` | `{"approved": true, "recipient": "..."}` resumes the waiting agent (`false` rejects). Sends over SMTP when `SMTP_*` and `EMAIL_FROM` are set; otherwise `draft_only` |
-| `GET /buildings/{id}/events?speed=&replay=` | SSE AgentEvents: live while the agent runs, otherwise the last saved run, which opens with a `replay` event carrying the label |
+| `GET /buildings/{id}/events?speed=&replay=&after=` | SSE AgentEvents: live while the agent runs (`after` or the `Last-Event-ID` header skips events already seen), otherwise the last saved run, which opens with a `replay` event carrying the label |
 | `GET /buildings/{id}/agent`, `/runs/latest`, `/dossier` | Session status; the last saved run's label and stats; the agent's files |
+| `POST /demo/reset`, `GET /demo/state` | Demo starting state: full stored surveys, one human correction on E, no agent session, depth 1 ft (localhost only; from cache) |
 | `GET /buildings/{id}/report?depth_ft=`, `/playbook?depth_ft=` | HTML |
 | `GET /media/{id}/...` | Cached meshes, panoramas and aerial images (localhost only; only faces the privacy screen cleared) |
 
@@ -162,13 +164,13 @@ All responses follow `contracts/`. CORS allows `http://localhost:3000`. The buil
 - **Scanned area only.** Contents loss counts only items visible from the scan positions read. Structure loss is scaled to the scanned share of the building (`scan_coverage`).
   - E and B are fully surveyed (49 of 49 and 11 of 11 positions). The other six read 13 to 15 positions each, so their contents loss is a floor, not an estimate of the whole building.
   - Every building shows "N of M positions read".
-- **Value ranges are assumptions.** All 15 value classes and all 5 mitigation costs are team assumptions, labelled PLACEHOLDER. A person can correct any asset's value or height, and the correction is remembered.
+- **Value ranges are assumptions.** All 15 value classes and all 5 mitigation costs are team-set, shown as "assumed range, editable" with their id. A person can correct any asset's value or height, and the correction is remembered.
 - **Comparison with Hazus.** FEMA Hazus 6.1 contents curves (COM2) are a sanity check only; they are not used in the numbers.
   - For E (49 positions), our contents loss range contains the Hazus-style figure (0.2 to 1.6 times it).
   - For B, a dense machine shop with a low assessed value, our range is 1.3 to 7.5 times the Hazus-style figure; the middle of the range is about 3 times.
   - So the centre of our range is within a factor of about 2 to 3 of Hazus, and B's high end is not.
   - Our curve is steeper than Hazus because the survey lists only low items, while Hazus averages over all contents (`docs/DATA_NOTES.md` section 15).
-- **Quick scan is no better than random.** On E, a 12-position quick scan (positions split across areas by size) found 28–34% of the full survey's contents value. Random sets of 12 averaged 27–31% (14–46% over 8 draws). An earlier version in which the agent chose its 12 positions found 17–23%. So the full survey is the default, and quick scan is labelled as partial.
+- **A partial "quick scan" was no better than random** (development option only): on E, 12 positions split by area size found 28–34% of the full survey's contents value; random sets of 12 averaged 27–31%. Every building's survey therefore reads every position it covers.
 - **Heights.** Heights come from the mesh where it resolves the item; otherwise they are a wider visual estimate at lower confidence. Items cut off by the image edge, small or far away get lower confidence. Some low-confidence items (for example boom lifts on E) are not visible from any neighbouring position, so a re-look cannot confirm them.
 - **Entry points** are seen from the air; threshold heights are not measured, and ground elevation is context only.
 - **The depth is a scenario.** Waterline does not forecast floods or model how water spreads between rooms.

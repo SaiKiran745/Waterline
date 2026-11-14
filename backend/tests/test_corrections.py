@@ -2,6 +2,8 @@
 
 Corrections and the agent memory store are redirected to a temporary folder, so real data is never touched.
 """
+import json
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -81,3 +83,29 @@ def test_category_change_reprices_from_assumptions():
     assert r.status_code == 200, r.text
     a = r.json()["asset"]
     assert (a["value_basis"], a["value_usd_low"], a["value_usd_high"]) == ("A-FIN", 0, 0)
+
+
+def test_agent_copy_that_matches_nothing_goes_inactive_and_never_shows(tmp_path, monkeypatch):
+    from app import buildings, corrections
+    from app.agent import memory
+    monkeypatch.setattr(memory, "MEMORY_DB", tmp_path / "mem.sqlite")
+    memory.store.cache_clear()
+    path = tmp_path / "corrections.json"
+    monkeypatch.setattr(corrections, "_path", lambda bid: path)
+    asset = {"id": "x-a1", "label": "steel desk", "value_basis": "V-OFFICE-FURN", "category": "furniture",
+             "location_id": "loc1", "position": {"x": 0, "y": 0, "z": 0}, "room": "Office"}
+    monkeypatch.setattr(buildings, "get_survey_assets", lambda bid: [asset])
+    fp = lambda label, loc, x: {"label": label, "value_basis": "V-OFFICE-FURN", "category": "furniture",
+                                "location_id": loc, "position": {"x": x, "y": 0, "z": 0}}
+    base = {"ts": "2026-11-14T00:00:00", "building_id": "x", "action": "patch", "note": None,
+            "changes": {"height_ft_low": 1.5}, "before": {"label": "steel desk", "category": "furniture", "room": "Office"}}
+    recs = [{**base, "id": "corr-h", "asset_id": "x-a1", "by": "human", "propagated_from": None,
+             "fingerprint": fp("steel desk", "loc1", 0)},
+            {**base, "id": "corr-gone", "asset_id": "x-a9", "by": "agent", "propagated_from": "corr-h",
+             "fingerprint": fp("old desk", "loc9", 40)}]
+    path.write_text(json.dumps(recs))
+    assert corrections.deactivate_orphans("x") == ["corr-gone"]
+    assert [r["id"] for r in corrections.load("x")] == ["corr-h"]                       # hidden everywhere
+    assert len(corrections.load("x", include_inactive=True)) == 2                        # kept in the file
+    assert "corr-gone" not in memory.read_corrections("x") and "corr-h" in memory.read_corrections("x")
+    memory.store.cache_clear()

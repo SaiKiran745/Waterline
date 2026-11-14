@@ -141,7 +141,8 @@ def test_stored_survey_never_shrinks(isolated, monkeypatch):
         pytest.skip("needs a stored survey with cached vision answers")
     import shutil
     d = buildings.BUILDINGS / BID
-    keep = {f: (d / f).read_bytes() for f in ("assets.json", "asset_geometry.json", "survey_log.json", "screening.json")
+    keep = {f: (d / f).read_bytes() for f in ("assets.json", "asset_geometry.json", "survey_log.json", "screening.json",
+                                              "corrections.json")
             if (d / f).exists()}
     monkeypatch.setitem(tools.SETTINGS, "cached_positions_only", True)
     events.activate(events.Trace(BID, "t6"))

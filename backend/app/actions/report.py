@@ -38,7 +38,7 @@ def render(building: dict, assets: list[dict], entry_points: list[dict], depth_f
     eps = "".join(f"<li>{e(p['kind'])}: {e(p['evidence'])} (confidence {p['confidence']:.2f})</li>" for p in entry_points) \
         or "<li>Entry points not surveyed yet.</li>"
     assumptions = "".join(
-        f"<li><b>{e(a['id'])}</b>{' <b>PLACEHOLDER</b>' if a['placeholder'] else ''}: {e(a['text'])} <i>Source: {e(a['source'])}</i></li>"
+        f"<li><b>{e(a['id'])}</b>{' (assumed range, editable)' if a['placeholder'] else ''}: {e(a['text'])} <i>Source: {e(a['source'])}</i></li>"
         for a in s["assumptions"])
     return f"""<article>
 <h1>Flood resilience report: {e(building['name'] or building['address'])}</h1>
@@ -54,5 +54,5 @@ Structure loss is scaled to the scanned share.</p>
 <h2>Ranked mitigations at {depth_ft:g} ft</h2><table><tr><th>#</th><th>Action</th><th>Cost</th><th>Avoided loss</th><th>Payback</th></tr>{mit_rows}</table>
 <h2>Assumptions</h2><ul>{assumptions}</ul>
 <h2>Limitations</h2><ul><li>Asset heights come from the 3D mesh where it resolves the item, otherwise from a visual estimate with lower confidence.</li>
-<li>Values marked PLACEHOLDER are team assumptions without a cited source.</li><li>Ground elevation is context only and is not used in any number.</li></ul>
+<li>Values marked "assumed range, editable" are team-set assumptions without a cited source; any asset's value or height can be corrected.</li><li>Ground elevation is context only and is not used in any number.</li></ul>
 </article>"""
