@@ -15,7 +15,7 @@ type MatterportSdk = {
 
 declare global {
   interface Window {
-    MP_SDK?: { connect: (iframe: HTMLIFrameElement, applicationKey: string) => Promise<MatterportSdk> };
+    MP_SDK?: { connect: (iframe: HTMLIFrameElement) => Promise<MatterportSdk> };
   }
 }
 
@@ -37,7 +37,7 @@ export function MatterportViewer({ modelId, locationId, enabled }: { modelId: st
       setStatus("connecting");
       setError("");
       try {
-        const sdk = await window.MP_SDK!.connect(iframeRef.current!, sdkKey);
+        const sdk = await window.MP_SDK!.connect(iframeRef.current!);
         await sdk.App.state.waitUntil((state) => state.phase === sdk.App.Phase.PLAYING);
         if (cancelled) {
           sdk.disconnect?.();

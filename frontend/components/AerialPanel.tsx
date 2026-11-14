@@ -55,6 +55,7 @@ export function AerialPanel({ building, entryPoints, media, dataSource }: { buil
                   alt={`${selectedKind} aerial view of ${building.name ?? building.address}`}
                   fill
                   unoptimized
+                  loading="eager"
                   sizes="(max-width: 760px) 100vw, 24vw"
                   onLoad={(event) => {
                     setImageSize({ width: event.currentTarget.naturalWidth, height: event.currentTarget.naturalHeight });

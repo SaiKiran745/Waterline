@@ -51,7 +51,7 @@ export function getDataSource() {
 
 export async function getBuildings(): Promise<Building[]> {
   if (source === "api") return api<Building[]>("/buildings");
-  return [buildingFixture as Building];
+  return [buildingFixture as unknown as Building];
 }
 
 export async function getBuildingBundle(id: string): Promise<BuildingBundle | null> {
@@ -94,7 +94,7 @@ export async function getBuildingBundle(id: string): Promise<BuildingBundle | nu
     }
   }
 
-  const building = buildingFixture as Building;
+  const building = buildingFixture as unknown as Building;
   const entryPoints = entryPointsFixture as EntryPoint[];
   const assets = assetsFixture as Asset[];
   const scenario = scenarioFixture as ScenarioResult;
