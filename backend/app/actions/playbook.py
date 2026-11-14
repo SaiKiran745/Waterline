@@ -1,6 +1,7 @@
 """72-hour pre-storm playbook (HTML), grouped by room and ordered by avoided loss."""
 import html
 
+from app.actions import report
 from app.loss import mitigations as engine
 
 e = html.escape
@@ -38,4 +39,4 @@ def render(building: dict, assets: list[dict], entry_points: list[dict], depth_f
                  f"<ul>{names}</ul>")
     return (f"<article><h1>72-hour pre-storm playbook: {e(building['name'] or building['address'])}</h1>"
             f"<p>Planned for {depth_ft:g} ft of water above the ground-floor slab (a scenario, not a forecast). "
-            f"Rooms are ordered by the loss their actions avoid.</p>{lead}{''.join(sections) or '<p>No surveyed assets yet.</p>'}</article>")
+            f"Rooms are ordered by the loss their actions avoid. {e(report.survey_line(building['id'], assets))}</p>{lead}{''.join(sections) or '<p>No surveyed assets yet.</p>'}</article>")

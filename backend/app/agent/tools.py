@@ -335,7 +335,7 @@ def finish_survey(building_id: str) -> str:
     left = [f"{a['name']} ({a['to_read'] - len(a['read'])})" for a in _area_table(building_id, mp)
             if a["to_read"] > len(a["read"])]
     out = {"stored_survey": _stored(building_id, mp), "mode": _mode(),
-           "read_this_run": f"{len(st['chosen'])} positions in {st.get('batches', 0)} batches",
+           "read_this_run": f"{len(st['chosen'])} positions in {st.get('batches', 0)} batch{'' if st.get('batches', 0) == 1 else 'es'}",
            "contents_assets": len(contents), "contents_value_usd": _usd(value),
            "vehicles": sum(1 for a in assets if a["value_basis"] == "V-VEHICLE"),
            "still_low_confidence": len(low), "inventory": f"/dossier/{building_id}/inventory.md"}

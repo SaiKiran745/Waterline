@@ -119,7 +119,7 @@ H is the story building outside the mapped flood zone, and the first building su
 
 ## D14. Agent quality pass (2026-11-14)
 
-- **Position budget.** The interior surveyor gets 12 of all 49 positions on E, with coordinates, neighbours and plain-language areas. It spreads out first, then spends the rest where it found contents.
+- **Position budget (superseded by D15: the agent now reads every position; the budget survives as an optional quick scan).** The interior surveyor gets 12 of all 49 positions on E, with coordinates, neighbours and plain-language areas. It spreads out first, then spends the rest where it found contents.
   - After round 1 the survey tool lists unread positions in rooms with contents, farthest from anything read, because neighbouring positions mostly re-see the same items.
   - Positions holding an asset a person corrected are always re-read.
   - **Result on E:** the agent's 12 positions found 17–23% of the contents value that all 49 find ($14,080–99,100 of $82,060–438,200). A rule-based spread of 12 found 23–31%; random sets of 12 averaged 37% (range 20–43%, 8 draws).
@@ -137,6 +137,23 @@ H is the story building outside the mapped flood zone, and the first building su
   - An earlier, looser look-alike rule copied a pallet correction onto a folding table. That was undone and the rule tightened (same category plus a specific shared noun).
 - **Layer cross-check.** When the aerial door count disagrees with CoStar, the site scout reports a discrepancy and lowers confidence by 20%. On E: 3 drive-in doors seen, 4 recorded. On B: 2 seen, 4 recorded.
 - **Email.** `actions/send.py` sends over SMTP to `ALLOWED_RECIPIENTS` only, after approval. With no SMTP settings (as now) it records "draft only, not sent".
+
+## D15. Full survey, stored survey, numbers guard, demo replay (2026-11-14, human decisions)
+
+- **The stored survey never shrinks.** `interior.run` reads the positions it is given plus every position the stored survey already read, from the vision cache at no cost. Re-looks made earlier are carried over. `survey_log.json` is the stored survey, with a history of runs. Detections are merged in a fixed position order, so the same positions always give the same assets, whatever order they were read in.
+  - E's map entry is the full 49-position survey again: 71 contents assets worth $81,260–431,200, plus 14 road vehicles listed separately.
+  - `/triage`, `/scenario_table`, the report, the playbook and the agent all say "N of M positions read" from the same file. Triage now counts contents the way the agent does, without vehicles.
+  - Two rooms with the same name are told apart ("Office", "Office 2"), so each mitigation names one room.
+- **The efficiency claim is dropped (it replaces D14's position budget).** The surveyor reads every position, in batches of whole areas: largest first, then the next largest, then all small rooms together, with a plain-language reason per batch.
+  - **Quick scan** (`--quick-scan N`, `{"quick_scan": N}`) is optional and off by default. It splits N positions across areas by size.
+  - **Quick scan on E, 12 positions:** it finds 28–34% of the full survey's contents value. Random sets of 12 averaged 27–31% (14–46% over 8 draws), so it is no better than random. D14's agent-chosen 12 found 17–23%.
+- **Full runs:**
+  - E: 57.1 s, $0.113, 28 model calls (assess 38.2 s, re-plan 12.9 s, send 4.2 s, approval 1.8 s).
+  - B: 43.4 s, $0.089, 25 calls.
+  - Both are under the 75 s and $0.20 targets. The survey reads from the vision cache; a first survey from scratch adds about $0.003 per position.
+- **Numbers guard (`backend/app/agent/guard.py`).** Every dollar figure in the orchestrator's messages, the report and the playbook must match a number from a tool result or dossier file, at the precision written ("$75k" matches 75,300; "$73k" does not match 9,340). An unmatched figure is replaced by "[figure removed]" and logged as an observation event. Every building's report and playbook pass at 1 and 4 ft (tested).
+- **Demo mode.** With `DEMO_MODE=1`, `POST /run` serves "Replay last run": the saved trace, labelled REPLAY with its run id and recording time. `{"live": true}` still starts a live run when the network is on. Sends never touch the network in demo mode. A test blocks all sockets and walks the demo path.
+- **Budget** raised to $8, with a warning at $6.
 
 ## D5. Matterport tokens
 

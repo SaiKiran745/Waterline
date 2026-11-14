@@ -1,0 +1,114 @@
+# Audit: every number and claim, with its source
+
+Checked 2026-11-14 against the code on `main`. "Source" names a data field or a computation over sourced data. "Assumption" names an id in `backend/app/loss/assumptions.yaml` or `curves.yaml`; the UI and report show these ids. **FLAG** marks a number or claim with neither: it is a method constant chosen by the team, set in code. Flags are listed together in section 6, and every PLACEHOLDER still in use is listed in section 7.
+
+Buildings are named by letter. Real values live only in the git-ignored cache.
+
+## 1. Building (`GET /buildings`, `GET /buildings/{id}`)
+
+Each field's source is written in its schema description, `contracts/building.schema.json`.
+
+| Field | Source |
+|---|---|
+| `lat`, `lng`, `size_sqft`, `year_built`, `stories`, `property_type`, `property_subtype`, `tenants` | CoStar property record |
+| `value_usd`, `improvement_value_usd`, `value_as_of`, `value_source` | Assessor values from the latest CoStar sale comp. Only `improvement_value_usd` is used in a number (S-VALUE-BASIS). |
+| `loading_docks_external`, `drive_in_bays` | CoStar industrial, flex or retail record |
+| `scan_area_sqft` | Matterport `model.dimensions.areaFloor` |
+| `scan_coverage` | `min(scan_area_sqft / size_sqft, 1)`, a computation. The cap is in the schema description. |
+| `flood_zone`, `flood_zone_subtype`, `in_mapped_flood_zone`, `flood_zone_source` | FEMA NFHL `FLD_ZONE` at the building point |
+| `ground_elevation_ft` | USGS EPQS. Context only, used in no number; the vertical datum is not stated. |
+| `aerial_collection`, `aerial_capture_date` | Vexcel ortho image metadata |
+
+## 2. Entry points (`GET /buildings/{id}`, `entry_points`)
+
+| Number or claim | Source or assumption |
+|---|---|
+| Kind, image box, evidence text | Gemini reading of the Vexcel ortho and oblique views (`survey/site.py`); the prompt and model are logged in `site_log.json` |
+| `lat`, `lng` | Ortho pixel converted with the Vexcel image's georeference (computation) |
+| `threshold_elevation_ft` | Always null. Never invented (AGENTS.md section 5 rule 1). |
+| `confidence` | Gemini's own score. **FLAG:** multiplied by 0.8 (`DISCREPANCY_FACTOR`) when the aerial count of that kind of door differs from CoStar's. |
+| Rank order (drive-in, door, garage, ramp, other, dock) | **FLAG:** method order (`KIND_ORDER`): grade-level openings first |
+| "Layer discrepancy: N seen, M recorded" | Vexcel count (Gemini) against CoStar `drive_in_bays` / `loading_docks_external` |
+
+## 3. Assets (`GET /buildings/{id}`, `assets`; `/scenario_table` `assets`)
+
+| Number or claim | Source or assumption |
+|---|---|
+| Label, category, room type, evidence | Gemini reading of Matterport panorama faces (prompt in `survey/interior.py`; model per observation) |
+| `height_ft_low` / `height_ft_high` "measured from mesh" | Ray cast from the panorama pixel onto the Matterport mesh (`survey/geometry.py`, verified convention in DATA_NOTES section 12). **FLAG:** plus or minus 0.15 ft geometry tolerance (`MESH_TOL_FT`). |
+| Heights "estimated" | Gemini visual estimate, kept as a wider range when the mesh disagrees or misses |
+| `confidence` | Gemini's own score. **FLAG:** × 0.85 for each small box (under 2,500 in 1000² units), far item (over 10 m) or box cut by a side or top edge; a box cut by the bottom of the image assumes the floor and is capped at 0.55. |
+| "Below confidence 0.6", re-look trigger | **FLAG:** `LOW_CONF = 0.6` |
+| One asset per object | **FLAG:** sightings merge within 0.5 m with the same class, or within 1.5 m when the labels share a specific noun. This sets the asset count and so the contents loss. |
+| `value_basis` | Keyword rules over the label (`loss/classes.py`); **FLAG** for the rules themselves. The class values are assumptions below. |
+| `value_usd_low` / `value_usd_high` | V-* value class (PLACEHOLDER, section 7), or a human correction (`corrections.json`, id `corr-*`) |
+| `room` | Matterport room label, else the room type Gemini saw most there; duplicates are numbered ("Office 2") |
+| `position` | Mesh ray cast of the box centre |
+| "N of M positions read" | The stored survey (`survey_log.json`): the same count everywhere (section 5) |
+
+## 4. Loss (`/scenario`, `/scenario_table`, `/triage`, `/mitigations`)
+
+| Number or claim | Source or assumption |
+|---|---|
+| Depth | Chosen by the user: a scenario, not a forecast |
+| `likely` / `possible` | Method in AGENTS.md section 9: likely when depth ≥ `height_ft_high`, possible when depth ≥ `height_ft_low` |
+| Contents loss low and high | C-CONTENTS-DEPTH over each asset's value class (V-* values and `critical_ft`). **FLAG:** the critical height is never below 0.25 ft (`MIN_CRITICAL_FT`); this floor is not in the assumption text. |
+| Item height used to cap the critical height | Mesh span above the lowest point (`asset_geometry.json`) |
+| Vehicles excluded from contents loss | V-VEHICLE (human decision) |
+| Fabric at $0 | A-FIN (Waterline method: the structure curve already prices it) |
+| Structure loss low and high | Hazus 6.1 structure curve C-HAZUS-COM1 / COM2 / IND2 (`curves.yaml`, cited to FEMA Hazus 6.1 via NHERI SimCenter), interpolated at the depth, times S-VALUE-BASIS (assessor improvement value × scan coverage) |
+| `scenario_table` rows | The same function at 0 to 8 ft in 0.25 ft steps; each row equals `/scenario` at that depth (tested) |
+| Triage `total` | Contents plus structure at 1, 2, 4 and 6 ft. The ranking order (high end at the chosen depth) is a method. |
+| Triage `status` "surveyed" / "structure only" | Whether a stored survey exists |
+| Mitigation `cost_usd_*` | M-PLATFORM, M-ELEC-RAISE, M-MOVE-INV, M-MOVE-VEHICLES, M-BARRIER × count of items, rooms, openings or vehicles |
+| Mitigation `avoided_loss_usd_*` | Contents and structure loss before and after the action, computed with the same model. Raise heights, target heights and barrier rating come from the M-* entries. |
+| Mitigation rank; payback note "about X times its cost in one event" | **FLAG:** method: ratio of the avoided-loss midpoint to the cost midpoint; actions that avoid nothing rank last |
+| "Drive vehicles to high ground": avoided loss $0 | By design: vehicle value is not priced (M-MOVE-VEHICLES note) |
+
+## 5. Agent, report, playbook, send
+
+| Number or claim | Source or assumption |
+|---|---|
+| AgentEvent text from tools (site, survey, re-look, scenario, ranking, priority changes, memory) | Written by the tools from the results above; every event is validated against the contract |
+| Orchestrator messages | Written by the model. **Numbers guard:** every dollar figure must match a tool result or dossier file, otherwise it is replaced by "[figure removed]" and an observation event is logged (`agent/guard.py`, tested). |
+| "N of M positions read", contents count, contents value in agent messages | `finish_survey` / `survey_area` on the stored survey: the same numbers as `/triage` and the report |
+| "Priority change … rank a → b (avoided loss … → …)" | `rank_mitigations` with the previous depth (computation) |
+| Applied a human correction to similar assets | `corrections.json` (`by: "agent"`, `propagated_from`), with the agent's reason |
+| Run time, model calls, tokens, cost (`/agent`, runs files) | LangChain usage metadata × `PRICES_PER_M` (aistudio.google.com/docs/pricing, Standard tier, checked 2026-11-14) |
+| Replay label "REPLAY of the last saved run (id, recorded at)" | The saved trace's first event time and file name |
+| Report: building facts, FEMA zone | Section 1 |
+| Report: contents and structure loss, assets table, mitigations table, assumptions list with PLACEHOLDER labels | Sections 3 and 4. Every dollar figure passes the numbers guard (tested for every building at 1 and 4 ft). |
+| Report: "the 3D scan covers X sq ft, Y% of the building" | `scan_area_sqft`, `scan_coverage` |
+| Report and playbook: "Interior survey read N of M scan positions; K contents assets" | Stored survey (`rank.survey_status`) |
+| Playbook steps and "avoids $a-b" | Ranked mitigations at the depth |
+| Playbook room order | **FLAG:** method: by the high end of the avoided loss of the room's actions |
+| Playbook title "72-hour pre-storm playbook" | **FLAG:** nothing in the model computes a 72-hour timeline; the steps carry no times. Suggest renaming it "Pre-storm playbook" or adding a sourced timeline. |
+| Send status `sent` / `draft_only` / `refused` / `failed` | `actions/send.py`: approval, `ALLOWED_RECIPIENTS`, SMTP settings, `DEMO_MODE` |
+| Media manifest: which panorama faces are shown | Gemini privacy screen per face (identifiable people, children's spaces, personal documents); unscreened faces are never served |
+
+## 6. Flags: numbers and claims with no source and no assumption id
+
+These are team method choices set in code. Each changes a number shown, so each should get an assumption id (or be noted in the UI) if time allows.
+
+1. Entry point confidence × 0.8 on a CoStar count mismatch (`survey/site.py` `DISCREPANCY_FACTOR`).
+2. Entry point rank order by kind (`KIND_ORDER`).
+3. Asset confidence penalties: × 0.85 for small, far or edge-cut boxes (thresholds 2,500, 10 m, 10/1000), and the bottom-edge rule (confidence × 0.6, at most 0.55) (`survey/interior.py`).
+4. Mesh agreement tolerance of 0.15 ft (`MESH_TOL_FT`).
+5. Low-confidence threshold 0.6 (`LOW_CONF`), used for re-looks and the "below 0.6" counts.
+6. Merge distances of 0.5 m and 1.5 m (`MERGE_M`, `NOUN_MERGE_M`). They set the asset count.
+7. Keyword rules that assign a value class from the label (`loss/classes.py`).
+8. Minimum critical height of 0.25 ft (`MIN_CRITICAL_FT`), not stated in C-CONTENTS-DEPTH.
+9. Mitigation ranking and the payback ratio (midpoint ÷ midpoint).
+10. Playbook room order.
+11. **Playbook title "72-hour".** This is a claim without support, the only flagged item that is not a method constant.
+
+No dollar figure in an API response, the report or the playbook lacks a source or assumption id: each traces to a value class, a mitigation cost, a Hazus curve × CoStar assessor value, or a human correction.
+
+## 7. PLACEHOLDER values in use
+
+Every one is labelled PLACEHOLDER in `assumptions.yaml`, in the scenario `assumptions` list, in the UI and in the report.
+
+- **Value classes (all 15 in use across the eight buildings):** V-FORKLIFT, V-AERIAL-LIFT, V-PALLET-JACK, V-MACHINE-TOOL, V-SHOP-EQUIP, V-HAND-TOOLS, V-RACKED-INV, V-FLOOR-INV, V-OFFICE-FURN, V-APPLIANCE, V-IT, V-ELEC-GEAR, V-HVAC, V-SMALL, V-OTHER. Each is a team-assumed replacement range and critical height.
+- **Mitigation costs (all 5 in use):** M-PLATFORM, M-ELEC-RAISE, M-MOVE-INV, M-MOVE-VEHICLES, M-BARRIER.
+- **Not placeholders:** S-VALUE-BASIS (CoStar assessor value), C-CONTENTS-DEPTH (method, sanity-checked against Hazus contents curves), C-HAZUS-* (FEMA Hazus 6.1), V-VEHICLE (human decision), A-FIN (method).
+- **The `fixture-1` building** and everything in `contracts/fixtures/` are FIXTURE data, labelled as such in every response.

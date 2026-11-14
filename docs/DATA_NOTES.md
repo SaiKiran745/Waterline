@@ -351,13 +351,15 @@ data/cache/costar/, matterport/, vexcel/, public/   Phase 0 discovery files
   | COM1 | 26 | 42 | 56 | 68 | 83 | 87 |
 
   (At 0 ft: COM2 3%, IND2 0%, COM1 2%.)
-- **Shape check:** our curve is steeper. On E at 2 ft we lose 51–78% of the surveyed contents value (Hazus COM2: 27%); at 4 ft, 90–96% (Hazus: 49%). The survey lists only items low enough to flood, mostly on the floor, while Hazus averages over a building's whole contents, including stock stored high.
-- **Totals check,** setting contents value equal to the structure basis (improvement value × scan coverage; the ratio was not re-verified this session):
+- **Shape check:** our curve is steeper. On E at 2 ft we lose 54–69% of the surveyed contents value (Hazus COM2: 27%); at 4 ft, 91–95% (Hazus: 49%). The survey lists only items low enough to flood, mostly on the floor, while Hazus averages over a building's whole contents, including stock stored high.
+- **Totals check** (recomputed 2026-11-14 on the full stored surveys). Contents value is set equal to the structure basis (improvement value × scan coverage); that ratio has not been verified.
 
   | | Ours, 2 ft | Hazus-style, 2 ft | Ours, 4 ft | Hazus-style, 4 ft |
   |---|---|---|---|---|
-  | E | $18,201–153,308 | $188,332 | $32,125–187,815 | $341,788 |
-  | B | $102,842–616,382 | $84,806 | $177,403–873,700 | $153,907 |
+  | E (49 of 49 positions) | $43,493–295,480 | $188,332 | $74,078–407,562 | $341,788 |
+  | B (11 of 11 positions) | $108,969–635,048 | $84,806 | $188,403–885,700 | $153,907 |
 
-  E is a sparsely stocked warehouse with its vehicles excluded; B is a dense machine shop with a low assessed improvement value. Both are within a factor of about 2–3, which is plausible. The Hazus curves are not used in the numbers.
-
+  - **E:** our range contains the Hazus-style figure (0.2–1.6 times it).
+  - **B:** a dense machine shop with a low assessed improvement value. Our range is 1.3–7.5 times the Hazus-style figure; the middle of the range (geometric mean) is about 3 times.
+  - So the middle of our range sits within a factor of about 3 of Hazus. B's high end does not.
+  - The Hazus curves are not used in the numbers.

@@ -11,6 +11,16 @@ def money(lo, hi) -> str:
     return f"${lo:,.0f}-{hi:,.0f}"
 
 
+def survey_line(bid: str, assets: list[dict]) -> str:
+    """The stored survey, said the same way as /triage and the agent: "N of M scan positions read"."""
+    from app.loss import rank
+    try:
+        st = rank.survey_status(bid, assets)
+    except FileNotFoundError:
+        return "The interior survey has not run."
+    return st["note"]
+
+
 def render(building: dict, assets: list[dict], entry_points: list[dict], depth_ft: float) -> str:
     s = model.scenario(building, assets, depth_ft)
     mits = engine.ranked(building["id"], engine.candidates(building["id"], assets, entry_points), assets, depth_ft,
@@ -37,8 +47,8 @@ built {building['year_built'] or 'unknown'}, {building['stories']} storey. FEMA 
 ({'inside' if building['in_mapped_flood_zone'] else 'outside'} the 1% annual-chance area; {e(building['flood_zone_source'] or '')}).</p>
 <p><b>Scenario:</b> {depth_ft:g} ft of water above the ground-floor slab. This is a scenario chosen by the user, not a prediction.</p>
 <p><b>Contents loss:</b> {money(s['loss_usd_low'], s['loss_usd_high'])}. <b>Structure loss:</b> {money(s['structure_loss_usd_low'], s['structure_loss_usd_high'])}.</p>
-<p><b>Scope:</b> the 3D scan covers {building['scan_area_sqft'] or 0:,.0f} sq ft, {cov:.0%} of the building. Contents loss counts only what the scan shows;
-structure loss is scaled to the scanned share.</p>
+<p><b>Scope:</b> the 3D scan covers {building['scan_area_sqft'] or 0:,.0f} sq ft, {cov:.0%} of the building. {e(survey_line(building['id'], assets))}
+Structure loss is scaled to the scanned share.</p>
 <h2>Where water gets in</h2><ul>{eps}</ul>
 <h2>Exposed assets</h2><table><tr><th>Room</th><th>Asset</th><th>Lowest vulnerable part</th><th>Confidence</th><th>Value</th><th>At {depth_ft:g} ft</th></tr>{rows}</table>
 <h2>Ranked mitigations at {depth_ft:g} ft</h2><table><tr><th>#</th><th>Action</th><th>Cost</th><th>Avoided loss</th><th>Payback</th></tr>{mit_rows}</table>
