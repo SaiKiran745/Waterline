@@ -4,11 +4,13 @@ import { useState } from "react";
 import { approveAndSend, getArtifactUrl } from "@/lib/data";
 import type { Building, Mitigation } from "@/lib/contracts";
 
-export function ApprovePanel({ building, mitigations, dataSource }: { building: Building; mitigations: Mitigation[]; dataSource: string }) {
+export function ApprovePanel({ building, mitigations, currentDepth, dataSource }: { building: Building; mitigations: Mitigation[]; currentDepth: number; dataSource: string }) {
   const [reviewed, setReviewed] = useState(false);
   const [recipient, setRecipient] = useState("");
   const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [message, setMessage] = useState("");
+  const [artifact, setArtifact] = useState<"report" | "playbook">("playbook");
+  const [artifactState, setArtifactState] = useState<"loading" | "ready" | "error">("loading");
   const send = async () => {
     setState("sending");
     try {
@@ -19,15 +21,17 @@ export function ApprovePanel({ building, mitigations, dataSource }: { building: 
     }
   };
   const playbookActions = mitigations
-    .filter((item) => item.depth_ft === 2)
+    .filter((item) => item.depth_ft === currentDepth)
     .sort((a, b) => a.rank - b.rank);
-  const artifactsReady = dataSource === "api" && playbookActions.length > 0;
+  const artifactsReady = dataSource === "api";
+  const artifactUrl = getArtifactUrl(building.id, artifact, currentDepth);
   return (
     <div className="approve-tab">
       <div className="tab-heading"><span className="eyebrow">04 / HUMAN CHECKPOINT</span><h2>Review & approve</h2><p>Nothing leaves Waterline without this step.</p></div>
       <div className="artifact-card">
-        <div className="artifact-icon">▤</div><div><span>RESILIENCE BRIEF</span><b>{building.name ?? building.address}</b><small>{artifactsReady ? "Backend report and playbook are ready for review" : "Pending the interior survey and communications agent"}</small></div>{artifactsReady ? <span className="artifact-links"><a href={getArtifactUrl(building.id, "report")} target="_blank" rel="noreferrer">REPORT ↗</a><a href={getArtifactUrl(building.id, "playbook")} target="_blank" rel="noreferrer">PLAYBOOK ↗</a></span> : <span className="pending-chip">PENDING</span>}
+        <div className="artifact-icon">▤</div><div><span>LIVE BACKEND ARTIFACTS</span><b>{building.name ?? building.address}</b><small>{artifactsReady ? `Rendered for the current ${currentDepth.toFixed(2)} ft scenario` : "Backend connection required"}</small></div>{artifactsReady ? <span className="artifact-links"><a href={getArtifactUrl(building.id, "report", currentDepth)} target="_blank" rel="noreferrer">REPORT ↗</a><a href={getArtifactUrl(building.id, "playbook", currentDepth)} target="_blank" rel="noreferrer">PLAYBOOK ↗</a></span> : <span className="pending-chip">PENDING</span>}
       </div>
+      {artifactsReady ? <div className="artifact-preview"><div><button className={artifact === "report" ? "active" : ""} onClick={() => { setArtifact("report"); setArtifactState("loading"); }}>REPORT</button><button className={artifact === "playbook" ? "active" : ""} onClick={() => { setArtifact("playbook"); setArtifactState("loading"); }}>PLAYBOOK</button><span>{artifactState.toUpperCase()}</span></div><iframe key={artifactUrl} src={artifactUrl} title={`${artifact} preview`} onLoad={() => setArtifactState("ready")} onError={() => setArtifactState("error")} /></div> : null}
       <div className="playbook-preview">
         <span>PRE-STORM PLAYBOOK</span><h3>First 24 hours</h3>
         {playbookActions.length === 0 ? <p>No mitigation actions are available yet.</p> : <ol>{playbookActions.map((item) => <li key={item.id}><i>{item.rank}</i><span>{item.action}<small>{item.payback_note}</small></span></li>)}</ol>}

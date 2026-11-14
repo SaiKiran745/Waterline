@@ -135,8 +135,30 @@ export async function getMitigationsForDepth(buildingId: string, depthFt: number
   return response.json() as Promise<Mitigation[]>;
 }
 
-export function getArtifactUrl(buildingId: string, artifact: "report" | "playbook") {
-  return `${API_BASE}/buildings/${encodeURIComponent(buildingId)}/${artifact}`;
+export async function correctAsset(buildingId: string, assetId: string, method: "PATCH" | "DELETE", changes: Record<string, unknown>, depthFt: number) {
+  const response = await fetch(`${API_BASE}/buildings/${encodeURIComponent(buildingId)}/assets/${encodeURIComponent(assetId)}?depth_ft=${encodeURIComponent(depthFt)}`, {
+    method,
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(changes),
+  });
+  const mutation = await response.json() as { detail?: string; mitigations?: Mitigation[]; similar_asset_ids?: string[] };
+  if (!response.ok) throw new Error(mutation.detail || `Correction failed (${response.status}).`);
+  const [detail, scenarioTable, triage] = await Promise.all([
+    api<{ building: Building; entry_points: EntryPoint[]; assets: Asset[] }>(`/buildings/${encodeURIComponent(buildingId)}`),
+    api<ScenarioTable>(`/buildings/${encodeURIComponent(buildingId)}/scenario_table`),
+    api<TriageRow[]>("/triage?depth_ft=2"),
+  ]);
+  return {
+    assets: detail.assets,
+    scenarioTable,
+    mitigations: mutation.mitigations ?? [],
+    rank: triage.find((row) => row.building_id === buildingId)?.rank ?? null,
+    similarCount: mutation.similar_asset_ids?.length ?? 0,
+  };
+}
+
+export function getArtifactUrl(buildingId: string, artifact: "report" | "playbook", depthFt = 2) {
+  return `${API_BASE}/buildings/${encodeURIComponent(buildingId)}/${artifact}?depth_ft=${encodeURIComponent(depthFt)}`;
 }
 
 export async function approveAndSend(buildingId: string, recipient: string) {

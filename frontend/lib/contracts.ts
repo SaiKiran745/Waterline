@@ -173,6 +173,15 @@ export type AgentEvent = {
   data: Record<string, unknown> | null;
 };
 
+export type MatterportLocation = {
+  id: string;
+  position: { x: number; y: number; z: number };
+  floor?: string | null;
+  room?: string | null;
+  label?: string | null;
+  neighbors?: string[];
+};
+
 export type MediaManifest = {
   building_id: string;
   mesh: { url: string; bytes: number; has_uv?: boolean; has_materials?: boolean } | null;
@@ -187,7 +196,7 @@ export type MediaManifest = {
   panos?: Array<Record<string, unknown>>;
   floors?: Array<Record<string, unknown>>;
   rooms?: Array<Record<string, unknown>>;
-  locations?: Array<Record<string, unknown>>;
+  locations?: MatterportLocation[];
   notes?: string[];
 };
 

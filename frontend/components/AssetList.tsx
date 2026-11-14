@@ -1,6 +1,8 @@
+"use client";
+
 import { PanelState } from "./PanelState";
 import { damageColour } from "@/lib/scenario";
-import type { CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 import type { Asset, AssetDamage, ScenarioResult } from "@/lib/contracts";
 
 function money(low: number, high: number) {
@@ -12,7 +14,7 @@ function measuredFromMesh(asset: Asset) {
   return [asset.evidence, ...asset.observations.map((item) => item.evidence)].some((text) => text.toLowerCase().includes("measured from mesh"));
 }
 
-export function AssetList({ assets, scenario, damageByAsset, selectedAssetId, onSelectAsset }: { assets: Asset[]; scenario: ScenarioResult; damageByAsset: Map<string, AssetDamage>; selectedAssetId: string | null; onSelectAsset: (assetId: string) => void }) {
+export function AssetList({ assets, scenario, damageByAsset, selectedAssetId, onSelectAsset, onCorrect, correctionState, correctionsEnabled }: { assets: Asset[]; scenario: ScenarioResult; damageByAsset: Map<string, AssetDamage>; selectedAssetId: string | null; onSelectAsset: (assetId: string) => void; onCorrect: (assetId: string, method: "PATCH" | "DELETE", changes: Record<string, unknown>) => Promise<void>; correctionState: { kind: "idle" | "saving" | "success" | "error"; message: string }; correctionsEnabled: boolean }) {
   if (assets.length === 0) return <PanelState kind="empty" title="Survey pending" detail="The building is live, but its interior asset survey has not landed yet." />;
   const movableAssets = assets.filter((asset) => damageByAsset.get(asset.id)?.movable);
   const contentsAssets = assets.filter((asset) => !damageByAsset.get(asset.id)?.movable);
@@ -22,6 +24,7 @@ export function AssetList({ assets, scenario, damageByAsset, selectedAssetId, on
   });
   const likely = contentsAssets.filter((asset) => damageByAsset.get(asset.id)?.status === "likely").length;
   const possible = contentsAssets.filter((asset) => damageByAsset.get(asset.id)?.status === "possible").length;
+  const selectedAsset = assets.find((asset) => asset.id === selectedAssetId) ?? null;
   return (
     <div className="asset-tab">
       <div className="tab-heading"><span className="eyebrow">02 / INTERIOR SURVEY</span><h2>Asset inventory</h2><p>Exposure at {scenario.depth_ft.toFixed(2)} ft</p></div>
@@ -30,12 +33,42 @@ export function AssetList({ assets, scenario, damageByAsset, selectedAssetId, on
         <span><b>{possible}</b> POSSIBLE</span>
         <span><b>{contentsAssets.length - likely - possible}</b> CLEAR</span>
       </div>
+      {selectedAsset && correctionsEnabled ? <CorrectionPanel key={selectedAsset.id} asset={selectedAsset} state={correctionState} onCorrect={onCorrect} /> : null}
       <div className="asset-list">
         {movableAssets.length > 0 ? <div className="movable-heading"><span className="vehicle-marker">◆</span><div><b>Movable assets at risk</b><small>Road vehicles are excluded from loss totals.</small></div></div> : null}
         {movableAssets.map((asset) => <AssetRow key={asset.id} asset={asset} damage={damageByAsset.get(asset.id)} selected={asset.id === selectedAssetId} movable onSelect={onSelectAsset} />)}
         {movableAssets.length > 0 ? <div className="contents-heading">CONTENTS INCLUDED IN LOSS</div> : null}
         {sorted.map((asset) => <AssetRow key={asset.id} asset={asset} damage={damageByAsset.get(asset.id)} selected={asset.id === selectedAssetId} onSelect={onSelectAsset} />)}
       </div>
+    </div>
+  );
+}
+
+function CorrectionPanel({ asset, state, onCorrect }: { asset: Asset; state: { kind: "idle" | "saving" | "success" | "error"; message: string }; onCorrect: (assetId: string, method: "PATCH" | "DELETE", changes: Record<string, unknown>) => Promise<void> }) {
+  const [open, setOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [label, setLabel] = useState(asset.label);
+  const [heightLow, setHeightLow] = useState(String(asset.height_ft_low));
+  const [heightHigh, setHeightHigh] = useState(String(asset.height_ft_high));
+  const [valueBasis, setValueBasis] = useState(asset.value_basis);
+  const [note, setNote] = useState("");
+  const saving = state.kind === "saving";
+  const save = () => onCorrect(asset.id, "PATCH", { label, height_ft_low: Number(heightLow), height_ft_high: Number(heightHigh), value_basis: valueBasis, note });
+  const remove = () => {
+    if (!confirmDelete) { setConfirmDelete(true); return; }
+    void onCorrect(asset.id, "DELETE", { note });
+  };
+  return (
+    <div className="correction-panel">
+      <button className="correction-toggle" onClick={() => setOpen((value) => !value)}><span>HUMAN CORRECTION</span><b>{open ? "CLOSE" : "EDIT SELECTED ASSET"}</b></button>
+      {open ? <div className="correction-form">
+        <label><span>LABEL</span><input value={label} onChange={(event) => setLabel(event.target.value)} /></label>
+        <div className="correction-pair"><label><span>HEIGHT LOW · FT</span><input type="number" min="0" max="30" step="0.01" value={heightLow} onChange={(event) => setHeightLow(event.target.value)} /></label><label><span>HEIGHT HIGH · FT</span><input type="number" min="0" max="30" step="0.01" value={heightHigh} onChange={(event) => setHeightHigh(event.target.value)} /></label></div>
+        <label><span>VALUE CLASS</span><input value={valueBasis} onChange={(event) => setValueBasis(event.target.value)} /></label>
+        <label><span>REVIEW NOTE</span><input value={note} onChange={(event) => setNote(event.target.value)} placeholder="What changed and why" /></label>
+        <div className="correction-actions"><button disabled={saving} onClick={() => void save()}>SAVE & RECALCULATE</button><button className={confirmDelete ? "confirm" : "delete"} disabled={saving} onClick={remove}>{confirmDelete ? "CONFIRM REMOVE" : "REMOVE FALSE ASSET"}</button></div>
+      </div> : null}
+      {state.message ? <p className={`correction-message ${state.kind}`}>{state.message}</p> : null}
     </div>
   );
 }
