@@ -93,7 +93,8 @@ class Session:
                         data={"from_ft": old, "to_ft": new_depth})
         msg = (f"The user moved the depth slider from {old:g} ft to {new_depth:g} ft. Re-plan, re-price and re-rank at "
                f"{new_depth:g} ft and say how the priority list changed. Then have communications draft the report and "
-               f"playbook at {new_depth:g} ft, and ask to send the playbook to {recipient} with send_playbook.")
+               f"playbook at {new_depth:g} ft. Finally call send_playbook(building_id='{self.bid}', recipient='{recipient}', "
+               f"depth_ft={new_depth:g}); it pauses until a person approves.")
         return self._stream({"messages": [{"role": "user", "content": msg}]}, "replan")
 
     def decide(self, approve: bool, note: str = "") -> dict:

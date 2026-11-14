@@ -36,6 +36,7 @@ class Trace:
         self.replan_pending = False     # set when the depth changes: the next write_todos is a re-plan
         self.todos: list[str] = []
         self.delegated: list[str] = []  # subagents in the order they were given work (attribution of their files)
+        self.task_ids: dict[str, str] = {}  # task() tool-call id -> subagent, so parallel reports are attributed right
         self.files: set[str] = set()
         self.listeners: list = []
 
@@ -128,12 +129,15 @@ def translate(trace: Trace, namespace: tuple, chunk: dict) -> None:
                     elif name == "task":
                         sub = args.get("subagent_type") or args.get("name") or "general-purpose"
                         trace.delegated.append(sub)
+                        if call.get("id"):
+                            trace.task_ids[call["id"]] = sub
                         trace.emit("orchestrator", "decision", f"Delegate to {sub}: {args.get('description', '')}",
                                    data={"tool": "task", "subagent": sub})
                     elif name in ("write_file", "edit_file"):
                         path = args.get("file_path") or args.get("path") or ""
                         if path.startswith("/dossier/") or path.startswith("/memories/"):
-                            trace.emit(who, "artifact", f"{'Wrote' if name == 'write_file' else 'Updated'} {path}",
+                            stem = path.rsplit("/", 1)[-1].rsplit(".", 1)[0]
+                            trace.emit(stem if stem in AGENTS else who, "artifact", f"{'Wrote' if name == 'write_file' else 'Updated'} {path}",
                                        refs=[path], data={"tool": name, "path": path})
                 text = getattr(m, "text", None)
                 text = text() if callable(text) else text
@@ -142,5 +146,6 @@ def translate(trace: Trace, namespace: tuple, chunk: dict) -> None:
             elif mtype == "tool" and getattr(m, "name", "") == "task" and not in_subagent:
                 body = getattr(m, "content", "")
                 body = body if isinstance(body, str) else json.dumps(body)[:2000]
-                trace.emit(trace.delegated[-1] if trace.delegated else "orchestrator", "observation",
-                           f"Reported back: {body}")
+                sub = trace.task_ids.get(getattr(m, "tool_call_id", None) or "") or \
+                    (trace.delegated[-1] if trace.delegated else "orchestrator")
+                trace.emit(sub, "observation", f"Reported back: {body}")

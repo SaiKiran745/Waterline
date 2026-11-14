@@ -178,6 +178,11 @@ def relook_asset(building_id: str, asset_id: str) -> str:
         return json.dumps({"error": str(e)[:300]})
     b, a = r["before"], r["after"]
     src = "from cache" if r["cached"] else f"live ({r['model']})" if r["model"] else "no call"
+    if not r["neighbour_location_id"]:
+        events.emit("interior-surveyor", "observation",
+                    f"Could not re-look '{r['label']}': {r['result']}; the record stays at "
+                    f"{b['height_ft_low']}-{b['height_ft_high']} ft, confidence {b['confidence']}.", refs=[asset_id], data=r)
+        return json.dumps(r)
     events.emit("interior-surveyor", "observation",
                 f"Re-looked '{r['label']}' from neighbouring position {str(r['neighbour_location_id'])[:8]} ({src}): "
                 f"height {b['height_ft_low']}-{b['height_ft_high']} ft at confidence {b['confidence']} -> "

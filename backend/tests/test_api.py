@@ -113,3 +113,12 @@ def test_real_buildings_match_contract_and_media():
         assert local.get(f"/buildings/{bid}/{path}").status_code == 200
     man = local.get(f"/buildings/{bid}/media").json()
     assert "ortho" in man["aerial"] and man["mesh"]["url"].startswith(f"/media/{bid}/")
+
+
+@pytest.mark.skipif(not buildings.building_ids(), reason="no pulled buildings in data/cache")
+def test_agent_routes_guard_their_order():
+    bid = sorted(buildings.building_ids())[0]
+    assert local.post(f"/buildings/{bid}/depth", json={"depth_ft": 4}).status_code in (403, 409)
+    st = local.get(f"/buildings/{bid}/agent").json()
+    assert st["building_id"] == bid
+    assert local.get("/buildings/fixture-1/events", params={"speed": 0}).status_code == 200

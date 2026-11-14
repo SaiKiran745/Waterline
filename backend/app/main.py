@@ -17,6 +17,8 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Streamin
 from app import buildings, corrections, fixtures
 from app.actions import playbook as playbook_html
 from app.actions import report as report_html
+from app.agent import events as agent_events
+from app.agent import service as agent_service
 from app.agent.replay import replay
 from app.config import BUILDINGS, FRONTEND_ORIGINS, MEDIA, demo_mode
 from app.loss import mitigations as engine
@@ -148,22 +150,65 @@ def delete_asset(bid: str, asset_id: str, body: dict | None = Body(default=None)
     return _correct(bid, asset_id, "delete", body or {}, depth_ft)
 
 
+def _sse(gen):
+    return StreamingResponse(gen, media_type="text/event-stream",
+                             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
+def _recipient(body: dict) -> str:
+    allowed = [a.strip() for a in os.environ.get("ALLOWED_RECIPIENTS", "").split(",") if a.strip()]
+    r = str(body.get("recipient") or (allowed[0] if allowed else "")).strip()
+    if r.lower() not in {a.lower() for a in allowed}:
+        raise HTTPException(403, "recipient is not in ALLOWED_RECIPIENTS")
+    return r
+
+
 @app.post("/buildings/{bid}/run")
 def run(bid: str, body: dict | None = Body(default=None)):
+    """Starts the live agent (turn 1: assess at depth_ft, default 1). FIXTURE: trace replay.
+    Demo mode: the interior survey offers only scan positions whose vision answers are cached."""
+    body = body or {}
     if bid == FIX:
-        return {"status": "replay", "building_id": bid, "depth_ft": (body or {}).get("depth_ft"),
-                "events_url": f"/buildings/{bid}/events", "note": "FIXTURE trace replay; the live agent arrives in Phase 5"}
+        return {"status": "replay", "building_id": bid, "depth_ft": body.get("depth_ft"),
+                "events_url": f"/buildings/{bid}/events", "note": "FIXTURE trace replay"}
     _real(bid)
-    raise HTTPException(501, f"The live agent arrives in Phase 5; use {FIX} until then")
+    try:
+        return agent_service.start(bid, float(body.get("depth_ft", 1)))
+    except agent_service.Busy as e:
+        raise HTTPException(409, str(e))
+
+
+@app.post("/buildings/{bid}/depth")
+def change_depth(bid: str, body: dict = Body(...)):
+    """The user moved the slider during a session: the agent re-plans, re-prices, re-ranks, drafts the documents
+    and asks to send (turn 2). Body: {"depth_ft": 4, "recipient": optional, must be in ALLOWED_RECIPIENTS}."""
+    _real(bid)
+    try:
+        return agent_service.change_depth(bid, float(body["depth_ft"]), _recipient(body))
+    except KeyError:
+        raise HTTPException(409, "no agent session for this building: POST /run first")
+    except agent_service.Busy as e:
+        raise HTTPException(409, str(e))
+
+
+@app.get("/buildings/{bid}/agent")
+def agent_status(bid: str):
+    _real(bid)
+    return agent_service.status(bid)
 
 
 @app.get("/buildings/{bid}/events")
 def events(bid: str, speed: float = Query(1.0, ge=0, le=100)):
-    if bid != FIX:
-        _real(bid)
-        raise HTTPException(501, f"Agent events arrive in Phase 5; use {FIX} until then")
-    return StreamingResponse(replay(fixtures.load("agent_events.json"), speed), media_type="text/event-stream",
-                             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+    """Live trace while the agent runs; otherwise a replay of the latest saved trace (FIXTURE: fixture trace)."""
+    if bid == FIX:
+        return _sse(replay(fixtures.load("agent_events.json"), speed))
+    _real(bid)
+    if agent_service.has_live(bid):
+        return _sse(agent_service.live(bid))
+    saved = agent_events.load_latest(bid)
+    if not saved:
+        raise HTTPException(404, "no agent run for this building yet: POST /run")
+    return _sse(replay(saved, speed))
 
 
 @app.get("/buildings/{bid}/report", response_class=HTMLResponse)
@@ -185,12 +230,16 @@ def send(bid: str, body: dict = Body(...)):
     """Requires {"approved": true, "recipient": "<address in ALLOWED_RECIPIENTS>"}. Nothing is sent before Phase 5B."""
     if bid != FIX:
         _real(bid)
+    if bid != FIX and agent_service.waiting_for_approval(bid) and body.get("approved") is False:
+        return agent_service.decide(bid, False, str(body.get("note") or ""))
     if body.get("approved") is not True:
         raise HTTPException(400, 'sending requires {"approved": true}')
     allowed = {a.strip().lower() for a in os.environ.get("ALLOWED_RECIPIENTS", "").split(",") if a.strip()}
     recipient = str(body.get("recipient", "")).strip().lower()
     if recipient not in allowed:
         raise HTTPException(403, "recipient is not in ALLOWED_RECIPIENTS")
+    if bid != FIX and agent_service.waiting_for_approval(bid):
+        return agent_service.decide(bid, True)      # resumes the agent; send_playbook records the approved send
     return {"status": "not_sent", "building_id": bid, "recipient": recipient,
             "reason": "Sending is built in Phase 5B. Approval was recorded; nothing was sent."}
 
