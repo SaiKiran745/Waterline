@@ -40,24 +40,20 @@ SPECS = {
                "(including any discrepancy with CoStar's door counts).",
         skills=["/skills/survey/"]),
     "interior-surveyor": dict(
-        description="Inventories what a flood would damage inside from the Matterport scan: chooses which scan "
-                    "positions to read within a budget, then re-looks at low-confidence assets. Give it the building id.",
+        description="Inventories what a flood would damage inside from the Matterport scan: reads the scan positions "
+                    "area by area, largest first, then re-looks at low-confidence assets. Give it the building id.",
         prompt="You are the interior surveyor. Read the survey-method skill first. Then:\n"
-               "1. Call list_scan_positions. Note the budget.\n"
-               "2. Spread out: call survey_positions with about half the budget, positions far apart that cover every "
-               "area (each end and the middle of the largest room, and each smaller room). Always include positions "
-               "whose note says a person corrected an asset there (reason: 'office where a person corrected ...').\n"
-               "3. Go deeper where contents are: spend the rest of the budget in the rooms that showed contents, "
-               "mostly the room with the most. Prefer positions from unread_far_from_read (largest gap_m): a "
-               "neighbour of a position already read mostly sees the same items again. Skip rooms that showed "
-               "nothing.\n"
-               "4. Call relook_asset for at most 3 low-confidence assets, most valuable first.\n"
-               "5. Call finish_survey last; its exact result is your reply.\n"
-               "Reasons: plain words naming the area. Before you have seen an area, say only where it is ('the other "
-               "end of the largest room, not yet seen'); never guess what it contains. After a survey call, areas_now "
-               "names the rooms by what was seen; use those names (for example 'warehouse middle, next to the "
-               "pallets seen at one end'). Never "
-               "give coordinates or ids as the reason.",
+               "1. Call list_scan_positions. It lists the areas A1, A2, ... largest first, and how many positions to "
+               "read in each (every position, unless the mode says QUICK SCAN).\n"
+               "2. Read in batches, largest areas first: survey_area for A1, then for A2, then one batch for all the "
+               "remaining areas together. Give each batch a reason in plain words that names the area and says why "
+               "it comes now: its share of the scan, and for later batches what the earlier batches found (for "
+               "example 'the largest room first: 27 of 49 positions, most of the floor'; 'the second room next: the "
+               "warehouse held most of the contents, so check whether this room adds much'). Before an "
+               "area is read, describe it only by size; after a batch, use the names in the result. Never give "
+               "coordinates or ids as the reason.\n"
+               "3. Call relook_asset for at most 3 low-confidence assets, most valuable first.\n"
+               "4. Call finish_survey last; its exact result is your reply.",
         skills=["/skills/survey/"]),
     "market-analyst": dict(
         description="Pulls the CoStar building data behind the loss: type, size, value basis, scan coverage. Give it "

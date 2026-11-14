@@ -20,8 +20,9 @@ from app.actions import playbook as playbook_html
 from app.actions import report as report_html
 from app.actions import send as send_action
 from app.agent import events as agent_events
+from app.agent import guard
 from app.agent import service as agent_service
-from app.agent.replay import replay
+from app.agent.replay import last_run, replay
 from app.config import BUILDINGS, FRONTEND_ORIGINS, MEDIA, demo_mode
 from app.loss import mitigations as engine
 from app.loss import model, rank
@@ -173,14 +174,19 @@ def _recipient(body: dict) -> str:
 @app.post("/buildings/{bid}/run")
 def run(bid: str, body: dict | None = Body(default=None)):
     """Starts the live agent (turn 1: assess at depth_ft, default 1). FIXTURE: trace replay.
-    Demo mode: the interior survey offers only scan positions whose vision answers are cached."""
+    {"replay": true}, or DEMO_MODE=1 without {"live": true}: "Replay last run", the saved trace, labelled as a replay.
+    The interior survey reads every scan position. Optional {"quick_scan": N}: read only N positions, split across
+    areas by size (off by default). Demo mode: only cached vision answers are used."""
     body = body or {}
     if bid == FIX:
         return {"status": "replay", "building_id": bid, "depth_ft": body.get("depth_ft"),
                 "events_url": f"/buildings/{bid}/events", "note": "FIXTURE trace replay"}
     _real(bid)
+    if body.get("replay") or (demo_mode() and not body.get("live")):
+        return _replay_info(bid)
     try:
-        return agent_service.start(bid, float(body.get("depth_ft", 1)))
+        q = body.get("quick_scan")
+        return agent_service.start(bid, float(body.get("depth_ft", 1)), int(q) if q else None)
     except agent_service.Busy as e:
         raise HTTPException(409, str(e))
 
@@ -216,32 +222,53 @@ def agent_status(bid: str):
     return agent_service.status(bid)
 
 
+def _replay_info(bid: str) -> dict:
+    r = last_run(bid)
+    if r is None:
+        raise HTTPException(404, "no saved agent run for this building to replay")
+    return {"status": "replay", **{k: v for k, v in r.items() if not k.startswith("_")},
+            "events_url": f"/buildings/{bid}/events?replay=1"}
+
+
+@app.get("/buildings/{bid}/runs/latest")
+def latest_run(bid: str):
+    """The last saved agent run (for "Replay last run"): run id, when it was recorded, time, cost, turns."""
+    _real(bid)
+    return _replay_info(bid)
+
+
 @app.get("/buildings/{bid}/events")
-def events(bid: str, speed: float = Query(1.0, ge=0, le=100)):
-    """Live trace while the agent runs; otherwise a replay of the latest saved trace (FIXTURE: fixture trace)."""
+def events(bid: str, speed: float = Query(1.0, ge=0, le=100), replay_: int = Query(0, alias="replay")):
+    """Live trace while the agent runs; otherwise (or with ?replay=1) the last saved run, sent as a replay: a first
+    "replay" event carries the label, and "end" repeats it. FIXTURE: fixture trace."""
     if bid == FIX:
         return _sse(replay(fixtures.load("agent_events.json"), speed))
     _real(bid)
-    if agent_service.has_live(bid):
+    if agent_service.has_live(bid) and not replay_:
         return _sse(agent_service.live(bid))
-    saved = agent_events.load_latest(bid)
-    if not saved:
+    r = last_run(bid)
+    if r is None:
         raise HTTPException(404, "no agent run for this building yet: POST /run")
-    return _sse(replay(saved, speed))
+    label = {k: v for k, v in r.items() if not k.startswith("_")}
+    return _sse(replay(r["_events"], speed, label=label))
 
 
 @app.get("/buildings/{bid}/report", response_class=HTMLResponse)
 def report(bid: str, depth_ft: float = Query(2, ge=0, le=8)):
     if bid == FIX:
         return fixtures.report_html()
-    return report_html.render(_real(bid), buildings.get_assets(bid), buildings.get_entry_points(bid), depth_ft)
+    b, assets = _real(bid), buildings.get_assets(bid)
+    return guard.guarded(report_html.render(b, assets, buildings.get_entry_points(bid), depth_ft),
+                         guard.document_sources(b, assets, depth_ft), "the report")
 
 
 @app.get("/buildings/{bid}/playbook", response_class=HTMLResponse)
 def playbook(bid: str, depth_ft: float = Query(2, ge=0, le=8)):
     if bid == FIX:
         return fixtures.playbook_html()
-    return playbook_html.render(_real(bid), buildings.get_assets(bid), buildings.get_entry_points(bid), depth_ft)
+    b, assets = _real(bid), buildings.get_assets(bid)
+    return guard.guarded(playbook_html.render(b, assets, buildings.get_entry_points(bid), depth_ft),
+                         guard.document_sources(b, assets, depth_ft), "the playbook")
 
 
 @app.post("/buildings/{bid}/send")
@@ -260,8 +287,12 @@ def send(bid: str, body: dict = Body(...), depth_ft: float = Query(2, ge=0, le=8
         raise HTTPException(403, "recipient is not in ALLOWED_RECIPIENTS")
     if bid != FIX and agent_service.waiting_for_approval(bid):
         return agent_service.decide(bid, True)      # resumes the agent; its send_playbook tool sends
-    html = fixtures.playbook_html() if bid == FIX else playbook_html.render(
-        _real(bid), buildings.get_assets(bid), buildings.get_entry_points(bid), depth_ft)
+    if bid == FIX:
+        html = fixtures.playbook_html()
+    else:
+        b, assets = _real(bid), buildings.get_assets(bid)
+        html = guard.guarded(playbook_html.render(b, assets, buildings.get_entry_points(bid), depth_ft),
+                             guard.document_sources(b, assets, depth_ft), "the playbook being sent")
     return send_action.send_playbook(bid, recipient, depth_ft, html, approved=True)
 
 

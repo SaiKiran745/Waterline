@@ -37,7 +37,7 @@
       "positions_read": {
         "type": "integer",
         "minimum": 0,
-        "description": "Scan positions the interior survey read."
+        "description": "Scan positions the stored interior survey has read. The stored survey never shrinks: agent runs add to it. Show as \"N of M positions read\" with scan_positions."
       },
       "scan_positions": {
         "type": "integer",
@@ -47,7 +47,7 @@
       "contents_assets": {
         "type": "integer",
         "minimum": 0,
-        "description": "Surveyed assets that are not building fabric."
+        "description": "Surveyed contents assets: not building fabric (A-FIN) and not road vehicles (V-VEHICLE, movable, not in contents loss). The same count the agent reports."
       },
       "note": {
         "type": "string"

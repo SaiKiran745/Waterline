@@ -42,6 +42,7 @@ class Trace:
         self.ns_role: dict[str, str] = {}               # subgraph namespace -> subagent, learned from its tool calls
         self.pending_skills: dict[str, list] = {}       # skill loads seen before the namespace's subagent is known
         self.listeners: list = []
+        self.sources: list[str] = []                    # tool results and dossier files: what figures may cite
 
     def emit(self, agent: str, type_: str, text: str, refs=(), data=None) -> dict:
         with _lock:
@@ -168,10 +169,14 @@ def translate(trace: Trace, namespace: tuple, chunk: dict) -> None:
                             trace.emit(stem if stem in AGENTS else who, "artifact", f"{'Wrote' if name == 'write_file' else 'Updated'} {path}",
                                        refs=[path], data={"tool": name, "path": path})
                 text = getattr(m, "text", None)
-                text = text() if callable(text) else text
+                text = text if isinstance(text, str) or not callable(text) else text()
                 if text and not getattr(m, "tool_calls", None) and not in_subagent:
-                    trace.emit("orchestrator", "decision", text)
-            elif mtype == "tool" and getattr(m, "name", "") == "task" and not in_subagent:
+                    from app.agent import guard
+                    trace.emit("orchestrator", "decision", guard.guarded(text, trace.sources, "the orchestrator's message"))
+            if mtype == "tool":
+                body = getattr(m, "content", "")
+                trace.sources.append(body if isinstance(body, str) else json.dumps(body, default=str))
+            if mtype == "tool" and getattr(m, "name", "") == "task" and not in_subagent:
                 body = getattr(m, "content", "")
                 body = body if isinstance(body, str) else json.dumps(body)[:2000]
                 sub = trace.task_ids.get(getattr(m, "tool_call_id", None) or "") or \

@@ -5,9 +5,9 @@
 - Long results go into dossier files in the agent's file system (/dossier/<id>/..., via a Command state update,
   mirrored to data/cache/agent/dossier/<id>/ and announced as artifact events). The tool message itself stays short,
   so the model's context stays small.
-- The interior survey has a position budget (SETTINGS["max_positions"], 12 by default) out of every scan position.
-  The surveyor sees all positions with coordinates, neighbours and a plain-language area, spreads out first, then
-  goes deeper where it found contents. Each survey call adds to the positions read so far in this session.
+- The interior survey reads every scan position by default, in batches of whole areas, largest first, with a
+  plain-language reason per batch. SETTINGS["quick_scan"] (optional, off by default) sets a position budget split
+  across areas by size. Every batch adds to the stored survey, which never shrinks (interior.run keep_stored).
 """
 import json
 from typing import Annotated
@@ -21,20 +21,20 @@ from app import buildings, corrections
 from app.actions import playbook as playbook_html
 from app.actions import report as report_html
 from app.actions import send as send_action
-from app.agent import events, memory
+from app.agent import events, guard, memory
 from app.config import BUILDINGS, CACHE
 from app.loss import mitigations as engine
 from app.loss import model
 from app.sources import gemini, spend
 from app.survey import interior, site
 
-SETTINGS = {"cached_positions_only": False, "max_positions": 12}
-STATE: dict[str, dict] = {}          # per building, per session: positions read so far
+SETTINGS = {"cached_positions_only": False, "quick_scan": None}   # quick_scan: optional position budget, off by default
+STATE: dict[str, dict] = {}          # per building, per session: positions read so far and batches
 DOSSIER = CACHE / "agent" / "dossier"
 
 
 def reset(bid: str) -> None:
-    STATE[bid] = {"chosen": []}
+    STATE[bid] = {"chosen": [], "batches": 0}
 
 
 def _call(role: str, name: str, args: dict, text: str | None = None) -> None:
@@ -51,6 +51,9 @@ def _check(building_id: str) -> dict:
 def _reply(role: str, tool_call_id: str, summary: dict | str, files: dict[str, str]) -> Command:
     """Short tool message + dossier files written into the agent's state (and mirrored to disk)."""
     upd = {}
+    tr = events.current()
+    if tr is not None:                      # figures the orchestrator may quote (agent/guard.py)
+        tr.sources += list(files.values()) + [summary if isinstance(summary, str) else json.dumps(summary)]
     for path, content in files.items():
         upd[path] = create_file_data(content)
         bid = path.split("/")[2]
@@ -133,186 +136,215 @@ def _mp(bid: str) -> dict:
     return json.loads((BUILDINGS / bid / "parts.json").read_text())["matterport"]
 
 
-def _areas(bid: str, mp: dict) -> dict:
-    """Plain-language area for every position: the room type seen there this session, otherwise the room's size and
-    which part of the room the position is in."""
+ORDER = {1: "the largest room", 2: "the second-largest room", 3: "the third-largest room"}
+
+
+def quota(sizes: list[int], budget: int | None) -> list[int]:
+    """Positions to read per area. Full survey (budget None): all of them. Quick scan: the budget split across areas
+    in proportion to their size (largest remainder), never more than an area has."""
+    if budget is None or budget >= sum(sizes):
+        return list(sizes)
+    share = [budget * s / sum(sizes) for s in sizes]
+    q = [min(s, int(x)) for s, x in zip(sizes, share)]
+    for i in sorted(range(len(sizes)), key=lambda i: (-(share[i] - int(share[i])), -sizes[i])):
+        if sum(q) >= budget:
+            break
+        if q[i] < sizes[i]:
+            q[i] += 1
+    return q
+
+
+def _area_table(bid: str, mp: dict) -> list[dict]:
+    """Rooms of the scan as areas A1, A2, ... largest first, named by what was seen in them this session (otherwise
+    by size), with how many positions this run reads in each."""
     with_pano = {p["location_id"] for p in mp["panos"]}
-    locs = [l for l in mp["locations"] if l["id"] in with_pano]
     by_room: dict[str, list] = {}
-    for l in locs:
-        by_room.setdefault((l.get("room") or {}).get("id") or "none", []).append(l)
-    rank = {rid: i for i, (rid, _) in enumerate(sorted(by_room.items(), key=lambda kv: -len(kv[1])), 1)}
+    for l in mp["locations"]:
+        if l["id"] in with_pano:
+            by_room.setdefault((l.get("room") or {}).get("id") or "none", []).append(l)
+    rooms = sorted(by_room.items(), key=lambda kv: (-len(kv[1]), kv[0]))
     labels = {r["id"]: (r.get("label") or "").strip() for r in mp["rooms"]}
-    room_of = {l["id"]: (l.get("room") or {}).get("id") or "none" for l in locs}
-    seen: dict[str, str] = {}
+    st = STATE.get(bid, {"chosen": []})
+    mine = {c["location_id"] for c in st["chosen"]}
+    seen: dict[str, list[str]] = {}
     log_path = BUILDINGS / bid / "survey_log.json"
-    chosen = {c["location_id"] for c in STATE.get(bid, {}).get("chosen", [])}
     if log_path.exists():
         for p in json.loads(log_path.read_text())["positions"]:
-            if p["location_id"] in chosen and p.get("room_types") and p["location_id"] in room_of:
-                seen.setdefault(room_of[p["location_id"]], p["room_types"][0])
-    out = {}
-    for rid, ls in by_room.items():
-        xs = [l["position"]["x"] for l in ls]
-        ys = [l["position"]["y"] for l in ls]
-        long_x = (max(xs) - min(xs)) >= (max(ys) - min(ys))
-        lo, hi = (min(xs), max(xs)) if long_x else (min(ys), max(ys))
-        order = {1: "the largest room", 2: "the second-largest room", 3: "the third-largest room"}
-        name = labels.get(rid) or seen.get(rid) or order.get(rank[rid], f"small room {rank[rid]}")
-        state = "seen" if rid in seen else "not yet seen"
-        for l in ls:
-            v = l["position"]["x" if long_x else "y"]
-            t = (v - lo) / (hi - lo) if hi > lo else 0.5
-            part = "one end" if t < 0.25 else "the other end" if t > 0.75 else "the middle"
-            out[l["id"]] = f"{name} ({state}), {part}" if len(ls) > 2 else f"{name} ({state})"
+            if p["location_id"] in mine and p.get("room_types"):
+                seen.setdefault(p["location_id"], p["room_types"])
+    corrected = {(r.get("fingerprint") or {}).get("location_id") for r in corrections.load(bid) if r["by"] == "human"}
+    q = quota([len(ls) for _, ls in rooms], SETTINGS["quick_scan"])
+    out = []
+    for i, ((rid, ls), n) in enumerate(zip(rooms, q), 1):
+        types = [t for l in ls for t in seen.get(l["id"], [])]
+        name = labels.get(rid) or (max(set(types), key=types.count) if types else ORDER.get(i, f"small room {i}"))
+        out.append({"id": f"A{i}", "room_id": rid, "name": name, "size_rank": ORDER.get(i, f"small room {i}"),
+                    "locs": ls, "to_read": n, "read": [l["id"] for l in ls if l["id"] in mine],
+                    "corrected": [l["id"] for l in ls if l["id"] in corrected]})
     return out
+
+
+def _stored(bid: str, mp: dict) -> str:
+    return f"{len(interior.stored_read(bid))} of {len(mp['panos'])} positions read"
+
+
+def _spread(locs: list[dict], n: int, must: list[str]) -> list[dict]:
+    """n positions spread over an area: corrected positions first, then farthest-point from those chosen."""
+    picks = [l for l in locs if l["id"] in must][:n]
+    rest = [l for l in locs if l not in picks]
+    if not picks and rest and n:
+        cx = sum(l["position"]["x"] for l in rest) / len(rest)
+        cy = sum(l["position"]["y"] for l in rest) / len(rest)
+        first = min(rest, key=lambda l: (l["position"]["x"] - cx) ** 2 + (l["position"]["y"] - cy) ** 2)
+        picks.append(first)
+        rest.remove(first)
+    while len(picks) < n and rest:
+        far = max(rest, key=lambda l: min((l["position"]["x"] - p["position"]["x"]) ** 2 +
+                                          (l["position"]["y"] - p["position"]["y"]) ** 2 for p in picks))
+        picks.append(far)
+        rest.remove(far)
+    return picks
+
+
+def _mode() -> str:
+    b = SETTINGS["quick_scan"]
+    return ("full survey: every scan position" if b is None else
+            f"QUICK SCAN (optional, off by default): {b} positions split across areas by size")
 
 
 @tool(parse_docstring=True)
 def list_scan_positions(building_id: str) -> str:
-    """Every Matterport scan position with its area, floor-plan coordinates (m) and neighbouring positions.
+    """The scan's areas, largest first, with how many positions to read in each, and what the stored survey holds.
 
     Args:
         building_id: Building slug.
     """
     _check(building_id)
     mp = _mp(building_id)
-    with_pano = {p["location_id"] for p in mp["panos"]}
-    locs = [l for l in mp["locations"] if l["id"] in with_pano]
-    areas = _areas(building_id, mp)
-    cached = interior.vision_index(building_id)
+    areas = _area_table(building_id, mp)
     _call("interior-surveyor", "list_scan_positions", {"building_id": building_id})
-    corrected = {(r.get("fingerprint") or {}).get("location_id") for r in corrections.load(building_id)
-                 if r["by"] == "human"}
-    rows = [{"id": l["id"][:6], "area": areas[l["id"]],
-             "xy": [round(l["position"]["x"], 1), round(l["position"]["y"], 1)],
-             "near": [n[:6] for n in (l.get("neighbors") or []) if n in with_pano][:6]}
-            | ({"note": "a person corrected an asset seen here"} if l["id"] in corrected else {}) for l in locs]
-    if corrected & {l["id"] for l in locs}:
+    corrected = [i for a in areas for i in a["corrected"]]
+    if corrected:
         events.emit("interior-surveyor", "observation",
-                    f"Memory: {len(corrected & {l['id'] for l in locs})} position(s) hold assets a person corrected; "
-                    "they will be read again.", refs=sorted(corrected & {l["id"] for l in locs}))
-    budget = SETTINGS["max_positions"]
-    used = len(STATE.get(building_id, {}).get("chosen", []))
+                    f"Memory: {len(corrected)} position(s) hold assets a person corrected; they will be read again.",
+                    refs=corrected)
+    total = sum(len(a["locs"]) for a in areas)
     events.emit("interior-surveyor", "observation",
-                f"{len(locs)} scan positions in {len({a.split(' (')[0] for a in areas.values()})} areas; budget "
-                f"{budget} positions ({budget - used} left); {len(cached & with_pano)} have cached vision answers.",
-                data={"positions": len(locs), "budget": budget})
-    return json.dumps({"budget_left": budget - used, "positions": rows}, separators=(",", ":"))
+                f"{total} scan positions in {len(areas)} areas ({', '.join(f'{a['id']} {len(a['locs'])}' for a in areas)});"
+                f" mode: {_mode()}; stored survey: {_stored(building_id, mp)}.",
+                data={"positions": total, "areas": len(areas), "quick_scan": SETTINGS["quick_scan"]})
+    rows = [{"id": a["id"], "area": a["name"], "positions": len(a["locs"]), "to_read": a["to_read"]}
+            | ({"note": "a person corrected an asset here"} if a["corrected"] else {}) for a in areas]
+    return json.dumps({"mode": _mode(), "stored_survey": _stored(building_id, mp), "areas": rows},
+                      separators=(",", ":"))
 
 
 @tool(parse_docstring=True)
-def survey_positions(building_id: str, choices: list[dict],
-                     tool_call_id: Annotated[str, InjectedToolCallId]) -> Command:
-    """Read the chosen scan positions with the vision model; adds to the positions already read this session.
+def survey_area(building_id: str, area_ids: list[str], reason: str,
+                tool_call_id: Annotated[str, InjectedToolCallId]) -> Command:
+    """Read one batch: every position still to read in the given areas, with the vision model. Adds to the stored survey.
 
     Args:
         building_id: Building slug.
-        choices: Positions to read, each {"id": "<id from list_scan_positions>", "reason": "<plain words naming the area>"}.
+        area_ids: Areas in this batch, ids from list_scan_positions (for example ["A1"], or ["A3", "A4", "A5"]).
+        reason: Why this batch now, in plain words naming the area (no coordinates or ids).
     """
     _check(building_id)
-    st = STATE.setdefault(building_id, {"chosen": []})
+    st = STATE.setdefault(building_id, {"chosen": [], "batches": 0})
     mp = _mp(building_id)
-    full = {p["location_id"] for p in mp["panos"]}
-    have = {c["location_id"] for c in st["chosen"]}
-    budget = SETTINGS["max_positions"] - len(st["chosen"])
-    new, refused = [], []
-    for c in choices or []:
-        if not isinstance(c, dict):
-            continue
-        short = str(c.get("id") or c.get("location_id") or "")
-        match = [f for f in full if f.startswith(short)] if short else []
-        if len(match) != 1 or match[0] in have:
-            refused.append(short)
-            continue
-        if len(new) >= budget:
-            refused.append(f"{short} (over budget)")
-            continue
-        new.append({"location_id": match[0], "reason": str(c.get("reason") or "").strip()})
-        have.add(match[0])
-    _call("interior-surveyor", "survey_positions", {"building_id": building_id, "new_positions": len(new)},
-          f"survey_positions: {len(new)} new positions ({len(st['chosen']) + len(new)} of "
-          f"{SETTINGS['max_positions']} used)")
-    for c in new:
-        events.emit("interior-surveyor", "decision", f"Read position {c['location_id'][:6]}: {c['reason']}",
-                    refs=[c["location_id"]])
+    areas = {a["id"]: a for a in _area_table(building_id, mp)}
+    picked = [areas[str(i).strip().upper()] for i in area_ids or [] if str(i).strip().upper() in areas]
+    unknown = [str(i) for i in area_ids or [] if str(i).strip().upper() not in areas]
+    st["batches"] = st.get("batches", 0) + 1
+    k = st["batches"]
+    new = []
+    for a in picked:
+        left = a["to_read"] - len(a["read"])
+        todo = [l for l in a["locs"] if l["id"] not in a["read"]]
+        for l in _spread(todo, max(left, 0), a["corrected"]):
+            new.append({"location_id": l["id"], "reason": f"batch {k}, {a['name']}: {reason.strip()}"})
+    names = " + ".join(f"{a['name']} ({a['id']})" for a in picked) or "nothing"
+    total = sum(len(a["locs"]) for a in areas.values())
+    _call("interior-surveyor", "survey_area", {"building_id": building_id, "areas": [a["id"] for a in picked]},
+          f"survey_area batch {k}: {names}, {len(new)} positions")
+    events.emit("interior-surveyor", "decision",
+                f"Batch {k}: {names}, {len(new)} of {total} positions ({len(new) / total:.0%} of the scan). "
+                f"Why now: {reason.strip()}",
+                refs=[c["location_id"] for c in new], data={"batch": k, "areas": [a["id"] for a in picked],
+                                                            "positions": len(new)})
     st["chosen"] += new
-    backup = BUILDINGS / building_id / "assets_batch.json"
-    if not backup.exists() and (BUILDINGS / building_id / "assets.json").exists():
-        backup.write_text((BUILDINGS / building_id / "assets.json").read_text())
     try:
-        assets = interior.run(building_id, SETTINGS["max_positions"], 0, SETTINGS["cached_positions_only"],
-                              chosen=st["chosen"])
+        assets = interior.run(building_id, len(new), 0, SETTINGS["cached_positions_only"], chosen=st["chosen"])
     except interior.Stop as e:
         events.emit("interior-surveyor", "observation", f"Survey stopped: {e}")
         return _reply("interior-surveyor", tool_call_id, {"stopped": str(e)[:200]}, {})
     log = json.loads((BUILDINGS / building_id / "survey_log.json").read_text())
-    calls = {c["pano"]: c for c in log["calls"] if c["kind"] == "survey"}
     per = {p["location_id"]: p for p in log["positions"]}
-    found = []
-    for c in new:
-        p = per.get(c["location_id"], {})
-        call = calls.get(c["location_id"], {})
-        f = {"id": c["location_id"][:6], "saw": (p.get("room_types") or ["?"])[0],
-             "contents": len(p.get("contents") or []), "top": (p.get("contents") or [])[:3],
-             "vehicles": p.get("vehicles", 0), "cached": bool(call.get("cached"))}
-        found.append(f)
+    calls = {c["pano"]: c for c in log["calls"] if c["kind"] == "survey"}
+    after = {a["id"]: a for a in _area_table(building_id, mp)}
+    batch = []
+    for a in picked:
+        ids = [c["location_id"] for c in new if c["location_id"] in {l["id"] for l in a["locs"]}]
+        items = [x for i in ids for x in (per.get(i, {}).get("contents") or [])]
+        live = sum(1 for i in ids if not calls.get(i, {}).get("cached"))
+        row = {"id": a["id"], "was": a["name"], "seen_as": after[a["id"]]["name"], "positions_read": len(ids),
+               "contents_sightings": len(items), "examples": sorted(set(items), key=items.count, reverse=True)[:4],
+               "vehicles": sum(per.get(i, {}).get("vehicles", 0) for i in ids)}
+        batch.append(row)
         events.emit("interior-surveyor", "observation",
-                    f"Position {f['id']} ({'cached' if f['cached'] else 'live'}): saw a {f['saw']}; "
-                    f"{f['contents']} contents items" + (f" ({', '.join(f['top'])})" if f["top"] else "")
-                    + (f"; {f['vehicles']} vehicles" if f["vehicles"] else ""), refs=[c["location_id"]], data=f)
-    low = sorted([a for a in assets if a["confidence"] < interior.LOW_CONF
-                  and a["value_basis"] not in ("A-FIN", "V-VEHICLE")], key=lambda a: -a["value_usd_high"])
-    contents = [a for a in assets if a["value_basis"] not in ("A-FIN", "V-VEHICLE")]
+                    f"Batch {k}, {a['name']}: {len(ids)} positions ({len(ids) - live} from cache, {live} live); seen as "
+                    f"{'an' if row['seen_as'][:1].lower() in 'aeiou' else 'a'} {row['seen_as']}; {len(items)} contents sightings"
+                    + (f" ({', '.join(row['examples'])})" if row["examples"] else "")
+                    + (f"; {row['vehicles']} vehicle sightings" if row["vehicles"] else ""), refs=ids, data=row)
+    contents = [a for a in buildings.get_assets(building_id) if a["value_basis"] not in ("A-FIN", "V-VEHICLE")]
     value = [sum(a["value_usd_low"] for a in contents), sum(a["value_usd_high"] for a in contents)]
+    low = sorted([a for a in contents if a["confidence"] < interior.LOW_CONF], key=lambda a: -a["value_usd_high"])
+    stored = _stored(building_id, mp)
     events.emit("interior-surveyor", "observation",
-                f"So far {len(st['chosen'])} positions, {len(contents)} contents assets worth {_usd(value)}; "
-                f"{len(low)} below confidence {interior.LOW_CONF}.", refs=[a["id"] for a in low[:6]],
-                data={"positions": len(st["chosen"]), "contents_assets": len(contents), "value_usd": value})
-    doc = [f"# Interior inventory: {building_id}", "", f"Positions read: {len(st['chosen'])}", "",
+                f"Stored survey now {stored}: {len(contents)} contents assets worth {_usd(value)}; {len(low)} below "
+                f"confidence {interior.LOW_CONF}.", refs=[a["id"] for a in low[:6]],
+                data={"stored_survey": stored, "contents_assets": len(contents), "value_usd": value})
+    left = [{"id": a["id"], "area": a["name"], "positions_left": a["to_read"] - len(a["read"])}
+            for a in after.values() if a["to_read"] > len(a["read"])]
+    doc = [f"# Interior inventory: {building_id}", "", f"Stored survey: {stored}. Mode this run: {_mode()}.", "",
            "| Id | Room | Asset | Class | Lowest part (ft) | Confidence |", "|---|---|---|---|---|---|"]
     doc += [f"| {a['id']} | {a['room']} | {a['label']} | {a['value_basis']} | {a['height_ft_low']}-{a['height_ft_high']} "
             f"| {a['confidence']} |" for a in assets]
-    doc += ["", "## Positions", ""] + [f"- {c['location_id'][:6]}: {c['reason']}" for c in st["chosen"]]
-    areas = _areas(building_id, mp)
-    names = sorted({a.split(" (")[0] for a in areas.values()})
-    # New coverage beats re-sighting: unread positions in rooms where contents were found, farthest from any read one.
-    locs = {l["id"]: l for l in mp["locations"] if l["id"] in full}
-    room = lambda i: (locs[i].get("room") or {}).get("id") or "none"
-    rich = {room(c["location_id"]) for c in st["chosen"] if (per.get(c["location_id"]) or {}).get("contents")}
-    read = [locs[c["location_id"]]["position"] for c in st["chosen"] if c["location_id"] in locs]
-    def gap(i):
-        q = locs[i]["position"]
-        return min(((q["x"] - r["x"]) ** 2 + (q["y"] - r["y"]) ** 2) ** 0.5 for r in read) if read else 99.0
-    far = sorted((i for i in locs if i not in have and room(i) in rich), key=lambda i: -gap(i))[:8]
-    unread_far = [{"id": i[:6], "area": areas[i], "gap_m": round(gap(i), 1)} for i in far]
+    doc += ["", "## Batches this run", ""] + [f"- {c['location_id'][:6]}: {c['reason']}" for c in st["chosen"]]
     return _reply("interior-surveyor", tool_call_id, {
-        "new_positions": found, "refused": refused, "areas_now": names, "unread_far_from_read": unread_far, "budget_left": SETTINGS["max_positions"] - len(st["chosen"]),
-        "contents_assets": len(contents), "contents_value_usd": value,
+        "batch": k, "read": batch, "unknown_areas": unknown, "areas_left": left, "stored_survey": stored,
+        "contents_assets": len(contents), "contents_value_usd": _usd(value),
         "low_confidence": [f"{a['id']} {a['label'][:40]} conf {a['confidence']}" for a in low[:6]],
         "inventory": f"/dossier/{building_id}/inventory.md"}, {f"/dossier/{building_id}/inventory.md": "\n".join(doc)})
 
 
 @tool(parse_docstring=True)
 def finish_survey(building_id: str) -> str:
-    """Finish the interior survey and report its exact results to the orchestrator. Call this last.
+    """Finish the interior survey and report the stored survey's exact results to the orchestrator. Call this last.
 
     Args:
         building_id: Building slug.
     """
     _check(building_id)
-    st = STATE.get(building_id, {"chosen": []})
+    mp = _mp(building_id)
+    st = STATE.get(building_id, {"chosen": [], "batches": 0})
     assets = buildings.get_assets(building_id)
     contents = [a for a in assets if a["value_basis"] not in ("A-FIN", "V-VEHICLE")]
     value = [sum(a["value_usd_low"] for a in contents), sum(a["value_usd_high"] for a in contents)]
     low = [a for a in contents if a["confidence"] < interior.LOW_CONF]
-    out = {"positions_read": len(st["chosen"]), "budget": SETTINGS["max_positions"], "contents_assets": len(contents),
-           "contents_value_usd": _usd(value), "vehicles": sum(1 for a in assets if a["value_basis"] == "V-VEHICLE"),
+    left = [f"{a['name']} ({a['to_read'] - len(a['read'])})" for a in _area_table(building_id, mp)
+            if a["to_read"] > len(a["read"])]
+    out = {"stored_survey": _stored(building_id, mp), "mode": _mode(),
+           "read_this_run": f"{len(st['chosen'])} positions in {st.get('batches', 0)} batches",
+           "contents_assets": len(contents), "contents_value_usd": _usd(value),
+           "vehicles": sum(1 for a in assets if a["value_basis"] == "V-VEHICLE"),
            "still_low_confidence": len(low), "inventory": f"/dossier/{building_id}/inventory.md"}
+    if left:
+        out["not_read_this_run"] = left
     events.emit("interior-surveyor", "observation",
-                f"Survey finished: {out['positions_read']} of {out['budget']} positions, {out['contents_assets']} contents "
-                f"assets worth {out['contents_value_usd']}, {out['vehicles']} vehicles, {len(low)} still below "
-                f"confidence {interior.LOW_CONF}.", data=out)
+                f"Survey finished. Stored survey: {out['stored_survey']} ({out['read_this_run']} this run); "
+                f"{out['contents_assets']} contents assets worth {out['contents_value_usd']}, {out['vehicles']} vehicles, "
+                f"{len(low)} still below confidence {interior.LOW_CONF}.", data=out)
     return json.dumps(out)
 
 
@@ -472,8 +504,11 @@ def draft_documents(building_id: str, depth_ft: float, tool_call_id: Annotated[s
     d = float(depth_ft)
     _call("communications", "draft_documents", {"building_id": building_id, "depth_ft": d})
     assets, eps = buildings.get_assets(building_id), buildings.get_entry_points(building_id)
-    files = {f"/dossier/{building_id}/report.html": report_html.render(b, assets, eps, d),
-             f"/dossier/{building_id}/playbook.html": playbook_html.render(b, assets, eps, d)}
+    src = guard.numbers(guard.document_sources(b, assets, d))
+    files = {f"/dossier/{building_id}/report.html":
+             guard.guarded(report_html.render(b, assets, eps, d), src, "the report", "communications"),
+             f"/dossier/{building_id}/playbook.html":
+             guard.guarded(playbook_html.render(b, assets, eps, d), src, "the playbook", "communications")}
     return _reply("communications", tool_call_id, {
         "report": f"/buildings/{building_id}/report?depth_ft={d:g}",
         "playbook": f"/buildings/{building_id}/playbook?depth_ft={d:g}"}, files)
@@ -490,7 +525,9 @@ def send_playbook(building_id: str, recipient: str, depth_ft: float) -> str:
     """
     b = _check(building_id)
     d = float(depth_ft)
-    html = playbook_html.render(b, buildings.get_assets(building_id), buildings.get_entry_points(building_id), d)
+    assets = buildings.get_assets(building_id)
+    html = guard.guarded(playbook_html.render(b, assets, buildings.get_entry_points(building_id), d),
+                         guard.document_sources(b, assets, d), "the playbook being sent", "communications")
     out = send_action.send_playbook(building_id, recipient, d, html, approved=True)
     events.emit("communications", "observation", f"Approved send to {out['recipient']}: {out['status']} ({out['detail']})",
                 data=out)
@@ -568,7 +605,7 @@ def apply_correction_to_similar(building_id: str, correction_id: str, asset_ids:
 
 ROLE_TOOLS = {
     "site-scout": [find_entry_points],
-    "interior-surveyor": [list_scan_positions, survey_positions, relook_asset, finish_survey],
+    "interior-surveyor": [list_scan_positions, survey_area, relook_asset, finish_survey],
     "market-analyst": [get_building_value],
     "scenario-builder": [run_scenario],
     "mitigation-planner": [rank_mitigations],

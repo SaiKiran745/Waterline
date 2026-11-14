@@ -92,8 +92,9 @@ def test_tools_run_on_cached_data(isolated):
         ctx, _ = _call(tools.get_site_context, building_id=BID)
         assert ctx["in_1pct_zone"] is False
         pos, _ = _call(tools.list_scan_positions, building_id=BID)
-        assert len(pos["positions"]) >= 20 and pos["budget_left"] == tools.SETTINGS["max_positions"]
-        assert all("near" in p and "area" in p for p in pos["positions"])
+        assert pos["mode"].startswith("full survey") and pos["areas"][0]["id"] == "A1"
+        sizes = [a["positions"] for a in pos["areas"]]
+        assert sizes == sorted(sizes, reverse=True) and [a["to_read"] for a in pos["areas"]] == sizes
         sc, files = _call(tools.run_scenario, building_id=BID, depth_ft=2)
         assert sc["details"] in files and "Contents" in files[sc["details"]]["content"]
         rk, files = _call(tools.rank_mitigations, building_id=BID, depth_ft=2)
@@ -123,3 +124,32 @@ def test_rerank_explains_what_moved_without_the_model(isolated):
                    for e in events.current().events)
     finally:
         events.activate(None)
+
+
+def test_quick_scan_splits_the_budget_by_area_size():
+    assert tools.quota([27, 8, 4, 3, 3, 3, 1], None) == [27, 8, 4, 3, 3, 3, 1]       # default: every position
+    q = tools.quota([27, 8, 4, 3, 3, 3, 1], 12)
+    assert sum(q) == 12 and q[0] == max(q) and q == sorted(q, reverse=True)
+    assert tools.quota([11], 12) == [11]
+
+
+def test_stored_survey_never_shrinks(isolated, monkeypatch):
+    """A batch that reads one small area still leaves every stored position in the survey."""
+    from app.survey import interior
+    before = {p["location_id"] for p in interior.stored_read(BID)}
+    if not before or not interior.vision_index(BID) >= before:
+        pytest.skip("needs a stored survey with cached vision answers")
+    import shutil
+    d = buildings.BUILDINGS / BID
+    keep = {f: (d / f).read_bytes() for f in ("assets.json", "asset_geometry.json", "survey_log.json", "screening.json")
+            if (d / f).exists()}
+    monkeypatch.setitem(tools.SETTINGS, "cached_positions_only", True)
+    events.activate(events.Trace(BID, "t6"))
+    try:
+        out, _ = _call(tools.survey_area, building_id=BID, area_ids=["A7"], reason="the smallest room, as a test")
+        assert out["stored_survey"].startswith(f"{len(before)} of ")
+        assert {p["location_id"] for p in interior.stored_read(BID)} >= before
+    finally:
+        events.activate(None)
+        for f, b in keep.items():
+            (d / f).write_bytes(b)

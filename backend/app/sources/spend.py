@@ -97,7 +97,8 @@ def record(tag: str, model: str, usage: dict) -> float:
         d["total_usd"] = round(d["total_usd"] + c, 6)
         d["budget_usd"] = budget()
         w = warn_at()
-        crossed = w is not None and before < w <= d["total_usd"] and not d.get("warned_at")
+        crossed = (w is not None and before < w <= d["total_usd"]
+                   and (d.get("warned_at") or {}).get("warn_usd") != w)   # a new warning level warns again
         if crossed:
             d["warned_at"] = {"ts": datetime.now(timezone.utc).isoformat(), "total_usd": d["total_usd"], "warn_usd": w}
         _write(d)

@@ -5,13 +5,13 @@ description: How Waterline surveys a building's interior from its Matterport sca
 
 # Survey method
 
-## Choosing scan positions
-- Call `list_scan_positions` first. Read the rooms and the floor-plan coordinates (metres).
-- Choose up to 20 positions. Cover every room at least once.
-- In large rooms, also pick positions far apart, so one view does not hide what another sees.
-- Prefer rooms where contents gather: warehouses, shops, server and electrical rooms, offices with equipment.
-- Give a short, specific reason for every position. For example: "farthest from the other picks in the Warehouse, near the east roll-up doors".
-- In demo mode only positions with cached vision answers are offered. Say so; do not pretend they were chosen from all positions.
+## Reading the scan
+- Call `list_scan_positions` first. It lists the areas (rooms of the scan) largest first, with how many positions to read in each.
+- By default every scan position is read. Read in batches, largest areas first: the largest room, the next largest, then all the small rooms together.
+- Give each batch one short, specific reason in plain words. For example: "the largest room first: 27 of 49 positions, most of the floor and most of what water can reach".
+- Quick scan is an optional mode, off by default: a position budget split across areas by size. Say "quick scan" whenever it is on; its result covers part of the building only.
+- The stored survey never shrinks: every batch adds to it. Report the stored survey ("N of M positions read"), not just this run.
+- In demo mode only cached vision answers are used. Say so.
 
 ## Reading heights
 - Heights come from the 3D mesh where the mesh and the vision estimate agree ("measured from mesh").

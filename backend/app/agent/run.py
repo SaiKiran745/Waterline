@@ -1,8 +1,9 @@
 """Run the Waterline agent on a building: a three-turn session on one thread, traced as AgentEvents.
 
-    python -m app.agent.run building-e --depth 1 --new-depth 4 --approve [--positions 12]
+    python -m app.agent.run building-e --depth 1 --new-depth 4 --approve [--quick-scan 12]
 
-Turn 1 (assess): memory, plan, site, interior survey within a position budget, value, scenario, fixes at --depth.
+Turn 1 (assess): memory, plan, site, interior survey (every scan position, in batches of whole areas, largest first;
+--quick-scan N is an optional position budget, off by default), value, scenario, fixes at --depth.
 Turn 2 (replan): the user moves the slider to --new-depth: re-plan, re-price, re-rank only.
 Turn 3 (send): draft the report and playbook, then send_playbook, which pauses for a person.
 Turn 4 (approval): a person approves (or rejects) the send.
@@ -27,7 +28,7 @@ RUNS = CACHE / "agent" / "runs"
 
 
 class Session:
-    def __init__(self, bid: str, echo: bool = True, cached_positions_only: bool = False, positions: int = 12):
+    def __init__(self, bid: str, echo: bool = True, cached_positions_only: bool = False, quick_scan: int | None = None):
         self.bid = bid
         self.run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:6]
         self.trace = events.Trace(bid, self.run_id, echo=echo)
@@ -39,7 +40,7 @@ class Session:
             for f in old.rglob("*"):
                 if f.is_file() and f.name != "sends.json":
                     f.unlink()
-        tools.SETTINGS.update(cached_positions_only=cached_positions_only, max_positions=positions)
+        tools.SETTINGS.update(cached_positions_only=cached_positions_only, quick_scan=quick_scan)
         self.agent = orchestrator.build_agent(bid, self.cb, sub_cb=self.sub_cb)
         self.config = {"configurable": {"thread_id": f"{bid}-{self.run_id}"}, "recursion_limit": 300}
         self.spend_start = spend.summary()["total_usd"]
@@ -100,9 +101,11 @@ class Session:
 
     def assess(self, depth: float) -> dict:
         self.depth = depth
-        msg = (f"Assess {self.bid} for {depth:g} ft of interior water: site, interior (the surveyor has a budget of "
-               f"{tools.SETTINGS['max_positions']} scan positions), value, loss and ranked fixes at {depth:g} ft. "
-               "Do not draft or send documents yet.")
+        q = tools.SETTINGS["quick_scan"]
+        survey = ("the surveyor reads every scan position, in batches, largest areas first" if q is None else
+                  f"QUICK SCAN: the surveyor reads {q} scan positions split across areas by size")
+        msg = (f"Assess {self.bid} for {depth:g} ft of interior water: site, interior ({survey}), value, loss and "
+               f"ranked fixes at {depth:g} ft. Do not draft or send documents yet.")
         return self._stream({"messages": [{"role": "user", "content": msg}], "files": orchestrator.skill_files()},
                             "assess")
 
@@ -134,11 +137,12 @@ def main() -> None:
     ap.add_argument("--depth", type=float, default=1.0)
     ap.add_argument("--new-depth", type=float, default=4.0)
     ap.add_argument("--approve", action="store_true")
-    ap.add_argument("--positions", type=int, default=12, help="scan-position budget for the interior surveyor")
+    ap.add_argument("--quick-scan", type=int, default=None, metavar="N",
+                    help="optional quick scan: read only N scan positions, split across areas by size (off by default)")
     ap.add_argument("--cached-only", action="store_true", help="offer only positions with cached vision answers")
     a = ap.parse_args()
     recipient = next((r.strip() for r in os.environ.get("ALLOWED_RECIPIENTS", "").split(",") if r.strip()), "")
-    s = Session(a.building, cached_positions_only=a.cached_only, positions=a.positions)
+    s = Session(a.building, cached_positions_only=a.cached_only, quick_scan=a.quick_scan)
     print(f"run {s.run_id}: model {s.cb.model_name}; spend before ${s.spend_start:.4f}", flush=True)
     for step in (lambda: s.assess(a.depth), lambda: s.change_depth(a.new_depth, recipient),
                  lambda: s.request_send(recipient),

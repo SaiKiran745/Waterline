@@ -59,6 +59,19 @@ Fixtures are fake ("FIXTURE, not real data") and contain no sponsor data. Phase 
 
 ## Changelog
 
+### 1.2.1 (2026-11-14, human decisions on the stored survey; no schema shape changed)
+
+- **The stored survey never shrinks.** An agent run adds to a building's survey or re-checks it, and never replaces it with a smaller one. `/triage`, `/buildings/{id}`, `/scenario_table` and the agent all describe the same stored survey.
+- **`Triage.positions_read` / `scan_positions`** is the stored survey, shown as "N of M positions read" for every building. Only the description text changed.
+- **`Triage.contents_assets`** now excludes road vehicles (`V-VEHICLE`) as well as building fabric (`A-FIN`). This is the same count the agent reports. Vehicles are named in `note`.
+- **Room names are unique within a building** (`Asset.room`): two rooms the scan calls "Office" become "Office" and "Office 2", so each mitigation names one room.
+- **Agent replay:** `POST /buildings/{id}/run` with `{"replay": true}`, or any `/run` under `DEMO_MODE=1` without `{"live": true}`, returns the last saved run labelled `REPLAY`. `GET /buildings/{id}/events?replay=1` streams it: a first `replay` SSE event carries the label, run id and recording time, and `end` repeats `replay: true`. `GET /buildings/{id}/runs/latest` returns the same label. `{"quick_scan": N}` on `/run` is an optional partial survey, off by default.
+
+**What Codex must change**
+1. Show "N of M positions read" from `/triage` (`positions_read`, `scan_positions`) on the map and on the building page.
+2. "Replay last run" button: `POST /run {"replay": true}`, then open `events_url`. While it plays, show the `label` from the `replay` event ("REPLAY … not a live run").
+3. Any quick-scan control must be labelled "Quick scan (partial survey)" and off by default.
+
 ### 1.2.0 (2026-11-14, approved by the human)
 
 **New endpoints and schemas**

@@ -33,11 +33,11 @@ def _run(bid: str, fn) -> None:
     t.start()
 
 
-def start(bid: str, depth_ft: float) -> dict:
+def start(bid: str, depth_ft: float, quick_scan: int | None = None) -> dict:
     from app.agent.run import Session               # imported here: building the agent loads LangChain
     if bid in _threads and _threads[bid].is_alive():
         raise Busy(f"the agent is already working on {bid}")
-    s = Session(bid, echo=False)
+    s = Session(bid, echo=False, quick_scan=quick_scan)
     _sessions[bid] = s
     _run(bid, lambda: s.assess(depth_ft))
     return status(bid)

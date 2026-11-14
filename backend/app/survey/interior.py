@@ -12,8 +12,13 @@
    neighbouring scan position and update the record (both looks are kept in `observations`).
 5. Value ranges come from app/loss/assumptions.yaml by category.
 Outputs (git-ignored): data/cache/buildings/<id>/assets.json, screening.json, survey_log.json.
+
+The stored survey never shrinks (human decision 2026-11-14): every run reads the positions it was given plus every
+position the stored survey already read (from the vision cache, so at no cost), and re-looks recorded earlier are
+carried over. survey_log.json is the stored survey: one entry per position read, and a history of runs.
 """
 import argparse
+import copy
 import io
 import json
 import math
@@ -250,7 +255,29 @@ def _index_add(bid: str, location_id: str) -> None:
         write_json(BUILDINGS / bid / "vision_index.json", sorted(have | {location_id}))
 
 
+_MEMO: dict[tuple[str, str], tuple] = {}     # (building, position) -> parsed reading, so batches don't redo ray casts
+
+
+def stored_read(bid: str) -> list[dict]:
+    """Positions the stored survey has read: [{"location_id", "reason", ...}] from survey_log.json."""
+    p = BUILDINGS / bid / "survey_log.json"
+    if not p.exists():
+        return []
+    return [x for x in json.loads(p.read_text())["positions"] if not x.get("error")]
+
+
 def survey_position(bid, mesh, mp, pos, log, cache_only: bool = False) -> list[dict]:
+    key = (bid, pos["location"]["id"])
+    if key in _MEMO:
+        got, flags, call = copy.deepcopy(_MEMO[key])
+        log["calls"].append({**call, "cached": True})
+        return [{**d, "location": pos["location"], "room_id": pos["room_id"]} for d in got], flags
+    got, flags = _survey_position(bid, mesh, mp, pos, log, cache_only)
+    _MEMO[key] = copy.deepcopy((got, flags, log["calls"][-1]))
+    return got, flags
+
+
+def _survey_position(bid, mesh, mp, pos, log, cache_only: bool = False) -> list[dict]:
     pano = pos["pano"]
     parts = [SURVEY_PROMPT]
     for f in SIDE_FACES:
@@ -427,13 +454,61 @@ def seed_positions(bid: str, mp: dict) -> list[dict]:
              "reason": f"read by the contents scout ({x['reason']})"} for x in scouted if x["location_id"] in panos]
 
 
+def room_names(mp: dict, groups: list[list[dict]]) -> dict[str, str]:
+    """One name per room: the scan's label, else the room type the vision model saw most there. Two rooms with the
+    same name are told apart by size ("Office", "Office 2"), so mitigations and the playbook name one room each."""
+    rooms = {r["id"]: r for r in mp["rooms"]}
+    size: dict[str, int] = {}
+    for l in mp["locations"]:
+        rid = (l.get("room") or {}).get("id") or "none"
+        size[rid] = size.get(rid, 0) + 1
+    seen: dict[str, list[str]] = {}
+    for g in groups:
+        for d in g:
+            if d.get("room_type", "").strip():
+                seen.setdefault(d["room_id"], []).append(d["room_type"].strip().title())
+    base = {}
+    for rid in {g[0]["room_id"] for g in groups}:
+        t = seen.get(rid) or []
+        base[rid] = (rooms.get(rid) or {}).get("label") or (max(set(t), key=t.count) if t else "Unlabelled room")
+    out, used = {}, {}
+    for rid in sorted(base, key=lambda r: (-size.get(r, 0), r)):
+        used[base[rid]] = used.get(base[rid], 0) + 1
+        out[rid] = base[rid] if used[base[rid]] == 1 else f"{base[rid]} {used[base[rid]]}"
+    return out
+
+
 class Stop(Exception):
     """Budget or billing stop: finish with what has been read, then exit non-zero."""
 
 
+def carry_relooks(old: list[dict], new: list[dict]) -> int:
+    """Keep re-looks made earlier (relook_asset updates assets.json in place) when the survey is rebuilt."""
+    def key(a):
+        return (a["location_id"], a["label"], a["value_basis"])
+    before = {key(a): a for a in old if len(a["observations"]) > 1 or "Re-looked" in a["evidence"]}
+    n = 0
+    for a in new:
+        o = before.get(key(a))
+        if not o:
+            continue
+        have = {(x["location_id"], x["image_ref"]) for x in a["observations"]}
+        extra = [x for x in o["observations"] if (x["location_id"], x["image_ref"]) not in have]
+        a["observations"] = a["observations"] + extra
+        better = o["confidence"] > a["confidence"]
+        if better:
+            a.update({k: o[k] for k in ("height_ft_low", "height_ft_high", "confidence", "image_ref", "evidence",
+                                        "position")})
+        n += bool(extra or better)          # only views the rebuild did not reproduce: the re-looks
+    return n
+
+
 def run(bid: str, max_positions: int, max_relooks: int, cached_positions_only: bool = False,
-        chosen: list[dict] | None = None) -> list[dict]:
-    """chosen: [{"location_id", "reason"}] picked by the agent; otherwise positions are chosen here."""
+        chosen: list[dict] | None = None, keep_stored: bool = True) -> list[dict]:
+    """chosen: [{"location_id", "reason"}] picked by the agent; otherwise positions are chosen here.
+
+    keep_stored: also read every position the stored survey already read, so the stored survey never shrinks
+    (max_positions limits only the new positions)."""
     parts = json.loads((BUILDINGS / bid / "parts.json").read_text())
     mp = parts["matterport"]
     mesh = mesh_for(str(MEDIA / bid / "mesh" / "mesh_50k.obj"))
@@ -451,11 +526,30 @@ def run(bid: str, max_positions: int, max_relooks: int, cached_positions_only: b
         seeds = seed_positions(bid, mp)
         seen = {x["location"]["id"] for x in seeds}
         positions = (seeds + [x for x in choose_positions(mp, max_positions) if x["location"]["id"] not in seen])[:max_positions]
-    print(f"{bid}: {len(mp['locations'])} scan positions; inspecting {len(positions)}"
+    prior = stored_read(bid) if keep_stored else []
+    old_log = json.loads((BUILDINGS / bid / "survey_log.json").read_text()) if (BUILDINGS / bid / "survey_log.json").exists() else {}
+    log["history"] = (old_log.get("history") or []) if keep_stored else []
+    new_ids = {p["location"]["id"] for p in positions}
+    first = {x["location_id"]: x.get("first_read_at") or old_log.get("started_at") for x in prior}
+    for p in positions:                     # re-reading a stored position keeps the date it was first read
+        if p["location"]["id"] in first:
+            p["earlier"] = first[p["location"]["id"]]
+    if prior:
+        panos = {q["location_id"]: q for q in mp["panos"]}
+        locs = {l["id"]: l for l in mp["locations"]}
+        positions += [{"location": locs[x["location_id"]], "pano": panos[x["location_id"]],
+                       "room_id": (locs[x["location_id"]].get("room") or {}).get("id") or "none",
+                       "reason": x["reason"], "earlier": x.get("first_read_at") or old_log.get("started_at")}
+                      for x in prior if x["location_id"] not in new_ids and x["location_id"] in panos]
+    old_assets = json.loads((BUILDINGS / bid / "assets.json").read_text()) if keep_stored and (BUILDINGS / bid / "assets.json").exists() else []
+    n_new = sum(1 for p in positions if not p.get("earlier"))
+    print(f"{bid}: {len(mp['locations'])} scan positions; reading {n_new} new"
+          + (f" + {len(positions) - n_new} already in the stored survey" if len(positions) > n_new else "")
           + (" (cached positions only)" if cached_positions_only else ""))
     dets, stop = [], None
     for k, pos in enumerate(positions, 1):
-        log["positions"].append({"location_id": pos["location"]["id"], "reason": pos["reason"]})
+        log["positions"].append({"location_id": pos["location"]["id"], "reason": pos["reason"],
+                                 "first_read_at": pos.get("earlier") or log["started_at"]})
         try:
             got, f = survey_position(bid, mesh, mp, pos, log, cache_only=cached_positions_only)
         except (gemini.GeminiError, CacheMiss) as e:  # every model failed (or cache-only miss): record it, move on
@@ -473,9 +567,13 @@ def run(bid: str, max_positions: int, max_relooks: int, cached_positions_only: b
             contents=[d["label"] for d in got if d["value_class"] not in ("A-FIN", "V-VEHICLE")],
             contents_value_high=sum(classes.value_class(d["value_class"])["high"] for d in got),
             vehicles=sum(1 for d in got if d["value_class"] == "V-VEHICLE"))
-        write_json(BUILDINGS / bid / "screening.json", flags)
-        print(f"  [{k}/{len(positions)}] {pos['reason']}: {len(got)} items ({log['calls'][-1]['model']}"
-              f"{', cached' if log['calls'][-1].get('cached') else ''})", flush=True)
+        if not pos.get("earlier") or k <= 1:
+            write_json(BUILDINGS / bid / "screening.json", flags)
+        if not pos.get("earlier"):
+            print(f"  [{k}/{len(positions)}] {pos['reason'][:90]}: {len(got)} items ({log['calls'][-1]['model']}"
+                  f"{', cached' if log['calls'][-1].get('cached') else ''})", flush=True)
+    canon = {q["location_id"]: i for i, q in enumerate(mp["panos"])}
+    dets.sort(key=lambda d: canon.get(d["location"]["id"], len(canon)))   # same positions -> same merge, any read order
     groups = merge(dets)
     relooked = 0
     for g in sorted(groups, key=lambda g: (bool(g[0].get("fabric")), g[0]["confidence"])):   # contents first
@@ -514,10 +612,10 @@ def run(bid: str, max_positions: int, max_relooks: int, cached_positions_only: b
         print(f"  {n}", flush=True)
     write_json(BUILDINGS / bid / "screening.json", flags)
     assets, geometry = [], {}
+    names = room_names(mp, groups)
     for n, g in enumerate(sorted(groups, key=lambda g: (g[0]["room_id"], g[0]["height_ft_low"], g[0]["label"])), 1):
         best = g[0]
-        room = rooms.get(best["room_id"]) or {}
-        label = room.get("label") or (best["room_type"].strip().title() if best["room_type"] else "Unlabelled room")
+        label = names[best["room_id"]]
         fabric = bool(best.get("fabric"))
         category = best["category"]
         va = classes.value_class(best["value_class"])
@@ -539,9 +637,16 @@ def run(bid: str, max_positions: int, max_relooks: int, cached_positions_only: b
         validate("asset", asset)
         assets.append(asset)
         geometry[asset["id"]] = {"span_ft": span, "value_class": va["id"]}
+    log["relooks_carried_over"] = carry_relooks(old_assets, assets)
+    for a in assets:
+        validate("asset", a)
     write_json(BUILDINGS / bid / "assets.json", assets)
     write_json(BUILDINGS / bid / "asset_geometry.json", geometry)     # object height from the mesh, for the loss model
     log["finished_at"] = datetime.now(timezone.utc).isoformat()
+    read = [p for p in log["positions"] if not p.get("error")]
+    log["history"].append({"started_at": log["started_at"], "finished_at": log["finished_at"],
+                           "new_positions": sum(1 for p in read if p["first_read_at"] == log["started_at"]),
+                           "positions_read": len(read), "assets": len(assets)})
     write_json(BUILDINGS / bid / "survey_log.json", log)
     if stop:
         raise Stop(stop)

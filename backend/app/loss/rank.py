@@ -25,10 +25,12 @@ def survey_status(bid: str, assets: list[dict]) -> dict:
                         "surveyed buildings."}
     log = json.loads(log_path.read_text())
     read = sum(1 for x in log["positions"] if not x.get("error"))
-    contents = sum(1 for a in assets if a["category"] != "finishes")
+    contents = sum(1 for a in assets if a["value_basis"] not in ("A-FIN", "V-VEHICLE"))   # as the agent counts them
+    vehicles = sum(1 for a in assets if a["value_basis"] == "V-VEHICLE")
     return {"status": "surveyed", "positions_read": read, "scan_positions": total, "contents_assets": contents,
-            "note": f"Interior survey read {read} of {total} scan positions; contents loss counts only what those "
-                    "positions show."}
+            "note": f"Interior survey read {read} of {total} scan positions; {contents} contents assets"
+                    + (f" (plus {vehicles} road vehicles, listed as movable and not in contents loss)" if vehicles else "")
+                    + ("" if read == total else "; contents loss counts only what those positions show") + "."}
 
 
 def compute() -> dict:

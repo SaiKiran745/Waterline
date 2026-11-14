@@ -11,7 +11,7 @@ import ssl
 from datetime import datetime, timezone
 from email.message import EmailMessage
 
-from app.config import CACHE
+from app.config import CACHE, demo_mode
 from app.sources.cache import write_json
 
 SETTINGS = ("SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASSWORD", "EMAIL_FROM")
@@ -41,6 +41,8 @@ def send_playbook(bid: str, recipient: str, depth_ft: float, html: str, approved
         out.update(status="refused", detail="not approved by a person")
     elif r not in allowed():
         out.update(status="refused", detail="recipient is not in ALLOWED_RECIPIENTS")
+    elif demo_mode():
+        out.update(status="draft_only", detail="draft only, not sent: DEMO_MODE=1 (no network in demo mode)")
     elif missing_settings():
         out.update(status="draft_only", detail=f"draft only, not sent: {', '.join(missing_settings())} not set")
     else:
