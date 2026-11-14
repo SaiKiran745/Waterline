@@ -238,12 +238,25 @@ def decide_height(est_lo: float, est_hi: float, conf: float, m: dict, box: list 
 
 # ------------------------------------------------------------------ survey
 
+def vision_index(bid: str) -> set[str]:
+    """Scan positions whose survey answer is in the Gemini cache (so reading them again costs nothing)."""
+    p = BUILDINGS / bid / "vision_index.json"
+    return set(json.loads(p.read_text())) if p.exists() else set()
+
+
+def _index_add(bid: str, location_id: str) -> None:
+    have = vision_index(bid)
+    if location_id not in have:
+        write_json(BUILDINGS / bid / "vision_index.json", sorted(have | {location_id}))
+
+
 def survey_position(bid, mesh, mp, pos, log, cache_only: bool = False) -> list[dict]:
     pano = pos["pano"]
     parts = [SURVEY_PROMPT]
     for f in SIDE_FACES:
         parts += [f"Face {f}:", jpeg(face_image(bid, pano["id"], f))]
     res = gemini.generate_json(parts, ASSET_SCHEMA, tag=f"{bid}/survey/{pano['id']}", cache_only=cache_only)
+    _index_add(bid, pos["location"]["id"])
     log["calls"].append({"kind": "survey", "pano": pano["id"], "model": res["model"], "cached": bool(res.get("cached")),
                          "tokens": (res.get("usage") or {}).get("totalTokenCount")})
     flags, room_types = {}, {}
@@ -417,7 +430,9 @@ class Stop(Exception):
     """Budget or billing stop: finish with what has been read, then exit non-zero."""
 
 
-def run(bid: str, max_positions: int, max_relooks: int, cached_positions_only: bool = False) -> list[dict]:
+def run(bid: str, max_positions: int, max_relooks: int, cached_positions_only: bool = False,
+        chosen: list[dict] | None = None) -> list[dict]:
+    """chosen: [{"location_id", "reason"}] picked by the agent; otherwise positions are chosen here."""
     parts = json.loads((BUILDINGS / bid / "parts.json").read_text())
     mp = parts["matterport"]
     mesh = mesh_for(str(MEDIA / bid / "mesh" / "mesh_50k.obj"))
@@ -425,9 +440,16 @@ def run(bid: str, max_positions: int, max_relooks: int, cached_positions_only: b
     log = {"building_id": bid, "started_at": datetime.now(timezone.utc).isoformat(), "positions": [], "calls": [],
            "relooks": [], "merge_rule": f"same category and mesh positions within {MERGE_M} m"}
     flags: dict = json.loads((BUILDINGS / bid / "screening.json").read_text()) if (BUILDINGS / bid / "screening.json").exists() else {}
-    seeds = seed_positions(bid, mp)
-    seen = {x["location"]["id"] for x in seeds}
-    positions = (seeds + [x for x in choose_positions(mp, max_positions) if x["location"]["id"] not in seen])[:max_positions]
+    if chosen is not None:
+        panos = {q["location_id"]: q for q in mp["panos"]}
+        locs = {l["id"]: l for l in mp["locations"]}
+        positions = [{"location": locs[c["location_id"]], "pano": panos[c["location_id"]],
+                      "room_id": (locs[c["location_id"]].get("room") or {}).get("id") or "none", "reason": c["reason"]}
+                     for c in chosen if c["location_id"] in panos][:max_positions]
+    else:
+        seeds = seed_positions(bid, mp)
+        seen = {x["location"]["id"] for x in seeds}
+        positions = (seeds + [x for x in choose_positions(mp, max_positions) if x["location"]["id"] not in seen])[:max_positions]
     print(f"{bid}: {len(mp['locations'])} scan positions; inspecting {len(positions)}"
           + (" (cached positions only)" if cached_positions_only else ""))
     dets, stop = [], None
@@ -533,3 +555,55 @@ if __name__ == "__main__":
     except Stop as e:
         raise SystemExit(f"{a.building}: stopped, partial assets written: {e}")
     print(f"{a.building}: {len(out)} assets")
+
+
+def relook_asset(bid: str, asset_id: str) -> dict:
+    """Look again at one saved asset from the nearest neighbouring scan position and update its record when the
+    new view is more confident (AGENTS.md section 10, behaviour 3). Returns before / neighbour / after."""
+    path = BUILDINGS / bid / "assets.json"
+    assets = json.loads(path.read_text())
+    a = next((x for x in assets if x["id"] == asset_id), None)
+    if a is None:
+        raise KeyError(asset_id)
+    mp = json.loads((BUILDINGS / bid / "parts.json").read_text())["matterport"]
+    mesh = mesh_for(str(MEDIA / bid / "mesh" / "mesh_50k.obj"))
+    panos = {q["location_id"]: q for q in mp["panos"]}
+    locs = {l["id"]: l for l in mp["locations"]}
+    geo_path = BUILDINGS / bid / "asset_geometry.json"
+    geometry = json.loads(geo_path.read_text()) if geo_path.exists() else {}
+    best = {"position": a["position"], "location": locs[a["location_id"]], "pano": panos[a["location_id"]],
+            "label": a["label"], "category": a["category"], "value_class": a["value_basis"],
+            "fabric": a["value_basis"] == "A-FIN", "room_id": a["room_id"] or "none", "room_type": "",
+            "span_ft": (geometry.get(asset_id) or {}).get("span_ft"), "confidence": a["confidence"],
+            "height_ft_low": a["height_ft_low"], "height_ft_high": a["height_ft_high"]}
+    log = {"calls": []}
+    flags_path = BUILDINGS / bid / "screening.json"
+    flags = json.loads(flags_path.read_text()) if flags_path.exists() else {}
+    before = {k: a[k] for k in ("height_ft_low", "height_ft_high", "confidence")}
+    r = relook(bid, mesh, mp, [best], log, flags)
+    write_json(flags_path, flags)
+    call = log["calls"][-1] if log["calls"] else None
+    out = {"asset_id": asset_id, "label": a["label"], "before": before, "cached": bool(call and call.get("cached")),
+           "model": call and call.get("model"), "neighbour_location_id": call and call.get("pano")}
+    if r is None:
+        out.update(result="inconclusive" if call else "no neighbouring position sees this item", after=before)
+        return out
+    obs = observation(bid, r)
+    a["observations"] = a["observations"] + [obs]
+    if r["confidence"] > a["confidence"]:
+        a.update(height_ft_low=r["height_ft_low"], height_ft_high=r["height_ft_high"],
+                 confidence=round(r["confidence"], 2), image_ref=obs["image_ref"],
+                 evidence=f"{a['evidence']} Re-looked from a neighbouring scan position: {r['evidence']} "
+                          f"Height {r['how']}.")
+        if r.get("position"):
+            a["position"] = {k: round(v, 3) for k, v in r["position"].items()}
+        if r.get("span_ft"):
+            geometry.setdefault(asset_id, {})["span_ft"] = r["span_ft"]
+        out["result"] = "updated from the neighbouring view"
+    else:
+        out["result"] = "kept the original view (the neighbouring view was not more confident)"
+    validate("asset", a)
+    write_json(path, assets)
+    write_json(geo_path, geometry)
+    out["after"] = {k: a[k] for k in ("height_ft_low", "height_ft_high", "confidence")}
+    return out
