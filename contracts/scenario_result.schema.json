@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "waterline/contracts/scenario_result.schema.json",
+  "title": "ScenarioResult",
+  "description": "Loss for one user-chosen water depth. A scenario, not a prediction.",
+  "type": "object",
+  "additionalProperties": false,
+  "$defs": {
+    "assumption": {
+      "type": "object", "additionalProperties": false, "required": ["id", "text", "source", "placeholder"],
+      "properties": {
+        "id": {"type": "string"}, "text": {"type": "string"}, "source": {"type": "string"},
+        "placeholder": {"type": "boolean", "description": "true = PLACEHOLDER value; the UI must label it."}
+      }
+    }
+  },
+  "required": ["building_id", "depth_ft", "depth_reference", "loss_usd_low", "loss_usd_high", "assets_hit",
+               "structure_loss_usd_low", "structure_loss_usd_high", "assumptions"],
+  "properties": {
+    "building_id": {"type": "string"},
+    "depth_ft": {"type": "number", "minimum": 0, "maximum": 8},
+    "depth_reference": {"const": "interior water depth above ground-floor slab"},
+    "loss_usd_low": {"type": "number", "minimum": 0},
+    "loss_usd_high": {"type": "number", "minimum": 0},
+    "assets_hit": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["asset_id", "status"],
+        "properties": {"asset_id": {"type": "string"}, "status": {"type": "string", "enum": ["likely", "possible"]}}
+      }
+    },
+    "structure_loss_usd_low": {"type": "number", "minimum": 0},
+    "structure_loss_usd_high": {"type": "number", "minimum": 0},
+    "assumptions": {"type": "array", "items": {"$ref": "#/$defs/assumption"}}
+  }
+}

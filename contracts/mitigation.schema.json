@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "waterline/contracts/mitigation.schema.json",
+  "title": "Mitigation",
+  "description": "One fix, evaluated at one depth, ranked by avoided loss per dollar.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "building_id", "depth_ft", "rank", "kind", "action", "targets", "cost_usd_low", "cost_usd_high",
+               "avoided_loss_usd_low", "avoided_loss_usd_high", "payback_note", "basis"],
+  "properties": {
+    "id": {"type": "string"},
+    "building_id": {"type": "string"},
+    "depth_ft": {"type": "number", "minimum": 0, "maximum": 8, "description": "Scenario depth the avoided loss was computed at."},
+    "rank": {"type": "integer", "minimum": 1},
+    "kind": {"type": "string", "enum": ["raise_asset", "relocate_asset", "entry_barrier", "move_inventory", "other"]},
+    "action": {"type": "string"},
+    "targets": {"type": "array", "items": {"type": "string"}, "description": "Asset or entry point ids."},
+    "cost_usd_low": {"type": "number", "minimum": 0},
+    "cost_usd_high": {"type": "number", "minimum": 0},
+    "avoided_loss_usd_low": {"type": "number", "minimum": 0},
+    "avoided_loss_usd_high": {"type": "number", "minimum": 0},
+    "payback_note": {"type": "string"},
+    "basis": {"type": "string", "description": "Assumption id for the cost range."}
+  }
+}

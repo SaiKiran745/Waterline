@@ -1,0 +1,877 @@
+[
+ {
+  "id": "fixture-1-a1",
+  "building_id": "fixture-1",
+  "matterport_model_id": "FIXTURE0001",
+  "floor_id": "fx-floor-0",
+  "room_id": "fx-room-office",
+  "room": "Office",
+  "location_id": "fx-loc-02",
+  "category": "it",
+  "label": "Desktop tower under desk",
+  "height_ft_low": 0.0,
+  "height_ft_high": 0.3,
+  "confidence": 0.8,
+  "value_usd_low": 800,
+  "value_usd_high": 1500,
+  "value_basis": "A-IT-DESKTOP",
+  "position": {
+   "x": -3.7,
+   "y": -3.3,
+   "z": 0.0
+  },
+  "evidence": "FIXTURE: desktop tower under desk seen from fx-loc-02",
+  "image_ref": "fx-pano-02/face2",
+  "observations": [
+   {
+    "location_id": "fx-loc-02",
+    "height_ft_low": 0.0,
+    "height_ft_high": 0.3,
+    "confidence": 0.8,
+    "evidence": "FIXTURE: first look at desktop tower under desk",
+    "image_ref": "fx-pano-02/face2"
+   }
+  ],
+  "source": "vision"
+ },
+ {
+  "id": "fixture-1-a2",
+  "building_id": "fixture-1",
+  "matterport_model_id": "FIXTURE0001",
+  "floor_id": "fx-floor-0",
+  "room_id": "fx-room-office",
+  "room": "Office",
+  "location_id": "fx-loc-02",
+  "category": "it",
+  "label": "Desktop tower under desk",
+  "height_ft_low": 0.0,
+  "height_ft_high": 0.3,
+  "confidence": 0.8,
+  "value_usd_low": 800,
+  "value_usd_high": 1500,
+  "value_basis": "A-IT-DESKTOP",
+  "position": {
+   "x": -5.4,
+   "y": -5.6,
+   "z": 0.0
+  },
+  "evidence": "FIXTURE: desktop tower under desk seen from fx-loc-02",
+  "image_ref": "fx-pano-02/face2",
+  "observations": [
+   {
+    "location_id": "fx-loc-02",
+    "height_ft_low": 0.0,
+    "height_ft_high": 0.3,
+    "confidence": 0.8,
+    "evidence": "FIXTURE: first look at desktop tower under desk",
+    "image_ref": "fx-pano-02/face2"
+   }
+  ],
+  "source": "vision"
+ },
+ {
+  "id": "fixture-1-a3",
+  "building_id": "fixture-1",
+  "matterport_model_id": "FIXTURE0001",
+  "floor_id": "fx-floor-0",
+  "room_id": "fx-room-office",
+  "room": "Office",
+  "location_id": "fx-loc-04",
+  "category": "it",
+  "label": "Desktop tower under desk",
+  "height_ft_low": 0.0,
+  "height_ft_high": 0.4,
+  "confidence": 0.75,
+  "value_usd_low": 800,
+  "value_usd_high": 1500,
+  "value_basis": "A-IT-DESKTOP",
+  "position": {
+   "x": -7.1,
+   "y": -7.9,
+   "z": 0.0
+  },
+  "evidence": "FIXTURE: desktop tower under desk seen from fx-loc-04",
+  "image_ref": "fx-pano-04/face1",
+  "observations": [
+   {
+    "location_id": "fx-loc-03",
+    "height_ft_low": 0,
+    "height_ft_high": 1.4,
+    "confidence": 0.45,
+    "evidence": "FIXTURE: first look at desktop tower under desk",
+    "image_ref": "fx-pano-03/face2"
+   },
+   {
+    "location_id": "fx-loc-04",
+    "height_ft_low": 0.0,
+    "height_ft_high": 0.4,
+    "confidence": 0.75,
+    "evidence": "FIXTURE: re-look from neighbouring position shows the base",
+    "image_ref": "fx-pano-04/face1"
+   }
+  ],
+  "source": "vision"
+ },
+ {
+  "id": "fixture-1-a4",
+  "building_id": "fixture-1",
+  "matterport_model_id": "FIXTURE0001",
+  "floor_id": "fx-floor-0",
+  "room_id": "fx-room-office",
+  "room": "Office",
+  "location_id": "fx-loc-02",
+  "category": "furniture",
+  "label": "Fabric task chairs (6)",
+  "height_ft_low": 0.0,
+  "height_ft_high": 1.5,
+  "confidence": 0.7,
+  "value_usd_low": 1200,
+  "value_usd_high": 2400,
+  "value_basis": "A-FURN-CHAIR",
+  "position": {
+   "x": -8.8,
+   "y": -10.2,
+   "z": 0.0
+  },
+  "evidence": "FIXTURE: fabric task chairs (6) seen from fx-loc-02",
+  "image_ref": "fx-pano-02/face2",
+  "observations": [
+   {
+    "location_id": "fx-loc-02",
+    "height_ft_low": 0.0,
+    "height_ft_high": 1.5,
+    "confidence": 0.7,
+    "evidence": "FIXTURE: first look at fabric task chairs (6)",
+    "image_ref": "fx-pano-02/face2"
+   }
+  ],
+  "source": "vision"
+ },
+ {
+  "id": "fixture-1-a5",
+  "building_id": "fixture-1",
+  "matterport_model_id": "FIXTURE0001",
+  "floor_id": "fx-floor-0",
+  "room_id": "fx-room-office",
+  "room": "Office",
+  "location_id": "fx-loc-03",
+  "category": "finishes",
+  "label": "Carpet tile, office floor",
+  "height_ft_low": 0.0,
+  "height_ft_high": 0.1,
+  "confidence": 0.9,
+  "value_usd_low": 6000,
+  "value_usd_high": 11000,
+  "value_basis": "A-FIN-CARPET",
+  "position": {
+   "x": -10.5,
+   "y": -1.0,
+   "z": 0.0
+  },
+  "evidence": "FIXTURE: carpet tile, office floor seen from fx-loc-03",
+  "image_ref": "fx-pano-03/face2",
+  "observations": [
+   {
+    "location_id": "fx-loc-03",
+    "height_ft_low": 0.0,
+    "height_ft_high": 0.1,
+    "confidence": 0.9,
+    "evidence": "FIXTURE: first look at carpet tile, office floor",
+    "image_ref": "fx-pano-03/face2"
+   }
+  ],
+  "source": "vision"
+ },
+ {
+  "id": "fixture-1-a6",
+  "building_id": "fixture-1",
+  "matterport_model_id": "FIXTURE0001",
+  "floor_id": "fx-floor-0",
+  "room_id": "fx-room-office",
+  "room": "Office",
+  "location_id": "fx-loc-03",
+  "category": "electrical",
+  "label": "Floor power boxes",
+  "height_ft_low": 0.0,
+  "height_ft_high": 0.2,
+  "confidence": 0.6,
+  "value_usd_low": 1500,
+  "value_usd_high": 3000,
+  "value_basis": "A-ELEC-FLOORBOX",
+  "position": null,
+  "evidence": "FIXTURE: floor power boxes seen from fx-loc-03",
+  "image_ref": "fx-pano-03/face2",
+  "observations": [
+   {
+    "location_id": "fx-loc-03",
+    "height_ft_low": 0.0,
+    "height_ft_high": 0.2,
+    "confidence": 0.6,
+    "evidence": "FIXTURE: first look at floor power boxes",
+    "image_ref": "fx-pano-03/face2"
+   }
+  ],
+  "source": "vision"
+ },
+ {
+  "id": "fixture-1-a7",
+  "building_id": "fixture-1",
+  "matterport_model_id": "FIXTURE0001",
+  "floor_id": "fx-floor-0",
+  "room_id": "fx-room-server",
+  "room": "Server Room",
+  "location_id": "fx-loc-04",
+  "category": "it",
+  "label": "Floor-standing server rack",
+  "height_ft_low": 0.3,
+  "height_ft_high": 0.5,
+  "confidence": 0.75,
+  "value_usd_low": 8000,
+  "value_usd_high": 15000,
+  "value_basis": "A-IT-RACK",
+  "position": {
+   "x": -13.9,
+   "y": -5.6,
+   "z": 0.09
+  },
+  "evidence": "FIXTURE: floor-standing server rack seen from fx-loc-04",
+  "image_ref": "fx-pano-04/face2",
+  "observations": [
+   {
+    "location_id": "fx-loc-04",
+    "height_ft_low": 0.3,
+    "height_ft_high": 0.5,
+    "confidence": 0.75,
+    "evidence": "FIXTURE: first look at floor-standing server rack",
+    "image_ref": "fx-pano-04/face2"
+   }
+  ],
+  "source": "vision"
+ },
+ {
+  "id": "fixture-1-a8",
+  "building_id": "fixture-1",
+  "matterport_model_id": "FIXTURE0001",
+  "floor_id": "fx-floor-0",
+  "room_id": "fx-room-server",
+  "room": "Server Room",
+  "location_id": "fx-loc-04",
+  "category": "it",
+  "label": "UPS battery cabinet",
+  "height_ft_low": 0.0,
+  "height_ft_high": 0.5,
+  "confidence": 0.7,
+  "value_usd_low": 4000,
+  "value_usd_high": 9000,
+  "value_basis": "A-IT-UPS",
+  "position": {
+   "x": -15.6,
+   "y": -7.9,
+   "z": 0.0
+  },
+  "evidence": "FIXTURE: ups battery cabinet seen from fx-loc-04",
+  "image_ref": "fx-pano-04/face2",
+  "observations": [
+   {
+    "location_id": "fx-loc-04",
+    "height_ft_low": 0.0,
+    "height_ft_high": 0.5,
+    "confidence": 0.7,
+    "evidence": "FIXTURE: first look at ups battery cabinet",
+    "image_ref": "fx-pano-04/face2"
+   }
+  ],
+  "source": "vision"
+ },
+ {
+  "id": "fixture-1-a9",
+  "building_id": "fixture-1",
+  "matterport_model_id": "FIXTURE0001",
+  "floor_id": "fx-floor-0",
+  "room_id": "fx-room-server",
+  "room": "Server Room",
+  "location_id": "fx-loc-05",
+  "category": "it",
+  "label": "Network switch, wall rack",
+  "height_ft_low": 4.5,
+  "height_ft_high": 5.0,
+  "confidence": 0.8,
+  "value_usd_low": 2000,
+  "value_usd_high": 4500,
+  "value_basis": "A-IT-SWITCH",
+  "position": {
+   "x": -17.3,
+   "y": -10.2,
+   "z": 1.37
+  },
+  "evidence": "FIXTURE: network switch, wall rack seen from fx-loc-05",
+  "image_ref": "fx-pano-05/face2",
+  "observations": [
+   {
+    "location_id": "fx-loc-05",
+    "height_ft_low": 4.5,
+    "height_ft_high": 5.0,
+    "confidence": 0.8,
+    "evidence": "FIXTURE: first look at network switch, wall rack",
+    "image_ref": "fx-pano-05/face2"
+   }
+  ],
+  "source": "vision"
+ },
+ {
+  "id": "fixture-1-a10",
+  "building_id": "fixture-1",
+  "matterport_model_id": "FIXTURE0001",
+  "floor_id": "fx-floor-0",
+  "room_id": "fx-room-server",
+  "room": "Server Room",
+  "location_id": "fx-loc-05",
+  "category": "hvac",
+  "label": "Split AC indoor unit",
+  "height_ft_low": 6.5,
+  "height_ft_high": 7.0,
+  "confidence": 0.85,
+  "value_usd_low": 2500,
+  "value_usd_high": 5000,
+  "value_basis": "A-HVAC-SPLIT",
+  "position": {
+   "x": -19.0,
+   "y": -1.0,
+   "z": 1.98
+  },
+  "evidence": "FIXTURE: split ac indoor unit seen from fx-loc-05",
+  "image_ref": "fx-pano-05/face2",
+  "observations": [
+   {
+    "location_id": "fx-loc-05",
+    "height_ft_low": 6.5,
+    "height_ft_high": 7.0,
+    "confidence": 0.85,
+    "evidence": "FIXTURE: first look at split ac indoor unit",
+    "image_ref": "fx-pano-05/face2"
+   }
+  ],
+  "source": "vision"
+ },
+ {
+  "id": "fixture-1-a11",
+  "building_id": "fixture-1",
+  "matterport_model_id": "FIXTURE0001",
+  "floor_id": "fx-floor-0",
+  "room_id": "fx-room-server",
+  "room": "Server Room",
+  "location_id": "fx-loc-04",
+  "category": "electrical",
+  "label": "Server room sub-panel",
+  "height_ft_low": 3.0,
+  "height_ft_high": 4.0,
+  "confidence": 0.55,
+  "value_usd_low": 3000,
+  "value_usd_high": 6000,
+  "value_basis": "A-ELEC-SUBPANEL",
+  "position": {
+   "x": -20.7,
+   "y": -3.3,
+   "z": 0.91
+  },
+  "evidence": "FIXTURE: server room sub-panel seen from fx-loc-04",
+  "image_ref": "fx-pano-04/face2",
+  "observations": [
+   {
+    "location_id": "fx-loc-04",
+    "height_ft_low": 3.0,
+    "height_ft_high": 4.0,
+    "confidence": 0.55,
+    "evidence": "FIXTURE: first look at server room sub-panel",
+    "image_ref": "fx-pano-04/face2"
+   }
+  ],
+  "source": "vision"
+ },
+ {
+  "id": "fixture-1-a12",
+  "building_id": "fixture-1",
+  "matterport_model_id": "FIXTURE0001",
+  "floor_id": "fx-floor-0",
+  "room_id": "fx-room-wh",
+  "room": "Warehouse",
+  "location_id": "fx-loc-08",
+  "category": "inventory",
+  "label": "Palletised inventory, floor level",
+  "height_ft_low": 0.0,
+  "height_ft_high": 0.5,
+  "confidence": 0.9,
+  "value_usd_low": 20000,
+  "value_usd_high": 60000,
+  "value_basis": "A-INV-PALLET",
+  "position": null,
+  "evidence": "FIXTURE: palletised inventory, floor level seen from fx-loc-08",
+  "image_ref": "fx-pano-08/face2",
+  "observations": [
+   {
+    "location_id": "fx-loc-08",
+    "height_ft_low": 0.0,
+    "height_ft_high": 0.5,
+    "confidence": 0.9,
+    "evidence": "FIXTURE: first look at palletised inventory, floor level",
+    "image_ref": "fx-pano-08/face2"
+   }
+  ],
+  "source": "vision"
+ },
+ {
+  "id": "fixture-1-a13",
+  "building_id": "fixture-1",
+  "matterport_model_id": "FIXTURE0001",
+  "floor_id": "fx-floor-0",
+  "room_id": "fx-room-wh",
+  "room": "Warehouse",
+  "location_id": "fx-loc-09",
+  "category": "inventory",
+  "label": "Palletised inventory, floor level",
+  "height_ft_low": 0.0,
+  "height_ft_high": 0.5,
+  "confidence": 0.9,
+  "value_usd_low": 20000,
+  "value_usd_high": 60000,
+  "value_basis": "A-INV-PALLET",
+  "position": {
+   "x": -24.1,
+   "y": -7.9,
+   "z": 0.0
+  },
+  "evidence": "FIXTURE: palletised inventory, floor level seen from fx-loc-09",
+  "image_ref": "fx-pano-09/face2",
+  "observations": [
+   {
+    "location_id": "fx-loc-09",
+    "height_ft_low": 0.0,
+    "height_ft_high": 0.5,
+    "confidence": 0.9,
+    "evidence": "FIXTURE: first look at palletised inventory, floor level",
+    "image_ref": "fx-pano-09/face2"
+   }
+  ],
+  "source": "vision"
+ },
+ {
+  "id": "fixture-1-a14",
+  "building_id": "fixture-1",
+  "matterport_model_id": "FIXTURE0001",
+  "floor_id": "fx-floor-0",
+  "room_id": "fx-room-wh",
+  "room": "Warehouse",
+  "location_id": "fx-loc-09",
+  "category": "inventory",
+  "label": "Racked inventory, first beam level",
+  "height_ft_low": 1.5,
+  "height_ft_high": 2.5,
+  "confidence": 0.6,
+  "value_usd_low": 15000,
+  "value_usd_high": 40000,
+  "value_basis": "A-INV-RACK1",
+  "position": {
+   "x": -25.8,
+   "y": -10.2,
+   "z": 0.46
+  },
+  "evidence": "FIXTURE: racked inventory, first beam level seen from fx-loc-09",
+  "image_ref": "fx-pano-09/face2",
+  "observations": [
+   {
+    "location_id": "fx-loc-09",
+    "height_ft_low": 1.5,
+    "height_ft_high": 2.5,
+    "confidence": 0.6,
+    "evidence": "FIXTURE: first look at racked inventory, first beam level",
+    "image_ref": "fx-pano-09/face2"
+   }
+  ],
+  "source": "vision"
+ },
+ {
+  "id": "fixture-1-a15",
+  "building_id": "fixture-1",
+  "matterport_model_id": "FIXTURE0001",
+  "floor_id": "fx-floor-0",
+  "room_id": "fx-room-wh",
+  "room": "Warehouse",
+  "location_id": "fx-loc-10",
+  "category": "equipment",
+  "label": "Electric forklift, charging",
+  "height_ft_low": 0.0,
+  "height_ft_high": 1.0,
+  "confidence": 0.7,
+  "value_usd_low": 6000,
+  "value_usd_high": 14000,
+  "value_basis": "A-EQUIP-FORKLIFT",
+  "position": {
+   "x": -27.5,
+   "y": -1.0,
+   "z": 0.0
+  },
+  "evidence": "FIXTURE: electric forklift, charging seen from fx-loc-10",
+  "image_ref": "fx-pano-10/face2",
+  "observations": [
+   {
+    "location_id": "fx-loc-10",
+    "height_ft_low": 0.0,
+    "height_ft_high": 1.0,
+    "confidence": 0.7,
+    "evidence": "FIXTURE: first look at electric forklift, charging",
+    "image_ref": "fx-pano-10/face2"
+   }
+  ],
+  "source": "vision"
+ },
+ {
+  "id": "fixture-1-a16",
+  "building_id": "fixture-1",
+  "matterport_model_id": "FIXTURE0001",
+  "floor_id": "fx-floor-0",
+  "room_id": "fx-room-wh",
+  "room": "Warehouse",
+  "location_id": "fx-loc-10",
+  "category": "equipment",
+  "label": "Pallet wrapper",
+  "height_ft_low": 0.0,
+  "height_ft_high": 0.8,
+  "confidence": 0.65,
+  "value_usd_low": 3000,
+  "value_usd_high": 7000,
+  "value_basis": "A-EQUIP-WRAPPER",
+  "position": {
+   "x": -29.2,
+   "y": -3.3,
+   "z": 0.0
+  },
+  "evidence": "FIXTURE: pallet wrapper seen from fx-loc-10",
+  "image_ref": "fx-pano-10/face2",
+  "observations": [
+   {
+    "location_id": "fx-loc-10",
+    "height_ft_low": 0.0,
+    "height_ft_high": 0.8,
+    "confidence": 0.65,
+    "evidence": "FIXTURE: first look at pallet wrapper",
+    "image_ref": "fx-pano-10/face2"
+   }
+  ],
+  "source": "vision"
+ },
+ {
+  "id": "fixture-1-a17",
+  "building_id": "fixture-1",
+  "matterport_model_id": "FIXTURE0001",
+  "floor_id": "fx-floor-0",
+  "room_id": "fx-room-wh",
+  "room": "Warehouse",
+  "location_id": "fx-loc-10",
+  "category": "electrical",
+  "label": "Forklift charger",
+  "height_ft_low": 2.5,
+  "height_ft_high": 3.5,
+  "confidence": 0.6,
+  "value_usd_low": 2500,
+  "value_usd_high": 5000,
+  "value_basis": "A-ELEC-CHARGER",
+  "position": {
+   "x": -30.9,
+   "y": -5.6,
+   "z": 0.76
+  },
+  "evidence": "FIXTURE: forklift charger seen from fx-loc-10",
+  "image_ref": "fx-pano-10/face2",
+  "observations": [
+   {
+    "location_id": "fx-loc-10",
+    "height_ft_low": 2.5,
+    "height_ft_high": 3.5,
+    "confidence": 0.6,
+    "evidence": "FIXTURE: first look at forklift charger",
+    "image_ref": "fx-pano-10/face2"
+   }
+  ],
+  "source": "vision"
+ },
+ {
+  "id": "fixture-1-a18",
+  "building_id": "fixture-1",
+  "matterport_model_id": "FIXTURE0001",
+  "floor_id": "fx-floor-0",
+  "room_id": "fx-room-wh",
+  "room": "Warehouse",
+  "location_id": "fx-loc-11",
+  "category": "hvac",
+  "label": "Water heater",
+  "height_ft_low": 1.5,
+  "height_ft_high": 2.5,
+  "confidence": 0.6,
+  "value_usd_low": 1500,
+  "value_usd_high": 3000,
+  "value_basis": "A-HVAC-WH",
+  "position": null,
+  "evidence": "FIXTURE: water heater seen from fx-loc-11",
+  "image_ref": "fx-pano-11/face2",
+  "observations": [
+   {
+    "location_id": "fx-loc-11",
+    "height_ft_low": 1.5,
+    "height_ft_high": 2.5,
+    "confidence": 0.6,
+    "evidence": "FIXTURE: first look at water heater",
+    "image_ref": "fx-pano-11/face2"
+   }
+  ],
+  "source": "human"
+ },
+ {
+  "id": "fixture-1-a19",
+  "building_id": "fixture-1",
+  "matterport_model_id": "FIXTURE0001",
+  "floor_id": "fx-floor-0",
+  "room_id": "fx-room-break",
+  "room": "Break Room",
+  "location_id": "fx-loc-06",
+  "category": "equipment",
+  "label": "Refrigerator",
+  "height_ft_low": 0.0,
+  "height_ft_high": 0.5,
+  "confidence": 0.8,
+  "value_usd_low": 900,
+  "value_usd_high": 1800,
+  "value_basis": "A-EQUIP-APPLIANCE",
+  "position": {
+   "x": -34.3,
+   "y": -10.2,
+   "z": 0.0
+  },
+  "evidence": "FIXTURE: refrigerator seen from fx-loc-06",
+  "image_ref": "fx-pano-06/face2",
+  "observations": [
+   {
+    "location_id": "fx-loc-06",
+    "height_ft_low": 0.0,
+    "height_ft_high": 0.5,
+    "confidence": 0.8,
+    "evidence": "FIXTURE: first look at refrigerator",
+    "image_ref": "fx-pano-06/face2"
+   }
+  ],
+  "source": "vision"
+ },
+ {
+  "id": "fixture-1-a20",
+  "building_id": "fixture-1",
+  "matterport_model_id": "FIXTURE0001",
+  "floor_id": "fx-floor-0",
+  "room_id": "fx-room-break",
+  "room": "Break Room",
+  "location_id": "fx-loc-06",
+  "category": "equipment",
+  "label": "Ice machine",
+  "height_ft_low": 0.0,
+  "height_ft_high": 0.6,
+  "confidence": 0.7,
+  "value_usd_low": 2000,
+  "value_usd_high": 4000,
+  "value_basis": "A-EQUIP-APPLIANCE",
+  "position": {
+   "x": -36.0,
+   "y": -1.0,
+   "z": 0.0
+  },
+  "evidence": "FIXTURE: ice machine seen from fx-loc-06",
+  "image_ref": "fx-pano-06/face2",
+  "observations": [
+   {
+    "location_id": "fx-loc-06",
+    "height_ft_low": 0.0,
+    "height_ft_high": 0.6,
+    "confidence": 0.7,
+    "evidence": "FIXTURE: first look at ice machine",
+    "image_ref": "fx-pano-06/face2"
+   }
+  ],
+  "source": "vision"
+ },
+ {
+  "id": "fixture-1-a21",
+  "building_id": "fixture-1",
+  "matterport_model_id": "FIXTURE0001",
+  "floor_id": "fx-floor-0",
+  "room_id": "fx-room-break",
+  "room": "Break Room",
+  "location_id": "fx-loc-06",
+  "category": "furniture",
+  "label": "Lower cabinets",
+  "height_ft_low": 0.0,
+  "height_ft_high": 0.3,
+  "confidence": 0.75,
+  "value_usd_low": 3000,
+  "value_usd_high": 6000,
+  "value_basis": "A-FURN-CABINET",
+  "position": {
+   "x": -37.7,
+   "y": -3.3,
+   "z": 0.0
+  },
+  "evidence": "FIXTURE: lower cabinets seen from fx-loc-06",
+  "image_ref": "fx-pano-06/face2",
+  "observations": [
+   {
+    "location_id": "fx-loc-06",
+    "height_ft_low": 0.0,
+    "height_ft_high": 0.3,
+    "confidence": 0.75,
+    "evidence": "FIXTURE: first look at lower cabinets",
+    "image_ref": "fx-pano-06/face2"
+   }
+  ],
+  "source": "vision"
+ },
+ {
+  "id": "fixture-1-a22",
+  "building_id": "fixture-1",
+  "matterport_model_id": "FIXTURE0001",
+  "floor_id": "fx-floor-0",
+  "room_id": "fx-room-break",
+  "room": "Break Room",
+  "location_id": "fx-loc-07",
+  "category": "finishes",
+  "label": "Drywall, lower 2 ft",
+  "height_ft_low": 0.0,
+  "height_ft_high": 0.2,
+  "confidence": 0.85,
+  "value_usd_low": 2500,
+  "value_usd_high": 5000,
+  "value_basis": "A-FIN-DRYWALL",
+  "position": {
+   "x": -39.4,
+   "y": -5.6,
+   "z": 0.0
+  },
+  "evidence": "FIXTURE: drywall, lower 2 ft seen from fx-loc-07",
+  "image_ref": "fx-pano-07/face2",
+  "observations": [
+   {
+    "location_id": "fx-loc-07",
+    "height_ft_low": 0.0,
+    "height_ft_high": 0.2,
+    "confidence": 0.85,
+    "evidence": "FIXTURE: first look at drywall, lower 2 ft",
+    "image_ref": "fx-pano-07/face2"
+   }
+  ],
+  "source": "vision"
+ },
+ {
+  "id": "fixture-1-a23",
+  "building_id": "fixture-1",
+  "matterport_model_id": "FIXTURE0001",
+  "floor_id": "fx-floor-0",
+  "room_id": "fx-room-elec",
+  "room": "Electrical Room",
+  "location_id": "fx-loc-12",
+  "category": "electrical",
+  "label": "Main electrical panel",
+  "height_ft_low": 3.5,
+  "height_ft_high": 4.5,
+  "confidence": 0.8,
+  "value_usd_low": 6000,
+  "value_usd_high": 12000,
+  "value_basis": "A-ELEC-PANEL",
+  "position": {
+   "x": -41.1,
+   "y": -7.9,
+   "z": 1.07
+  },
+  "evidence": "FIXTURE: main electrical panel seen from fx-loc-12",
+  "image_ref": "fx-pano-12/face2",
+  "observations": [
+   {
+    "location_id": "fx-loc-12",
+    "height_ft_low": 3.5,
+    "height_ft_high": 4.5,
+    "confidence": 0.8,
+    "evidence": "FIXTURE: first look at main electrical panel",
+    "image_ref": "fx-pano-12/face2"
+   }
+  ],
+  "source": "vision"
+ },
+ {
+  "id": "fixture-1-a24",
+  "building_id": "fixture-1",
+  "matterport_model_id": "FIXTURE0001",
+  "floor_id": "fx-floor-0",
+  "room_id": "fx-room-elec",
+  "room": "Electrical Room",
+  "location_id": "fx-loc-13",
+  "category": "electrical",
+  "label": "Main switchgear",
+  "height_ft_low": 0.4,
+  "height_ft_high": 1.0,
+  "confidence": 0.7,
+  "value_usd_low": 25000,
+  "value_usd_high": 60000,
+  "value_basis": "A-ELEC-SWITCHGEAR",
+  "position": null,
+  "evidence": "FIXTURE: main switchgear seen from fx-loc-13",
+  "image_ref": "fx-pano-13/face1",
+  "observations": [
+   {
+    "location_id": "fx-loc-12",
+    "height_ft_low": 0,
+    "height_ft_high": 2.0,
+    "confidence": 0.4,
+    "evidence": "FIXTURE: first look at main switchgear",
+    "image_ref": "fx-pano-12/face2"
+   },
+   {
+    "location_id": "fx-loc-13",
+    "height_ft_low": 0.4,
+    "height_ft_high": 1.0,
+    "confidence": 0.7,
+    "evidence": "FIXTURE: re-look from neighbouring position shows the base",
+    "image_ref": "fx-pano-13/face1"
+   }
+  ],
+  "source": "vision"
+ },
+ {
+  "id": "fixture-1-a25",
+  "building_id": "fixture-1",
+  "matterport_model_id": "FIXTURE0001",
+  "floor_id": "fx-floor-0",
+  "room_id": "fx-room-elec",
+  "room": "Electrical Room",
+  "location_id": "fx-loc-12",
+  "category": "hvac",
+  "label": "Air handler",
+  "height_ft_low": 1.0,
+  "height_ft_high": 2.0,
+  "confidence": 0.65,
+  "value_usd_low": 8000,
+  "value_usd_high": 16000,
+  "value_basis": "A-HVAC-AHU",
+  "position": {
+   "x": -44.5,
+   "y": -1.0,
+   "z": 0.3
+  },
+  "evidence": "FIXTURE: air handler seen from fx-loc-12",
+  "image_ref": "fx-pano-12/face2",
+  "observations": [
+   {
+    "location_id": "fx-loc-12",
+    "height_ft_low": 1.0,
+    "height_ft_high": 2.0,
+    "confidence": 0.65,
+    "evidence": "FIXTURE: first look at air handler",
+    "image_ref": "fx-pano-12/face2"
+   }
+  ],
+  "source": "vision"
+ }
+]

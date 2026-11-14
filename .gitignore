@@ -1,0 +1,21 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Sponsor data and caches (proprietary; never commit)
+data/cache/
+data/toolkit/
+docs/toolkit/
+records/
+**/output/
+
+# Tooling
+.DS_Store
+__pycache__/
+*.pyc
+.venv/
+venv/
+node_modules/
+.next/
+.pytest_cache/

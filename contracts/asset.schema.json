@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "waterline/contracts/asset.schema.json",
+  "title": "Asset",
+  "description": "One flood-vulnerable item inside the building, found in Matterport panoramas.",
+  "type": "object",
+  "additionalProperties": false,
+  "$defs": {
+    "point": {
+      "type": "object", "additionalProperties": false, "required": ["x", "y", "z"],
+      "description": "Matterport model coordinates (Model API `Point`). Observed on the test model: metres, z up, floor near z = 0.",
+      "properties": {"x": {"type": "number"}, "y": {"type": "number"}, "z": {"type": "number"}}
+    },
+    "observation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["location_id", "height_ft_low", "height_ft_high", "confidence", "evidence", "image_ref"],
+      "description": "One look at the asset from one scan position. The low-confidence re-look adds a second entry.",
+      "properties": {
+        "location_id": {"type": "string"},
+        "height_ft_low": {"type": "number", "minimum": 0},
+        "height_ft_high": {"type": "number", "minimum": 0},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "evidence": {"type": "string"},
+        "image_ref": {"type": "string"}
+      }
+    }
+  },
+  "required": ["id", "building_id", "matterport_model_id", "floor_id", "room_id", "room", "location_id", "category",
+               "label", "height_ft_low", "height_ft_high", "confidence", "value_usd_low", "value_usd_high",
+               "value_basis", "position", "evidence", "image_ref", "observations", "source"],
+  "properties": {
+    "id": {"type": "string"},
+    "building_id": {"type": "string"},
+    "matterport_model_id": {"type": "string"},
+    "floor_id": {"type": ["string", "null"], "description": "Matterport `ModelFloor.id`. Floor labels are relative to the scan, not the building."},
+    "room_id": {"type": ["string", "null"], "description": "Matterport `ModelRoom.id`."},
+    "room": {"type": "string", "description": "Matterport `ModelRoom.label`, or a label the agent gives when the scan has none."},
+    "location_id": {"type": "string", "description": "Matterport `AnchorLocation.id` (the scan position, called a sweep in older docs) of the best view. Replaces `sweep_id`."},
+    "category": {"type": "string", "enum": ["electrical", "it", "hvac", "inventory", "equipment", "furniture", "finishes", "other"]},
+    "label": {"type": "string"},
+    "height_ft_low": {"type": "number", "minimum": 0, "description": "Height above the floor of the lowest vulnerable part, low end."},
+    "height_ft_high": {"type": "number", "minimum": 0},
+    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    "value_usd_low": {"type": "number", "minimum": 0},
+    "value_usd_high": {"type": "number", "minimum": 0},
+    "value_basis": {"type": "string", "description": "Assumption id in backend/app/loss/assumptions.yaml."},
+    "position": {"oneOf": [{"$ref": "#/$defs/point"}, {"type": "null"}]},
+    "evidence": {"type": "string"},
+    "image_ref": {"type": "string", "description": "Cache path or id of the panorama view, for example <panoLocation id>/<skybox face>."},
+    "observations": {"type": "array", "items": {"$ref": "#/$defs/observation"}},
+    "source": {"type": "string", "enum": ["vision", "human", "human-propagated"], "description": "human-propagated = changed by the agent applying a human correction to a similar asset."}
+  }
+}

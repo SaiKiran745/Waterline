@@ -1,0 +1,14 @@
+[
+  {"id": "fixture-1-ep1", "building_id": "fixture-1", "kind": "drive_in", "lat": 29.75012, "lng": -95.40021,
+   "image_ref": "FIXTURE/oblique-east.jpg", "image_kind": "oblique-east", "image_xy": [812, 1440],
+   "threshold_elevation_ft": null, "elevation_source": null, "confidence": 0.8,
+   "evidence": "FIXTURE: grade-level roll-up door with no dock plate, pavement slopes toward it"},
+  {"id": "fixture-1-ep2", "building_id": "fixture-1", "kind": "dock", "lat": 29.75018, "lng": -95.40024,
+   "image_ref": "FIXTURE/oblique-east.jpg", "image_kind": "oblique-east", "image_xy": [1020, 1395],
+   "threshold_elevation_ft": null, "elevation_source": null, "confidence": 0.7,
+   "evidence": "FIXTURE: row of dock-high doors above a truck well"},
+  {"id": "fixture-1-ep3", "building_id": "fixture-1", "kind": "door", "lat": 29.74988, "lng": -95.40060,
+   "image_ref": "FIXTURE/ortho.jpg", "image_kind": "ortho", "image_xy": [300, 2210],
+   "threshold_elevation_ft": null, "elevation_source": null, "confidence": 0.5,
+   "evidence": "FIXTURE: storefront entry under canopy, lowest visible door"}
+]
