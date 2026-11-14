@@ -173,6 +173,61 @@ export type AgentEvent = {
   data: Record<string, unknown> | null;
 };
 
+export type AgentTurn = {
+  turn: string;
+  seconds: number;
+  model_calls: number;
+  cost_usd: number;
+  interrupted: boolean;
+};
+
+export type AgentStatus = {
+  building_id: string;
+  session?: null;
+  run_id?: string;
+  running?: boolean;
+  waiting_for_approval?: boolean;
+  turns?: AgentTurn[];
+  events?: number;
+  error?: string | null;
+  events_url?: string;
+  status?: string;
+};
+
+export type ReplayRun = {
+  status: "replay";
+  building_id: string;
+  run_id: string;
+  recorded_at: string;
+  events: number;
+  seconds: number;
+  cost_usd: number;
+  model_calls: number;
+  turns: AgentTurn[];
+  replay: true;
+  label: string;
+  events_url: string;
+};
+
+export type DossierFile = {
+  path: string;
+  bytes: number;
+  modified: string;
+  content: string;
+};
+
+export type Dossier = {
+  building_id: string;
+  files: DossierFile[];
+};
+
+export type AgentActionResult = AgentStatus & Partial<ReplayRun> & {
+  result?: Record<string, unknown> | null;
+  recipient?: string;
+  message?: string;
+  reason?: string;
+};
+
 export type MatterportLocation = {
   id: string;
   position: { x: number; y: number; z: number };
@@ -209,4 +264,5 @@ export type BuildingBundle = {
   events: AgentEvent[];
   meshUrl: string | null;
   media: MediaManifest | null;
+  triage: TriageRow | null;
 };

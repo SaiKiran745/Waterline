@@ -1,4 +1,4 @@
-export function WaterSlider({ depth, onChange }: { depth: number; onChange: (depth: number) => void }) {
+export function WaterSlider({ depth, onChange, onCommit }: { depth: number; onChange: (depth: number) => void; onCommit?: (depth: number) => void }) {
   const percentage = (depth / 8) * 100;
   return (
     <div className="water-slider">
@@ -9,6 +9,8 @@ export function WaterSlider({ depth, onChange }: { depth: number; onChange: (dep
           type="range" min="0" max="8" step="0.25" value={depth}
           style={{ "--slider-fill": `${percentage}%` } as React.CSSProperties}
           onChange={(event) => onChange(Number(event.target.value))}
+          onPointerUp={(event) => onCommit?.(Number(event.currentTarget.value))}
+          onKeyUp={(event) => onCommit?.(Number(event.currentTarget.value))}
         />
         <div className="slider-scale"><span>0</span><span>2</span><span>4</span><span>6</span><span>8 FT</span></div>
       </div>

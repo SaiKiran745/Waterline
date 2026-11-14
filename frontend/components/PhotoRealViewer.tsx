@@ -81,13 +81,14 @@ function coordinateRms(locations: MatterportLocation[], sweeps: SweepData[]) {
   return { matches: errors.length, rms: errors.length ? Math.sqrt(errors.reduce((sum, value) => sum + value, 0) / errors.length) : null };
 }
 
-export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locationId, locations, onFailure }: {
+export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locationId, locations, insideRequest, onFailure }: {
   modelId: string | null;
   assets: Asset[];
   damageByAsset: Map<string, AssetDamage>;
   depthFt: number;
   locationId: string | null;
   locations: MatterportLocation[];
+  insideRequest: number;
   onFailure: (message: string) => void;
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -100,7 +101,7 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
   const [iframeReady, setIframeReady] = useState(false);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [error, setError] = useState("");
-  const [mode, setMode] = useState<ViewMode>("inside");
+  const [mode, setMode] = useState<ViewMode>("dollhouse");
   const [floorLevel, setFloorLevel] = useState(0);
   const [floorDraft, setFloorDraft] = useState("0.000");
   const [calibrating, setCalibrating] = useState(false);
@@ -204,6 +205,8 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
         }), 5_000, "Matterport Scene overlay did not initialize.");
         sceneObjectRef.current = sceneObject;
         setCoordinateCheck((label) => `${label} · ${objectRoot.children.length - 1} markers`);
+        await sdk.Mode.moveTo(sdk.Mode.Mode.DOLLHOUSE, { transition: sdk.Camera.TransitionType.FLY });
+        setMode("dollhouse");
         setStatus("ready");
       } catch (caught) {
         if (cancelled) return;
@@ -243,9 +246,9 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
   }, [damageByAsset]);
 
   useEffect(() => {
-    if (status !== "ready" || !locationId || !sdkRef.current) return;
+    if (insideRequest === 0 || status !== "ready" || !locationId || !sdkRef.current) return;
     sdkRef.current.Sweep.moveTo(locationId, { transition: sdkRef.current.Camera.TransitionType.FADEOUT }).then(() => setMode("inside")).catch((caught) => setError(caught instanceof Error ? caught.message : String(caught)));
-  }, [locationId, status]);
+  }, [insideRequest, locationId, status]);
 
   const switchMode = async (next: ViewMode) => {
     const sdk = sdkRef.current;

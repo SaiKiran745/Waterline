@@ -73,7 +73,7 @@ export function TriageDashboard({ rows, depth, dataSource }: { rows: Row[]; dept
                       <small>{item.building.address}</small>
                       <span className={`survey-status ${structureOnly ? "structure" : "surveyed"}`}>{item.triage.status}</span>
                       <span className="loss-range">{money(loss.total[0])} – {money(loss.total[1])}</span>
-                      <span className="loss-basis">{structureOnly ? "STRUCTURE CURVE ONLY · NOT COMPARABLE" : `${item.triage.contents_assets} CONTENTS ASSETS · ${item.triage.positions_read}/${item.triage.scan_positions} POSITIONS`}</span>
+                      <span className="loss-basis">{structureOnly ? "STRUCTURE CURVE ONLY · NOT COMPARABLE · " : `${item.triage.contents_assets} CONTENTS ASSETS · `}{item.triage.positions_read} OF {item.triage.scan_positions} POSITIONS READ</span>
                     </span>
                     <span className={`zone-pill ${item.building.in_mapped_flood_zone ? "inside" : "outside"}`}>
                       FEMA {item.building.flood_zone ?? "—"}

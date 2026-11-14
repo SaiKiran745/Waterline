@@ -81,13 +81,14 @@ function AssetRow({ asset, damage, selected, movable = false, onSelect }: { asse
   const after = observations[observations.length - 1];
   const style = { "--damage-color": damageColour(fraction) } as CSSProperties;
   return (
-    <button style={style} className={`asset-row ${status} ${movable ? "movable" : ""} ${selected ? "selected" : ""}`} onClick={() => onSelect(asset.id)}>
+    <button style={style} className={`asset-row ${status} ${movable ? "movable" : ""} ${selected ? "selected" : ""} ${asset.source !== "vision" ? "memory-applied" : ""}`} onClick={() => onSelect(asset.id)}>
       <div className="asset-status">{movable ? <i className="vehicle-shape">◆</i> : <i />}<span>{movable ? "MOVE" : `${Math.round(fraction * 100)}%`}</span></div>
       <div className="asset-main">
         <span className="asset-room">{asset.room} · {asset.category}</span>
         <b>{asset.label}</b>
         <small>{asset.height_ft_low}–{asset.height_ft_high} ft vulnerable height · {Math.round(asset.confidence * 100)}% confidence</small>
         {measuredFromMesh(asset) ? <span className="mesh-measured-badge">MEASURED FROM MESH</span> : null}
+        {asset.source !== "vision" ? <span className="memory-applied-badge">AGENT MEMORY · CORRECTION {asset.source === "human-propagated" ? "APPLIED" : "RECORDED"}</span> : null}
         {selected && observations.length > 1 ? (
           <span className="relook-comparison">
             <span><em>RE-LOOK BEFORE</em>{before.height_ft_low}–{before.height_ft_high} ft · {Math.round(before.confidence * 100)}%</span>

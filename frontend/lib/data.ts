@@ -6,13 +6,17 @@ import triageFixture from "../../contracts/fixtures/triage.json";
 import mitigationsFixture from "../../contracts/fixtures/mitigations.json";
 import eventsFixture from "../../contracts/fixtures/agent_events.json";
 import type {
+  AgentActionResult,
   AgentEvent,
+  AgentStatus,
   Asset,
   Building,
   BuildingBundle,
+  Dossier,
   EntryPoint,
   MediaManifest,
   Mitigation,
+  ReplayRun,
   ScenarioTable,
   TriageRow,
 } from "./contracts";
@@ -22,8 +26,20 @@ const source = process.env.WATERLINE_DATA_SOURCE === "fixture" ? "fixture" : "ap
 
 async function api<T>(pathname: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${pathname}`, { ...init, cache: "no-store" });
-  if (!response.ok) throw new Error(`Waterline API ${response.status}: ${pathname}`);
+  if (!response.ok) throw await apiError(response, init?.method ?? "GET", pathname);
   return response.json() as Promise<T>;
+}
+
+async function apiError(response: Response, method: string, pathname: string) {
+  const raw = await response.text();
+  let detail = raw;
+  try {
+    const parsed = JSON.parse(raw) as { detail?: string; message?: string };
+    detail = parsed.detail ?? parsed.message ?? raw;
+  } catch {
+    // Keep the verbatim response when it is not JSON.
+  }
+  return new Error(`${method} ${pathname} → ${response.status}${detail ? `: ${detail}` : ""}`);
 }
 
 async function optionalApi<T>(pathname: string): Promise<T | null> {
@@ -64,11 +80,12 @@ export async function getTriage(depthFt: 1 | 2 | 4 | 6): Promise<TriageRow[]> {
 export async function getBuildingBundle(id: string): Promise<BuildingBundle | null> {
   if (source === "api") {
     try {
-      const [detail, rawManifest, scenarioTable, mitigations] = await Promise.all([
+      const [detail, rawManifest, scenarioTable, mitigations, triage] = await Promise.all([
         api<{ building: Building; entry_points: EntryPoint[]; assets: Asset[] }>(`/buildings/${encodeURIComponent(id)}`),
         optionalApi<MediaManifest>(`/media/${encodeURIComponent(id)}/manifest.json`),
         api<ScenarioTable>(`/buildings/${encodeURIComponent(id)}/scenario_table`),
         optionalApi<Mitigation[]>(`/buildings/${encodeURIComponent(id)}/mitigations?depth_ft=2`),
+        api<TriageRow[]>("/triage?depth_ft=2"),
       ]);
       const media = normalizeManifest(rawManifest);
       return {
@@ -80,6 +97,7 @@ export async function getBuildingBundle(id: string): Promise<BuildingBundle | nu
         events: [],
         meshUrl: media?.mesh?.url ?? null,
         media,
+        triage: triage.find((row) => row.building_id === id) ?? null,
       };
     } catch (error) {
       if (error instanceof Error && error.message.includes("404")) return null;
@@ -94,7 +112,7 @@ export async function getBuildingBundle(id: string): Promise<BuildingBundle | nu
   const mitigations = mitigationsFixture as Mitigation[];
   const events = eventsFixture as AgentEvent[];
   if (building.id !== id) return null;
-  return { building, entryPoints, assets, scenarioTable, mitigations, events, meshUrl: null, media: null };
+  return { building, entryPoints, assets, scenarioTable, mitigations, events, meshUrl: null, media: null, triage: triageFixture.find((row) => row.building_id === id) as TriageRow | undefined ?? null };
 }
 
 export async function forwardSend(buildingId: string, body: string) {
@@ -112,6 +130,12 @@ export function subscribeToEvents(
   fixtureEvents: AgentEvent[],
   onEvent: (event: AgentEvent) => void,
   onState: (state: "connecting" | "open" | "replay" | "error") => void,
+  options?: {
+    eventsUrl?: string;
+    onReplay?: (run: ReplayRun) => void;
+    onEnd?: (summary: Record<string, unknown>) => void;
+    onError?: (message: string) => void;
+  },
 ) {
   if (dataSource !== "api") {
     onState("replay");
@@ -119,11 +143,77 @@ export function subscribeToEvents(
     return () => timers.forEach(window.clearTimeout);
   }
   onState("connecting");
-  const eventSource = new EventSource(`${API_BASE}/buildings/${buildingId}/events`);
+  const eventsUrl = options?.eventsUrl ?? `/buildings/${encodeURIComponent(buildingId)}/events`;
+  const eventSource = new EventSource(eventsUrl.startsWith("http") ? eventsUrl : `${API_BASE}${eventsUrl}`);
   eventSource.onopen = () => onState("open");
-  eventSource.onmessage = (message) => onEvent(JSON.parse(message.data) as AgentEvent);
-  eventSource.onerror = () => onState("error");
+  const readEvent = (message: MessageEvent<string>) => onEvent(JSON.parse(message.data) as AgentEvent);
+  eventSource.addEventListener("agent_event", readEvent as EventListener);
+  eventSource.onmessage = readEvent;
+  eventSource.addEventListener("replay", ((message: MessageEvent<string>) => {
+    onState("replay");
+    options?.onReplay?.(JSON.parse(message.data) as ReplayRun);
+  }) as EventListener);
+  eventSource.addEventListener("end", ((message: MessageEvent<string>) => {
+    options?.onEnd?.(JSON.parse(message.data) as Record<string, unknown>);
+    eventSource.close();
+  }) as EventListener);
+  eventSource.onerror = () => {
+    onState("error");
+    options?.onError?.(`GET ${eventsUrl} → event stream disconnected`);
+  };
   return () => eventSource.close();
+}
+
+export function getAgentStatus(buildingId: string) {
+  return api<AgentStatus>(`/buildings/${encodeURIComponent(buildingId)}/agent`);
+}
+
+export function getLatestRun(buildingId: string) {
+  return api<ReplayRun>(`/buildings/${encodeURIComponent(buildingId)}/runs/latest`);
+}
+
+export function getDossier(buildingId: string) {
+  return api<Dossier>(`/buildings/${encodeURIComponent(buildingId)}/dossier`);
+}
+
+export function runAgent(buildingId: string, depthFt: number, quickScan?: number) {
+  return api<AgentActionResult>(`/buildings/${encodeURIComponent(buildingId)}/run`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ depth_ft: depthFt, live: true, ...(quickScan ? { quick_scan: quickScan } : {}) }),
+  });
+}
+
+export function replayLastRun(buildingId: string) {
+  return api<AgentActionResult>(`/buildings/${encodeURIComponent(buildingId)}/run`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ replay: true }),
+  });
+}
+
+export function postAgentDepth(buildingId: string, depthFt: number) {
+  return api<AgentActionResult>(`/buildings/${encodeURIComponent(buildingId)}/depth`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ depth_ft: depthFt }),
+  });
+}
+
+export function requestAgentSend(buildingId: string, recipient: string) {
+  return api<AgentActionResult>(`/buildings/${encodeURIComponent(buildingId)}/request_send`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ recipient }),
+  });
+}
+
+export function decideAgentSend(buildingId: string, approved: boolean, recipient: string) {
+  return api<AgentActionResult>(`/buildings/${encodeURIComponent(buildingId)}/send`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ approved, ...(recipient ? { recipient } : {}) }),
+  });
 }
 
 export async function getMitigationsForDepth(buildingId: string, depthFt: number, signal?: AbortSignal) {
