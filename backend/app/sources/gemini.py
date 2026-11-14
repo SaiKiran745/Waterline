@@ -4,7 +4,9 @@
 - 429: waits for the server's RetryInfo delay when given (else exponential backoff); a delay over MAX_WAIT_S
   means a spent quota, so that model is skipped until it resets. The quota id and limit are logged.
 - Connection resets and other transport errors: retried twice with backoff, then the next model.
-- Every response is cached by (prompt, schema, image hashes, model list); images themselves are not stored.
+- Every response is cached by (prompt, schema, image hashes, thinking level); images themselves are not stored.
+- Spend: every billed response is priced and logged in data/cache/spend.json; a call that could take the
+  total past GEMINI_BUDGET_USD is refused before it is made (app/sources/spend.py). HTTP 402 stops the run.
 - Every attempt is appended to data/cache/gemini_calls.jsonl (model, status, latency) for rate-limit reporting.
 """
 import base64
@@ -19,6 +21,7 @@ from datetime import datetime, timezone
 import httpx
 
 from app.config import CACHE, demo_mode, secret
+from app.sources import spend
 from app.sources.cache import CacheMiss, write_json
 
 URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
@@ -35,6 +38,21 @@ _pool = concurrent.futures.ThreadPoolExecutor(max_workers=4)
 
 class GeminiError(RuntimeError):
     pass
+
+
+class BillingError(RuntimeError):
+    """HTTP 402: credits depleted. Not a GeminiError, so survey loops stop instead of skipping ahead."""
+
+
+# Cache keys used to include the model list; responses cached under this list are still found (and re-keyed).
+LEGACY_MODEL_LIST = ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.6-flash"]
+
+
+def _key(texts, img_hashes, schema, thinking, model_list) -> str:
+    d = {"t": texts, "i": img_hashes, "s": schema, "k": thinking}
+    if model_list is not None:
+        d["m"] = model_list
+    return hashlib.sha256(json.dumps(d, sort_keys=True).encode()).hexdigest()[:32]
 
 
 def _post(url: str, headers: dict, body: dict) -> httpx.Response:
@@ -75,17 +93,21 @@ def _quota(body: dict) -> list[dict]:
     return out
 
 
-def generate_json(prompt_parts: list, schema: dict, *, tag: str, thinking: str = "low") -> dict:
+def generate_json(prompt_parts: list, schema: dict, *, tag: str, thinking: str = "low", cache_only: bool = False) -> dict:
     """prompt_parts: list of str (text) or bytes (JPEG). Returns {"data": parsed JSON, "model": model used, ...}."""
     img_hashes = [hashlib.sha256(p).hexdigest() for p in prompt_parts if isinstance(p, bytes)]
     texts = [p for p in prompt_parts if isinstance(p, str)]
-    key = hashlib.sha256(json.dumps({"t": texts, "i": img_hashes, "s": schema, "m": models(), "k": thinking},
-                                    sort_keys=True).encode()).hexdigest()[:32]
+    key = _key(texts, img_hashes, schema, thinking, None)
     path = CACHE_DIR / f"{key}.json"
+    if not path.exists():                                # responses cached before the key stopped including the model list
+        legacy = CACHE_DIR / f"{_key(texts, img_hashes, schema, thinking, LEGACY_MODEL_LIST)}.json"
+        if legacy.exists():
+            write_json(path, json.loads(legacy.read_text()))
     if path.exists():
         return {**json.loads(path.read_text()), "cached": True}
-    if demo_mode():
-        raise CacheMiss(f"DEMO_MODE=1: no cached Gemini response for {tag} (key {key})")
+    if demo_mode() or cache_only:
+        raise CacheMiss(f"{'DEMO_MODE=1' if demo_mode() else 'cache only'}: no cached Gemini response for {tag} (key {key})")
+    spend.check(tag)                                     # raises BudgetExceeded before a call that could pass the budget
     parts = [{"text": p} if isinstance(p, str) else {"inline_data": {"mime_type": "image/jpeg",
                                                                       "data": base64.b64encode(p).decode()}}
              for p in prompt_parts]
@@ -97,6 +119,7 @@ def generate_json(prompt_parts: list, schema: dict, *, tag: str, thinking: str =
     candidates = [m for m in models() if _cooldown.get(m, 0) < time.time()] or models()[-1:]
     for model in candidates:
         for attempt in range(4):
+            spend.check(tag, model)
             t0 = time.time()
             try:
                 r = _post(URL.format(model=model), headers, body)
@@ -134,6 +157,8 @@ def generate_json(prompt_parts: list, schema: dict, *, tag: str, thinking: str =
                 break                                    # still overloaded: next model
             _log(tag=tag, model=model, status=r.status_code, latency_s=latency,
                  tokens=(j.get("usageMetadata") or {}).get("totalTokenCount"))
+            if r.status_code == 402:
+                raise BillingError(f"{model} HTTP 402: {str((j or {}).get('error', {}).get('message'))[:200]}")
             if r.status_code != 200:
                 raise GeminiError(f"{model} HTTP {r.status_code}: {str((j or {}).get('error'))[:300]}")
             cand = (j.get("candidates") or [{}])[0]
@@ -141,8 +166,10 @@ def generate_json(prompt_parts: list, schema: dict, *, tag: str, thinking: str =
             try:
                 data = json.loads(text)
             except ValueError:
+                spend.record(tag, model, j.get("usageMetadata") or {})
                 errors.append(f"{model}: unparseable JSON ({cand.get('finishReason')})")
                 break
+            spend.record(tag, model, j.get("usageMetadata") or {})
             out = {"data": data, "model": model, "tag": tag, "usage": j.get("usageMetadata"),
                    "finish_reason": cand.get("finishReason"), "fetched_at": datetime.now(timezone.utc).isoformat()}
             write_json(path, out)

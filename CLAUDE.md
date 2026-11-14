@@ -148,7 +148,7 @@ API (backend):
 - **Docs:** use the `docs-langchain` MCP server (`https://docs.langchain.com/mcp`) for every deepagents question.
 - **Before writing agent code,** read `../hack-princeton-intro-to-deep-agents` (`modules/01`, `modules/02` and `agent.py`). Follow its patterns for streaming the live plan, files and sub-agent activity, and for approvals.
 - **Harness features to use:** sub-agents, the file dossier, planning, human-in-the-loop approval, skills (survey method, loss method), and memory for human corrections.
-- **Model:** vision and the orchestrator both run on Gemini. `AGENT_MODEL` uses the `provider:model` format, for example `google_genai:gemini-3.8-flash`. The `langchain-google-genai` integration reads `GOOGLE_API_KEY` by default, so pass `GEMINI_API_KEY` to it explicitly. Anthropic is optional.
+- **Model:** vision and the orchestrator both run on Gemini. `AGENT_MODEL` uses the `provider:model` format, currently `google_genai:gemini-3.6-flash` (3.8 never answered on 2026-11-14; see docs/DECISIONS.md D7). The `langchain-google-genai` integration reads `GOOGLE_API_KEY` by default, so pass `GEMINI_API_KEY` to it explicitly. Anthropic is optional.
 
 ## 11. 3D water view: fallback ladder
 

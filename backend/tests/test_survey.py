@@ -36,3 +36,12 @@ def test_building_fabric_is_not_priced_as_contents():
     for label in ("wall-mounted electrical subpanel and disconnect equipment", "main switchgear",
                   "ground-mounted electrical cabinet unit", "server rack", "row of 6 desks", "filing cabinets"):
         assert not is_fabric(label), label
+
+
+def test_box_cut_off_at_image_bottom_assumes_floor_and_low_confidence():
+    from app.survey.interior import LOW_CONF, decide_height
+    m = {"heights_ft": [1.45, 1.6], "position": None}
+    lo, hi, conf, how = decide_height(1.0, 1.5, 0.9, m, [163, 477, 1000, 832])
+    assert lo == 0.0 and hi >= 1.6 and conf < LOW_CONF and "not visible" in how
+    lo2, hi2, conf2, how2 = decide_height(1.0, 1.5, 0.9, m, [163, 477, 900, 832])     # fully visible: mesh wins
+    assert how2 == "measured from mesh" and lo2 > 1.0

@@ -14,7 +14,7 @@ from fastapi import Body, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
 
-from app import buildings, fixtures
+from app import buildings, corrections, fixtures
 from app.actions import playbook as playbook_html
 from app.actions import report as report_html
 from app.agent.replay import replay
@@ -24,7 +24,7 @@ from app.loss import model, rank
 from app.sources.cache import CacheMiss
 
 app = FastAPI(title="Waterline API", version="0.2.0")
-app.add_middleware(CORSMiddleware, allow_origins=FRONTEND_ORIGINS, allow_methods=["GET", "POST"],
+app.add_middleware(CORSMiddleware, allow_origins=FRONTEND_ORIGINS, allow_methods=["GET", "POST", "PATCH", "DELETE"],
                    allow_headers=["Content-Type"])
 
 LOCAL_HOSTS = {"127.0.0.1", "::1", "localhost"}
@@ -58,6 +58,18 @@ def list_buildings(fixture: int = 0):
     return sorted(buildings.list_buildings(), key=lambda b: (-(r.get(b["id"], {}).get("2", {}).get("total", [0, 0])[1]), b["id"]))
 
 
+@app.get("/triage")
+def triage(depth_ft: int = Query(2)):
+    """Triage ranking (not in contracts/ yet): every building ranked by total loss at 1, 2 or 4 ft, each labelled
+    "surveyed" (with positions read and contents count) or "structure only"."""
+    if str(depth_ft) not in map(str, rank.DEPTHS):
+        raise HTTPException(422, f"depth_ft must be one of {list(rank.DEPTHS)}")
+    rows = rank.triage(str(depth_ft))
+    if not rows:
+        raise HTTPException(503, "no triage ranking yet: run python -m app.loss.rank")
+    return rows
+
+
 @app.get("/buildings/{bid}")
 def get_building(bid: str):
     if bid == FIX:
@@ -81,6 +93,49 @@ def mitigations(bid: str, depth_ft: float = Query(2, ge=0, le=8)):
     b = _real(bid)
     assets, eps = buildings.get_assets(bid), buildings.get_entry_points(bid)
     return engine.ranked(bid, engine.candidates(bid, assets, eps), assets, depth_ft, engine.building_loss_fn(b))
+
+
+# ---------------------------------------------------------------- human corrections
+
+def _assets_for(bid: str) -> list[dict]:
+    if bid == FIX:
+        return fixtures.assets()
+    _real(bid)
+    return buildings.get_assets(bid)
+
+
+def _correct(bid: str, asset_id: str, action: str, body: dict, depth_ft: float) -> dict:
+    body = dict(body or {})
+    note = body.pop("note", None)
+    current = _assets_for(bid)
+    try:
+        rec = corrections.record(bid, current, asset_id, action, body if action == "patch" else None, note)
+    except KeyError:
+        raise HTTPException(404, f"unknown asset {asset_id} in {bid}")
+    except corrections.CorrectionError as e:
+        raise HTTPException(422, str(e))
+    after = _assets_for(bid)
+    asset = next((a for a in after if a["id"] == asset_id), None)
+    if bid != FIX:
+        rank.compute()                               # keep the triage ranking in step with the correction
+    similar = corrections.similar(after, asset or next(a for a in current if a["id"] == asset_id))
+    return {"correction": rec, "asset": asset,
+            "similar_asset_ids": [a["id"] for a in similar],
+            "scenario": scenario(bid, depth_ft), "mitigations": mitigations(bid, depth_ft)}
+
+
+@app.patch("/buildings/{bid}/assets/{asset_id}")
+def patch_asset(bid: str, asset_id: str, body: dict = Body(...), depth_ft: float = Query(2, ge=0, le=8)):
+    """Human correction. Body: any of label, category, height_ft_low, height_ft_high, room, plus an optional note.
+    Saved, applied on every read, written to the agent's memory; returns the new scenario and mitigations."""
+    return _correct(bid, asset_id, "patch", body, depth_ft)
+
+
+@app.delete("/buildings/{bid}/assets/{asset_id}")
+def delete_asset(bid: str, asset_id: str, body: dict | None = Body(default=None),
+                 depth_ft: float = Query(2, ge=0, le=8)):
+    """Human removes a wrong asset (optional body {"note": ...}). Same effects as PATCH."""
+    return _correct(bid, asset_id, "delete", body or {}, depth_ft)
 
 
 @app.post("/buildings/{bid}/run")

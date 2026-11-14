@@ -327,7 +327,14 @@ data/cache/costar/, matterport/, vexcel/, public/   Phase 0 discovery files
   - **402** on 3.6: "Your prepayment credits are depleted" (`RESOURCE_EXHAUSTED`). This is a billing stop, not a rate limit; it needs credits added in AI Studio.
   - Connection resets (`httpx.ReadError`) also happened. They are retried twice, then the next model is tried.
   - Every attempt is in `data/cache/gemini_calls.jsonl`, and every answered response is cached. `DEMO_MODE=1 python -m app.survey.interior <id>` rebuilds assets from cache with no calls.
+- **Spend after the credit top-up** (`data/cache/spend.json`): $0.338 for 69 billed calls by 10:10 UTC.
+  - The billing check, H's re-looks, the scout (21 calls), and the E and B surveys and re-looks.
+  - A survey call costs about $0.0045 (about 4,900 input tokens, about 230 output tokens).
+  - Cached responses are free and re-keyed without the model list, so changing models does not re-bill them.
 - **LangChain** (docs-langchain MCP server, `https://docs.langchain.com/mcp`):
   - `create_deep_agent(model="google_genai:<model>")`, or `init_chat_model(...)` with the `langchain-google-genai` package.
   - The integration reads `GOOGLE_API_KEY`, so pass our `GEMINI_API_KEY` explicitly.
   - The MCP server is configured for this project but was not loaded into the Claude Code session, so it was queried directly over HTTP.
+  - Installed and pinned: deepagents 0.7.38, langchain 1.5.0, langchain-core 1.8.0, langchain-google-genai 4.5.0, langgraph 1.2.22, langgraph-checkpoint-sqlite 3.1.3.
+  - `StoreBackend` resolves its namespace with runtime=None outside a graph, so the API can write `/memories/` directly. `CompositeBackend` strips the route prefix (`/memories/x` is stored as `/x`).
+  - The docs warn against `FilesystemBackend` in a web server (the agent could read `.env`), so the dossier stays in `StateBackend` and only `/memories/` persists (SQLite).

@@ -22,7 +22,9 @@ python3.14 -m venv .venv                         # any Python 3.11+
 .venv/bin/python -m app.sources.pull             # pull and cache every layer for it (about 2 GB)
 .venv/bin/python -m app.loss.build_curves        # Hazus 6.1 structure curves -> app/loss/curves.yaml
 .venv/bin/python -m app.survey.calibrate building-h   # measure the panorama face convention (already recorded)
-.venv/bin/python -m app.survey.interior building-h    # vision survey of one building (Gemini)
+.venv/bin/python -m app.survey.scout                  # contents scout: 3 positions per building -> data/cache/scout.json
+.venv/bin/python -m app.survey.interior building-e    # vision survey of one building (Gemini; --cached-positions-only to rebuild)
+.venv/bin/python -m app.survey.spotcheck building-e   # 10-asset spot-check table (--sheet out.jpg for a local review sheet)
 .venv/bin/python -m app.loss.rank                # precompute loss at 1, 2, 4 ft for the triage map
 .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
 
@@ -62,6 +64,9 @@ All responses follow `contracts/`. CORS allows `http://localhost:3000`.
 | `GET /buildings/{id}/scenario?depth_ft=` | ScenarioResult at any depth from 0 to 8 ft |
 | `GET /buildings/{id}/mitigations?depth_ft=` | Mitigations ranked at exactly that depth; ids are stable across depths |
 | `GET /buildings/{id}/media` | Media manifest: mesh, aerial images, and panorama faces cleared by the privacy screen |
+| `PATCH /buildings/{id}/assets/{asset_id}?depth_ft=` | Human correction: any of `label`, `category`, `height_ft_low`, `height_ft_high`, `room`, plus an optional `note`. Saved, applied on every read, written to the agent's memory. Returns `{correction, asset, similar_asset_ids, scenario, mitigations}` |
+| `DELETE /buildings/{id}/assets/{asset_id}?depth_ft=` | Removes a wrong asset (optional body `{"note"}`). Returns the same shape, with `asset: null` |
+| `GET /triage?depth_ft=1\|2\|4` | Every building ranked by total loss, labelled `surveyed` (with positions read and contents count) or `structure only`. Not in `contracts/` yet |
 | `POST /buildings/{id}/run` | Starts the agent (fixture: trace replay) |
 | `GET /buildings/{id}/events?speed=` | SSE stream of AgentEvent (`event: agent_event`, then `event: end`) |
 | `GET /buildings/{id}/report?depth_ft=`, `/playbook?depth_ft=` | HTML |
@@ -76,5 +81,7 @@ The building `fixture-1` (FIXTURE, not real data) supports every endpoint. For r
 Next.js, in `frontend/` (workstream B).
 
 ## Data and secrets
+
+Gemini spend is logged per call in `data/cache/spend.json`. A call that could take the total past `GEMINI_BUDGET_USD` (default 3) is refused before it is made, and HTTP 402 (credits depleted) stops a survey.
 
 `.env`, `data/toolkit/` and `data/cache/` are git-ignored. CoStar, Matterport and Vexcel data are proprietary and are never committed.

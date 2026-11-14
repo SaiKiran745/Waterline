@@ -61,6 +61,30 @@ Retained buildings keep their letter.
 
 H is the story building outside the mapped flood zone, and the first building surveyed.
 
+## D10. Demo buildings (2026-11-14)
+
+**Decided (human): H is too empty to be the hero.**
+- A contents scout read 3 well-spread scan positions per building, one call each (`python -m app.survey.scout`). Contents assets (fabric excluded) were: A 5, B 14, C 3, D 12, E 17, F 17, G 1. No children's spaces were flagged.
+- **Hero, outside the 1% area: E** (industrial warehouse, X shaded).
+  - E and F tied at 17.
+  - E has 49 scan positions to F's 21, so a 20-position survey of E still means choosing positions, while for F it means reading nearly all of them.
+  - E's scan covers the whole building (100% against 70%).
+  - E is an active warehouse; F's contents look like private storage (vintage cars, a recliner, a washing machine).
+- **Inside the 1% area: B** (machine shop, AE), the richest of B, C and D.
+- **Full surveys:** up to 20 positions each, starting from the scout positions. Positions are spread by room, then filled by farthest-point sampling across the building.
+- **H stays as it is:** 14 of 96 positions read, with 6 positions still unread after the billing stop.
+
+## D11. Survey rules added 2026-11-14
+
+- **Merge (human):** two sightings are one asset only if their mesh positions are within 0.5 m and the category matches.
+  - The same rule is applied again after re-looks.
+  - The earlier 1.5 m rule merged H's floor pump with its wall breaker panels.
+- **Truncated boxes:** a box that reaches the bottom of the image (row ≥ 985 of 1000) hides the item's lowest part.
+  - The height range then starts at the floor (0 ft) and confidence is capped at 0.55, which makes the item eligible for a re-look.
+  - Found on E, where a cabinet standing on the floor read 1.4 ft.
+- **Re-look answers must be complete:** with optional fields the model answered "found" without heights, so every field is now required.
+- **Gemini budget:** see `data/cache/spend.json` and DATA_NOTES section 14. Calls are refused before the total would pass `GEMINI_BUDGET_USD` (3), and HTTP 402 stops a run.
+
 ## D5. Matterport tokens
 
 **Decided (human):** read-only and server-side only.
@@ -77,7 +101,8 @@ H is the story building outside the mapped flood zone, and the first building su
 
 ## D7. Models
 
-**Vision and the agent orchestrator run on Gemini** (human decision; Anthropic is optional). The model was chosen from the Gemini models list on 2026-11-14, under the rule "newest stable Flash that accepts images: no `-preview`, no `-latest`, no date suffix". That gives `gemini-3.8-flash`.
+**Vision and the agent orchestrator run on Gemini** (human decision; Anthropic is optional). The model was first chosen from the Gemini models list on 2026-11-14, under the rule "newest stable Flash that accepts images: no `-preview`, no `-latest`, no date suffix". That gave `gemini-3.8-flash`.
+- **Changed the same day (human): `GEMINI_MODEL=gemini-3.6-flash` and `AGENT_MODEL=google_genai:gemini-3.6-flash`, with no fallbacks.** 3.8 never answered an image call. 3.6 is priced at $0.75 / $3.75 per 1M input / output tokens (Standard tier, to 2026-12-31).
 - Fallbacks: `gemini-3.7-flash` then `gemini-3.6-flash`, used only on 503 or timeout.
 - On the day: 3.8 passed the text test but returned 503 and timed out on image calls (Google reported "high demand"). 3.6 passed both tests.
 - Every cached vision response records which model answered.

@@ -60,9 +60,16 @@ def assemble(bid: str) -> dict:
     return building
 
 
-def get_assets(bid: str) -> list[dict]:
+def get_survey_assets(bid: str) -> list[dict]:
+    """The survey's own output, before human corrections."""
     path = BUILDINGS / bid / "assets.json"
     return json.loads(path.read_text()) if path.exists() else []
+
+
+def get_assets(bid: str) -> list[dict]:
+    """Survey assets with human corrections applied (app/corrections.py)."""
+    from app import corrections
+    return corrections.apply(bid, get_survey_assets(bid))
 
 
 def get_entry_points(bid: str) -> list[dict]:

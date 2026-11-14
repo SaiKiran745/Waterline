@@ -26,7 +26,7 @@ from PIL import Image
 from app.buildings import validate
 from app.config import BUILDINGS, MEDIA
 from app.loss import model as loss_model
-from app.sources import gemini
+from app.sources import gemini, spend
 from app.sources.cache import CacheMiss, write_json
 from app.survey.geometry import CONVENTION as CONV, cast_pixel, floor_z_below, mesh_for
 
@@ -35,6 +35,7 @@ SIDE_FACES = (1, 2, 3, 4)
 UPLOAD_PX = 1024
 FT = 0.3048
 LOW_CONF = 0.6
+MERGE_M = 0.5        # two sightings are one asset only if their mesh positions are this close and the category matches
 # Wall outlets, switches and fixed cabinetry are part of the building: the Hazus structure curve already prices them.
 # They stay in the inventory (water visibly reaches them) but as "finishes" at $0, so they are not counted twice.
 FABRIC = re.compile(r"\b(outlets?|receptacles?|switch(?!gear|board)\w*|sockets?|cover plates?|"
@@ -97,14 +98,16 @@ For every face, also report room_type (for example warehouse, office, break room
 Return only items you can actually see. An empty list is fine."""
 
 RELOOK_PROMPT = """This is a close-up from a different 3D-scan position in the same commercial building (camera 1.4 m above the floor).
-Another view suggested a "{label}" ({category}) near the centre of this image. If you can see it, give box_2d [ymin, xmin, ymax, xmax] normalised to 0-1000 on this image, vulnerable_bottom_y (image row 0-1000 of its lowest part that flood water would damage), height_ft_low / height_ft_high (that part's height above the floor in feet), confidence (0-1) and one sentence of evidence. Set found to false if it is not visible. Also report whether the image shows identifiable people, a children's space, or readable personal documents."""
+Another view suggested a "{label}" ({category}) near the centre of this image. If you can see it, give box_2d [ymin, xmin, ymax, xmax] normalised to 0-1000 on this image, vulnerable_bottom_y (image row 0-1000 of its lowest part that flood water would damage), height_ft_low / height_ft_high (that part's height above the floor in feet), confidence (0-1) and one sentence of evidence. Set found to false if it is not visible (then give box_2d [0, 0, 0, 0], zeros for the numbers and an empty evidence). Also report whether the image shows identifiable people, a children's space, or readable personal documents."""
 
 RELOOK_SCHEMA = {"type": "OBJECT", "properties": {
     "found": {"type": "BOOLEAN"}, "box_2d": {"type": "ARRAY", "items": {"type": "INTEGER"}},
     "vulnerable_bottom_y": {"type": "INTEGER"}, "height_ft_low": {"type": "NUMBER"}, "height_ft_high": {"type": "NUMBER"},
     "confidence": {"type": "NUMBER"}, "evidence": {"type": "STRING"},
     "people_identifiable": {"type": "BOOLEAN"}, "childrens_space": {"type": "BOOLEAN"}, "personal_documents": {"type": "BOOLEAN"}},
-    "required": ["found", "confidence", "people_identifiable", "childrens_space", "personal_documents"]}
+    # Every field is required: with optional fields the model answered "found" without heights (H, 2026-11-14).
+    "required": ["found", "box_2d", "vulnerable_bottom_y", "height_ft_low", "height_ft_high", "confidence", "evidence",
+                 "people_identifiable", "childrens_space", "personal_documents"]}
 
 
 def jpeg(img: Image.Image, size: int = UPLOAD_PX) -> bytes:
@@ -146,6 +149,21 @@ def choose_positions(mp: dict, max_positions: int) -> list[dict]:
             reason = (f"most central of {len(locs)} positions in {label}" if k == 0 else
                       f"farthest from the positions already chosen in {label} ({len(locs)} positions)")
             chosen.append({"location": locs[i], "pano": panos[locs[i]["id"]], "room_id": rid, "reason": reason})
+    # Few, large rooms leave slots unused: fill to max_positions with positions farthest from everything chosen.
+    every = [l for ls in by_room.values() for l in ls]
+    taken = {c["location"]["id"] for c in chosen}
+    while len(chosen) < max_positions and len(taken) < len(every):
+        pts = np.array([[l["position"]["x"], l["position"]["y"]] for l in every])
+        have = np.array([[c["location"]["position"]["x"], c["location"]["position"]["y"]] for c in chosen])
+        d = np.min(np.linalg.norm(pts[:, None] - have[None], axis=2), axis=1)
+        d[[i for i, l in enumerate(every) if l["id"] in taken]] = -1
+        loc = every[int(np.argmax(d))]
+        rid = (loc.get("room") or {}).get("id") or "none"
+        label = (rooms.get(rid) or {}).get("label") or f"room {rid[:6]}"
+        chosen.append({"location": loc, "pano": panos[loc["id"]], "room_id": rid,
+                       "reason": f"filling to {max_positions}: farthest from every position already chosen ({label}, "
+                                 f"{float(d.max()):.1f} m away)"})
+        taken.add(loc["id"])
     return chosen[:max_positions]
 
 
@@ -167,8 +185,18 @@ def measure(mesh, pano: dict, face: int, box: list[int], bottom_y: int, floor_z:
             "distance_m": centre["distance_m"] if centre else None}
 
 
-def decide_height(est_lo: float, est_hi: float, conf: float, m: dict) -> tuple[float, float, float, str]:
+TRUNCATED_Y = 985   # a box reaching this row (0-1000) runs off the bottom of the face: its lowest part is not visible
+
+
+def decide_height(est_lo: float, est_hi: float, conf: float, m: dict, box: list | None = None) -> tuple[float, float, float, str]:
     est_lo, est_hi = max(0.0, min(est_lo, est_hi)), max(est_lo, est_hi)
+    if box and len(box) == 4 and box[2] >= TRUNCATED_Y:
+        # The object continues below the image edge, so neither the mesh nor the model sees its lowest part.
+        # Assume it reaches the floor and keep the confidence low enough to trigger a re-look.
+        seen = [h for h in (m.get("heights_ft") or [])]
+        hi = max([est_hi] + [max(seen) + MESH_TOL_FT] if seen else [est_hi])
+        return 0.0, round(max(hi, 0.1), 2), round(min(conf * 0.6, 0.55), 2), (
+            "estimated: the item runs off the bottom of the image, so its lowest part is not visible; floor assumed")
     if m["heights_ft"]:
         z_lo = max(0.0, min(m["heights_ft"]) - MESH_TOL_FT)
         z_hi = max(m["heights_ft"]) + MESH_TOL_FT
@@ -183,12 +211,12 @@ def decide_height(est_lo: float, est_hi: float, conf: float, m: dict) -> tuple[f
 
 # ------------------------------------------------------------------ survey
 
-def survey_position(bid, mesh, mp, pos, log) -> list[dict]:
+def survey_position(bid, mesh, mp, pos, log, cache_only: bool = False) -> list[dict]:
     pano = pos["pano"]
     parts = [SURVEY_PROMPT]
     for f in SIDE_FACES:
         parts += [f"Face {f}:", jpeg(face_image(bid, pano["id"], f))]
-    res = gemini.generate_json(parts, ASSET_SCHEMA, tag=f"{bid}/survey/{pano['id']}")
+    res = gemini.generate_json(parts, ASSET_SCHEMA, tag=f"{bid}/survey/{pano['id']}", cache_only=cache_only)
     log["calls"].append({"kind": "survey", "pano": pano["id"], "model": res["model"], "cached": bool(res.get("cached")),
                          "tokens": (res.get("usage") or {}).get("totalTokenCount")})
     flags, room_types = {}, {}
@@ -205,10 +233,11 @@ def survey_position(bid, mesh, mp, pos, log) -> list[dict]:
         if a.get("face") not in SIDE_FACES or len(a.get("box_2d") or []) != 4 or a.get("category") not in CATEGORIES:
             continue
         m = measure(mesh, pano, a["face"], a["box_2d"], a["vulnerable_bottom_y"], floor_z)
-        lo, hi, conf, how = decide_height(a["height_ft_low"], a["height_ft_high"], float(a["confidence"]), m)
+        lo, hi, conf, how = decide_height(a["height_ft_low"], a["height_ft_high"], float(a["confidence"]), m, a["box_2d"])
         out.append({"pano": pano, "location": pos["location"], "room_id": pos["room_id"],
                     "room_type": room_types.get(a["face"], ""), "face": a["face"], "box": a["box_2d"],
-                    "category": a["category"], "label": a["label"].strip(), "height_ft_low": lo, "height_ft_high": hi,
+                    "category": "finishes" if is_fabric(a["label"]) else a["category"], "fabric": is_fabric(a["label"]),
+                    "label": a["label"].strip(), "height_ft_low": lo, "height_ft_high": hi,
                     "confidence": conf, "how": how, "position": m["position"], "evidence": a["evidence"].strip(),
                     "visual": [a["height_ft_low"], a["height_ft_high"]], "model": res["model"]})
     return out, flags
@@ -225,17 +254,37 @@ def observation(bid: str, d: dict) -> dict:
 
 
 def merge(dets: list[dict]) -> list[list[dict]]:
-    """Group detections of the same category whose mesh positions are within 1.5 m."""
+    """Group detections of the same category whose mesh positions are within MERGE_M (0.5 m).
+    Detections without a mesh position are never merged."""
     groups: list[list[dict]] = []
     for d in sorted(dets, key=lambda d: -d["confidence"]):
         for g in groups:
             p, q = d["position"], g[0]["position"]
-            if p and q and d["category"] == g[0]["category"] and math.dist((p["x"], p["y"], p["z"]), (q["x"], q["y"], q["z"])) < 1.5:
+            if p and q and d["category"] == g[0]["category"] and math.dist((p["x"], p["y"], p["z"]), (q["x"], q["y"], q["z"])) < MERGE_M:
                 g.append(d)
                 break
         else:
             groups.append([d])
     return groups
+
+
+def remerge(groups: list[list[dict]]) -> tuple[list[list[dict]], list[str]]:
+    """After re-looks a group's best view can move: merge groups whose best views now meet the merge rule."""
+    kept: list[list[dict]] = []
+    notes = []
+    for g in sorted(groups, key=lambda g: -g[0]["confidence"]):
+        p = g[0]["position"]
+        for k in kept:
+            q = k[0]["position"]
+            if p and q and g[0]["category"] == k[0]["category"] and \
+                    math.dist((p["x"], p["y"], p["z"]), (q["x"], q["y"], q["z"])) < MERGE_M:
+                notes.append(f"'{g[0]['label']}' merged into '{k[0]['label']}': after the re-look both views "
+                             f"point within {MERGE_M} m")
+                k.extend(g)
+                break
+        else:
+            kept.append(g)
+    return kept, notes
 
 
 def relook(bid, mesh, mp, group, log, flags) -> dict | None:
@@ -270,67 +319,118 @@ def relook(bid, mesh, mp, group, log, flags) -> dict | None:
     if reasons:
         flags[f"{nb['id']}/face{face}"] = {"clear": False, "reasons": reasons, "model": res["model"],
                                            "checked_at": res.get("fetched_at")}
-    if not r.get("found") or len(r.get("box_2d") or []) != 4:
-        return None
+    complete = len(r.get("box_2d") or []) == 4 and all(r.get(k) is not None for k in
+                                                         ("height_ft_low", "height_ft_high", "vulnerable_bottom_y"))
+    log["calls"][-1]["complete"] = complete
+    if not r.get("found") or not complete:
+        return None                                      # not seen, or an incomplete answer: inconclusive
     s = 2 * half / 1000
     box = [int((y0 + r["box_2d"][0] * s) * 1000 / FACE_PX), int((x0 + r["box_2d"][1] * s) * 1000 / FACE_PX),
            int((y0 + r["box_2d"][2] * s) * 1000 / FACE_PX), int((x0 + r["box_2d"][3] * s) * 1000 / FACE_PX)]
     bottom = int((y0 + r["vulnerable_bottom_y"] * s) * 1000 / FACE_PX)
     m = measure(mesh, nb, face, box, bottom, floor_z_below(mesh, nb["position"]))
-    lo, hi, conf, how = decide_height(r["height_ft_low"], r["height_ft_high"], float(r["confidence"]), m)
+    lo, hi, conf, how = decide_height(r["height_ft_low"], r["height_ft_high"], float(r["confidence"]), m, r["box_2d"])
     loc = next(l for l in mp["locations"] if l["id"] == nb["location_id"])
     return {"pano": nb, "location": loc, "room_id": best["room_id"], "room_type": best["room_type"], "face": face,
-            "box": box, "category": best["category"], "label": best["label"], "height_ft_low": lo, "height_ft_high": hi,
+            "box": box, "category": best["category"], "fabric": best.get("fabric", False), "label": best["label"],
+            "height_ft_low": lo, "height_ft_high": hi,
             "confidence": conf, "how": how, "position": m["position"] or best["position"],
             "evidence": r.get("evidence", "").strip(), "visual": [r["height_ft_low"], r["height_ft_high"]], "model": res["model"]}
 
 
-def run(bid: str, max_positions: int, max_relooks: int) -> list[dict]:
+def seed_positions(bid: str, mp: dict) -> list[dict]:
+    """Positions the contents scout already read (data/cache/scout.json): surveyed first, so no call is repeated."""
+    from app.config import CACHE
+    path = CACHE / "scout.json"
+    if not path.exists():
+        return []
+    scouted = (json.loads(path.read_text()).get(bid) or {}).get("positions") or []
+    panos = {p["location_id"]: p for p in mp["panos"]}
+    locs = {l["id"]: l for l in mp["locations"]}
+    return [{"location": locs[x["location_id"]], "pano": panos[x["location_id"]],
+             "room_id": (locs[x["location_id"]].get("room") or {}).get("id") or "none",
+             "reason": f"read by the contents scout ({x['reason']})"} for x in scouted if x["location_id"] in panos]
+
+
+class Stop(Exception):
+    """Budget or billing stop: finish with what has been read, then exit non-zero."""
+
+
+def run(bid: str, max_positions: int, max_relooks: int, cached_positions_only: bool = False) -> list[dict]:
     parts = json.loads((BUILDINGS / bid / "parts.json").read_text())
     mp = parts["matterport"]
     mesh = mesh_for(str(MEDIA / bid / "mesh" / "mesh_50k.obj"))
     rooms = {r["id"]: r for r in mp["rooms"]}
-    log = {"building_id": bid, "started_at": datetime.now(timezone.utc).isoformat(), "positions": [], "calls": [], "relooks": []}
+    log = {"building_id": bid, "started_at": datetime.now(timezone.utc).isoformat(), "positions": [], "calls": [],
+           "relooks": [], "merge_rule": f"same category and mesh positions within {MERGE_M} m"}
     flags: dict = json.loads((BUILDINGS / bid / "screening.json").read_text()) if (BUILDINGS / bid / "screening.json").exists() else {}
-    positions = choose_positions(mp, max_positions)
-    print(f"{bid}: {len(mp['locations'])} scan positions; inspecting {len(positions)}")
-    dets = []
+    seeds = seed_positions(bid, mp)
+    seen = {x["location"]["id"] for x in seeds}
+    positions = (seeds + [x for x in choose_positions(mp, max_positions) if x["location"]["id"] not in seen])[:max_positions]
+    print(f"{bid}: {len(mp['locations'])} scan positions; inspecting {len(positions)}"
+          + (" (cached positions only)" if cached_positions_only else ""))
+    dets, stop = [], None
     for k, pos in enumerate(positions, 1):
         log["positions"].append({"location_id": pos["location"]["id"], "reason": pos["reason"]})
         try:
-            got, f = survey_position(bid, mesh, mp, pos, log)
+            got, f = survey_position(bid, mesh, mp, pos, log, cache_only=cached_positions_only)
         except (gemini.GeminiError, CacheMiss) as e:  # every model failed (or cache-only miss): record it, move on
             log["positions"][-1]["error"] = str(e)[:300]
-            print(f"  [{k}/{len(positions)}] {pos['reason']}: FAILED ({str(e)[:120]})", flush=True)
+            print(f"  [{k}/{len(positions)}] {pos['reason']}: skipped ({str(e)[:120]})", flush=True)
             continue
+        except (gemini.BillingError, spend.BudgetExceeded) as e:
+            stop = log["stopped"] = str(e)[:300]
+            print(f"  STOP at [{k}/{len(positions)}]: {stop}", flush=True)
+            break
         flags.update(f)
         dets += got
         write_json(BUILDINGS / bid / "screening.json", flags)
-        print(f"  [{k}/{len(positions)}] {pos['reason']}: {len(got)} items ({log['calls'][-1]['model']})", flush=True)
+        print(f"  [{k}/{len(positions)}] {pos['reason']}: {len(got)} items ({log['calls'][-1]['model']}"
+              f"{', cached' if log['calls'][-1].get('cached') else ''})", flush=True)
     groups = merge(dets)
     relooked = 0
-    for g in sorted(groups, key=lambda g: g[0]["confidence"]):
-        if relooked >= max_relooks or g[0]["confidence"] >= LOW_CONF:
+    for g in sorted(groups, key=lambda g: (bool(g[0].get("fabric")), g[0]["confidence"])):   # contents first
+        if stop or relooked >= max_relooks or g[0]["confidence"] >= LOW_CONF:
             continue
-        before = g[0]["confidence"]
+        b = g[0]
+        entry = {"label": b["label"], "category": b["category"], "from_location": b["location"]["id"],
+                 "before": {"height_ft": [b["height_ft_low"], b["height_ft_high"]], "confidence": b["confidence"],
+                            "how": b["how"]}}
+        n_calls = len(log["calls"])
         try:
             r = relook(bid, mesh, mp, g, log, flags)
         except (gemini.GeminiError, CacheMiss) as e:
-            log["relooks"].append({"label": g[0]["label"], "error": str(e)[:300]})
+            log["relooks"].append({**entry, "error": str(e)[:300]})
             continue
+        except (gemini.BillingError, spend.BudgetExceeded) as e:
+            stop = log["stopped"] = str(e)[:300]
+            break
         relooked += 1
         if r:
-            g.insert(0, r) if r["confidence"] > before else g.append(r)
-        log["relooks"].append({"label": g[0]["label"], "confidence_before": before,
-                               "confidence_after": max(x["confidence"] for x in g), "found": bool(r)})
+            g.insert(0, r) if r["confidence"] > b["confidence"] else g.append(r)
+            entry["neighbour"] = {"location_id": r["location"]["id"], "face": r["face"], "box": r["box"],
+                                  "height_ft": [r["height_ft_low"], r["height_ft_high"]], "confidence": r["confidence"],
+                                  "how": r["how"], "visual_estimate_ft": r["visual"], "model": r["model"]}
+        else:
+            c = log["calls"][-1] if len(log["calls"]) > n_calls else None
+            entry["neighbour"] = ({"pano": c["pano"], "found": c.get("found"), "complete": c.get("complete"),
+                                   "result": "inconclusive: record unchanged"} if c
+                                  else "no neighbouring position sees this point on a side face")
+        entry["after"] = {"height_ft": [g[0]["height_ft_low"], g[0]["height_ft_high"]], "confidence": g[0]["confidence"],
+                          "how": g[0]["how"], "kept": "neighbour view" if g[0] is not b else "original view"}
+        log["relooks"].append(entry)
+        print(f"  relook {b['label']!r}: {entry['before']} -> {entry['after']}", flush=True)
+    groups, log["merged_after_relook"] = remerge(groups)
+    for n in log["merged_after_relook"]:
+        print(f"  {n}", flush=True)
     write_json(BUILDINGS / bid / "screening.json", flags)
     assets = []
     for n, g in enumerate(sorted(groups, key=lambda g: (g[0]["room_id"], g[0]["height_ft_low"], g[0]["label"])), 1):
         best = g[0]
         room = rooms.get(best["room_id"]) or {}
         label = room.get("label") or (best["room_type"].strip().title() if best["room_type"] else "Unlabelled room")
-        fabric = is_fabric(best["label"])
-        category = "finishes" if fabric else best["category"]
+        fabric = bool(best.get("fabric"))
+        category = best["category"]
         va = loss_model.asset_assumption(category)
         asset = {"id": f"{bid}-a{n}", "building_id": bid, "matterport_model_id": mp["model_id"],
                  "floor_id": (best["location"].get("floor") or {}).get("id"),
@@ -348,6 +448,8 @@ def run(bid: str, max_positions: int, max_relooks: int) -> list[dict]:
     write_json(BUILDINGS / bid / "assets.json", assets)
     log["finished_at"] = datetime.now(timezone.utc).isoformat()
     write_json(BUILDINGS / bid / "survey_log.json", log)
+    if stop:
+        raise Stop(stop)
     return assets
 
 
@@ -356,6 +458,11 @@ if __name__ == "__main__":
     ap.add_argument("building")
     ap.add_argument("--max-positions", type=int, default=20)
     ap.add_argument("--max-relooks", type=int, default=8)
+    ap.add_argument("--cached-positions-only", action="store_true",
+                    help="read only positions already in the cache (re-looks may still call the model)")
     a = ap.parse_args()
-    out = run(a.building, a.max_positions, a.max_relooks)
+    try:
+        out = run(a.building, a.max_positions, a.max_relooks, a.cached_positions_only)
+    except Stop as e:
+        raise SystemExit(f"{a.building}: stopped, partial assets written: {e}")
     print(f"{a.building}: {len(out)} assets")

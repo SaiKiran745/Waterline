@@ -17,8 +17,14 @@ def building() -> dict:
     return load("building.json")
 
 
+def assets() -> list[dict]:
+    """Fixture assets with any corrections made through the API (stored under data/cache/, never in contracts/)."""
+    from app import corrections
+    return corrections.apply(FIXTURE_ID, load("assets.json"))
+
+
 def detail() -> dict:
-    return {"building": building(), "entry_points": load("entry_points.json"), "assets": load("assets.json")}
+    return {"building": building(), "entry_points": load("entry_points.json"), "assets": assets()}
 
 
 def _interp(depth: float, points: list[tuple[float, float, float]]) -> tuple[float, float]:
@@ -32,12 +38,12 @@ def _interp(depth: float, points: list[tuple[float, float, float]]) -> tuple[flo
 def scenario(depth_ft: float) -> dict:
     """AGENTS.md section 9 rule over the fixture assets. Depth 0 means no water, so nothing is hit.
     Structure loss interpolates the fixture's placeholder curve (FIXTURE, labelled placeholder)."""
-    assets = load("assets.json")
+    rows = assets()
     if depth_ft <= 0:
         likely, possible = [], []
     else:
-        likely = [a for a in assets if depth_ft >= a["height_ft_high"]]
-        possible = [a for a in assets if a["height_ft_low"] <= depth_ft < a["height_ft_high"]]
+        likely = [a for a in rows if depth_ft >= a["height_ft_high"]]
+        possible = [a for a in rows if a["height_ft_low"] <= depth_ft < a["height_ft_high"]]
     scen = load("scenarios.json")
     points = [(s["depth_ft"], s["structure_loss_usd_low"], s["structure_loss_usd_high"]) for s in scen]
     s_low, s_high = _interp(depth_ft, points)
@@ -79,7 +85,7 @@ def mitigations(depth_ft: float) -> list[dict]:
         c_lo, c_hi = contents_loss(assets, depth)
         s = scenario(depth)
         return c_lo, c_hi, s["structure_loss_usd_low"], s["structure_loss_usd_high"]
-    return engine.ranked(FIXTURE_ID, mitigation_specs(), load("assets.json"), depth_ft, loss)
+    return engine.ranked(FIXTURE_ID, mitigation_specs(), assets(), depth_ft, loss)
 
 
 def report_html() -> str:
@@ -96,9 +102,8 @@ def report_html() -> str:
 
 
 def playbook_html() -> str:
-    assets = load("assets.json")
     rooms: dict[str, list[dict]] = {}
-    for a in assets:
+    for a in assets():
         rooms.setdefault(a["room"], []).append(a)
     body = "".join(
         f"<h2>{html.escape(room)}</h2><ul>"
