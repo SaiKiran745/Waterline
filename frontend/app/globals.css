@@ -907,3 +907,6 @@ body { --mono: var(--font-body), Arial, sans-serif; --sans: var(--font-body), Ar
 /* "Dollhouse isn't available for this scan": a plain note beside the view switch. */
 .stage-note { align-self: center; color: var(--muted); font-size: 13px; }
 .stage-controls .stage-note { justify-self: start; }
+/* Photo-real views: keep the gauge column clear of Matterport's corner buttons and its Help | Terms links (they sit 24-96 px
+   above the bottom-left corner of the viewer). */
+.flood-stage:has(.photo-real-viewer) .stage-left { bottom: 112px; }
