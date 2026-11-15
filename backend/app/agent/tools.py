@@ -24,7 +24,7 @@ from app.actions import send as send_action
 from app.agent import events, guard, memory
 from app.config import BUILDINGS, CACHE
 from app.loss import mitigations as engine
-from app.loss import model
+from app.loss import model, sim
 from app.sources import gemini, spend
 from app.survey import interior, site
 
@@ -75,6 +75,15 @@ def _n(n: int, word: str) -> str:
 
 def _usd(r) -> str:
     return f"${r[0]:,.0f}-{r[1]:,.0f}"
+
+
+def _mid(lo, med, hi) -> str:
+    """A simulated figure (contracts v1.3): the median and its 80% interval."""
+    return f"about ${med:,.0f} (80% interval ${lo:,.0f}-{hi:,.0f})"
+
+
+def _avoided(m: dict) -> str:
+    return _mid(m["avoided_loss_usd_low"], m["avoided_loss_usd_median"], m["avoided_loss_usd_high"])
 
 
 # ------------------------------------------------------------------ site-scout
@@ -308,13 +317,14 @@ def survey_area(building_id: str, area_ids: list[str], reason: str,
                     + (f" ({', '.join(row['examples'])})" if row["examples"] else "")
                     + (f"; {_n(row['vehicles'], 'vehicle sighting')}" if row["vehicles"] else ""), refs=ids, data=row)
     contents = [a for a in buildings.get_assets(building_id) if a["value_basis"] not in ("A-FIN", "V-VEHICLE")]
-    value = [sum(a["value_usd_low"] for a in contents), sum(a["value_usd_high"] for a in contents)]
+    value = sim.contents_value(contents)
     low = sorted([a for a in contents if a["confidence"] < interior.LOW_CONF], key=lambda a: -a["value_usd_high"])
     stored = _stored(building_id, mp)
     events.emit("interior-surveyor", "observation",
-                f"Stored survey now {stored}: {len(contents)} contents assets worth {_usd(value)}; {len(low)} below "
+                f"Stored survey now {stored}: {len(contents)} contents assets worth {_mid(*value)}; {len(low)} below "
                 f"confidence {interior.LOW_CONF}.", refs=[a["id"] for a in low[:6]],
-                data={"stored_survey": stored, "contents_assets": len(contents), "value_usd": value})
+                data={"stored_survey": stored, "contents_assets": len(contents), "value_usd": [value[0], value[2]],
+                      "value_usd_median": value[1]})
     left = [{"id": a["id"], "area": a["name"], "positions_left": a["to_read"] - len(a["read"])}
             for a in after.values() if a["to_read"] > len(a["read"])]
     doc = [f"# Interior inventory: {building_id}", "", f"Stored survey: {stored}. Mode this run: {_mode()}.", "",
@@ -324,7 +334,7 @@ def survey_area(building_id: str, area_ids: list[str], reason: str,
     doc += ["", "## Batches this run", ""] + [f"- {c['location_id'][:6]}: {c['reason']}" for c in st["chosen"]]
     return _reply("interior-surveyor", tool_call_id, {
         "batch": k, "read": batch, "unknown_areas": unknown, "areas_left": left, "stored_survey": stored,
-        "contents_assets": len(contents), "contents_value_usd": _usd(value),
+        "contents_assets": len(contents), "contents_value_usd": _mid(*value),
         "low_confidence": [f"{a['id']} {a['label'][:40]} conf {a['confidence']}" for a in low[:6]],
         "inventory": f"/dossier/{building_id}/inventory.md"}, {f"/dossier/{building_id}/inventory.md": "\n".join(doc)})
 
@@ -341,7 +351,7 @@ def finish_survey(building_id: str) -> str:
     st = STATE.get(building_id, {"chosen": [], "batches": 0})
     assets = buildings.get_assets(building_id)
     contents = [a for a in assets if a["value_basis"] not in ("A-FIN", "V-VEHICLE")]
-    value = [sum(a["value_usd_low"] for a in contents), sum(a["value_usd_high"] for a in contents)]
+    value = sim.contents_value(contents)
     low = [a for a in contents if a["confidence"] < interior.LOW_CONF]
     stored = {p["location_id"] for p in interior.stored_read(building_id)}
     ok = [c for c in st["chosen"] if c["location_id"] in stored]          # chosen this run and actually read
@@ -349,7 +359,7 @@ def finish_survey(building_id: str) -> str:
             if a["to_read"] > len(a["read"])]
     out = {"stored_survey": _stored(building_id, mp), "mode": _mode(),
            "read_this_run": f"{len(ok)} positions in {st.get('batches', 0)} batch{'' if st.get('batches', 0) == 1 else 'es'}",
-           "contents_assets": len(contents), "contents_value_usd": _usd(value),
+           "contents_assets": len(contents), "contents_value_usd": _mid(*value),
            "vehicles": sum(1 for a in assets if a["value_basis"] == "V-VEHICLE"),
            "still_low_confidence": len(low), "inventory": f"/dossier/{building_id}/inventory.md"}
     if left:
@@ -431,24 +441,46 @@ def run_scenario(building_id: str, depth_ft: float, tool_call_id: Annotated[str,
     _call("scenario-builder", "run_scenario", {"building_id": building_id, "depth_ft": d})
     assets = buildings.get_assets(building_id)
     s = model.scenario(b, assets, d)
-    spans = model._spans(assets)
-    loss = {a["id"]: a["value_usd_high"] * model.fractions(a, d, spans.get(a["id"]))[1] for a in assets}
-    top = sorted(assets, key=lambda a: -loss[a["id"]])[:3]
+    labels = {a["id"]: a for a in assets}
+    top = s["top_contributors"][:3]
     vehicles = sum(1 for a in assets if a["value_basis"] == "V-VEHICLE" and d >= a["height_ft_low"])
-    c, st = [s["loss_usd_low"], s["loss_usd_high"]], [s["structure_loss_usd_low"], s["structure_loss_usd_high"]]
-    tot = [c[0] + st[0], c[1] + st[1]]
-    likely = sum(1 for h in s["assets_hit"] if h["status"] == "likely")
+    tot = _mid(s["total_usd_low"], s["total_usd_median"], s["total_usd_high"])
+    c = _mid(s["loss_usd_low"], s["loss_usd_median"], s["loss_usd_high"])
+    st = _mid(s["structure_loss_usd_low"], s["structure_loss_usd_median"], s["structure_loss_usd_high"])
+    w = s["items_in_water"]
+    reach = f"{w['count_low']}" if w["count_low"] == w["count_high"] else f"{w['count_low']}-{w['count_high']}"
+    std = s.get("standard_contents_usd_median")
+    if std is not None:
+        from app.loss import sim
+        v, ratio = sim.verdict(s["loss_usd_median"], std)
+        std_text = (f"Hazus-style contents on the same item values: about ${std:,.0f} (ours {v}"
+                    + (f", {ratio:.1f} times" if ratio is not None and v != "about the same" else "") + ").")
+    else:
+        std_text = ""
     events.emit("scenario-builder", "observation",
-                f"At {d:g} ft: contents {_usd(c)}, structure {_usd(st)}, total {_usd(tot)}; {likely} assets likely hit; "
-                f"{vehicles} vehicles at risk.", refs=[a["id"] for a in top], data={"depth_ft": d, "total_usd": tot})
-    doc = [f"# Scenario {d:g} ft: {building_id}", "", f"- Contents: {_usd(c)}", f"- Structure: {_usd(st)}",
-           f"- Total: {_usd(tot)}", f"- Assets hit: {likely} likely, {len(s['assets_hit']) - likely} possible",
-           f"- Vehicles at risk (not in contents loss): {vehicles}", "", "## Assumptions"]
+                f"At {d:g} ft: total {tot}; contents {c}; structure {st}. Water reaches {reach} of {w['of']} contents "
+                f"items (from item heights, no dollar assumption); {vehicles} vehicles at risk. {std_text}".strip(),
+                refs=[x["asset_id"] for x in top],
+                data={"depth_ft": d, "total_usd": [s["total_usd_low"], s["total_usd_high"]],
+                      "total_usd_median": s["total_usd_median"], "items_in_water": w})
+    doc = [f"# Scenario {d:g} ft: {building_id}", "", "Median and 80% interval from 4,000 simulated draws (C-MC-*).", "",
+           f"- Total: {tot}", f"- Contents: {c}", f"- Structure: {st}",
+           f"- Contents items reached: {reach} of {w['of']} (measured heights, no dollar assumption)",
+           f"- Assets hit: {sum(1 for h in s['assets_hit'] if h['status'] == 'likely')} likely, "
+           f"{sum(1 for h in s['assets_hit'] if h['status'] == 'possible')} possible",
+           f"- Vehicles at risk (not in contents loss): {vehicles}"]
+    if std_text:
+        doc.append(f"- {std_text}")
+    doc += ["", "## Largest expected losses"]
+    doc += [f"- {labels[x['asset_id']]['label']}: about ${x['expected_loss_usd']:,.0f} ({x['share']:.0%})" for x in s["top_contributors"]]
+    doc += ["", "## Assumptions"]
     doc += [f"- {x['id']}{' (assumed range, editable)' if x['placeholder'] else ''}: {x['text']}" for x in s["assumptions"]]
     path = f"/dossier/{building_id}/scenario-{d:g}ft.md"
     return _reply("scenario-builder", tool_call_id, {
-        "depth_ft": d, "contents": _usd(c), "structure": _usd(st), "total": _usd(tot), "likely_hit": likely,
-        "top_assets": [a["label"][:40] for a in top], "vehicles_at_risk": vehicles,
+        "depth_ft": d, "total": tot, "contents": c, "structure": st,
+        "contents_items_reached": f"{reach} of {w['of']}",
+        "top_expected_losses": [f"{labels[x['asset_id']]['label'][:40]}: about ${x['expected_loss_usd']:,.0f}" for x in top],
+        "standard_method": std_text, "vehicles_at_risk": vehicles,
         "placeholders": sorted({x["id"] for x in s["assumptions"] if x["placeholder"]}), "details": path},
         {path: "\n".join(doc)})
 
@@ -481,8 +513,8 @@ def rank_mitigations(building_id: str, depth_ft: float, tool_call_id: Annotated[
         for m in ms[:5]:
             o = old.get(m["id"])
             if o and o["rank"] != m["rank"]:
-                why = (f"avoided loss {_usd([o['avoided_loss_usd_low'], o['avoided_loss_usd_high']])} at {pd:g} ft -> "
-                       f"{_usd([m['avoided_loss_usd_low'], m['avoided_loss_usd_high']])} at {d:g} ft")
+                why = (f"avoided loss about ${o['avoided_loss_usd_median']:,.0f} at {pd:g} ft -> "
+                       f"about ${m['avoided_loss_usd_median']:,.0f} at {d:g} ft")
                 changes.append(f"{m['action']}: rank {o['rank']} -> {m['rank']} ({why})")
         for m in old.values():
             if m["rank"] <= 3 and next(x["rank"] for x in ms if x["id"] == m["id"]) > 3:
@@ -495,11 +527,11 @@ def rank_mitigations(building_id: str, depth_ft: float, tool_call_id: Annotated[
     doc = [f"# Mitigations at {d:g} ft: {building_id}", "", "| Rank | Action | Cost | Avoided loss | Note |",
            "|---|---|---|---|---|"]
     doc += [f"| {m['rank']} | {m['action']} | {_usd([m['cost_usd_low'], m['cost_usd_high']])} | "
-            f"{_usd([m['avoided_loss_usd_low'], m['avoided_loss_usd_high']])} | {m['payback_note']} |" for m in ms]
+            f"{_avoided(m)} | {m['payback_note']} |" for m in ms]
     path = f"/dossier/{building_id}/mitigations-{d:g}ft.md"
     return _reply("mitigation-planner", tool_call_id, {
         "depth_ft": d, "top": [f"{m['rank']}. {m['action']} (cost {_usd([m['cost_usd_low'], m['cost_usd_high']])}, "
-                               f"avoids {_usd([m['avoided_loss_usd_low'], m['avoided_loss_usd_high']])})" for m in ms[:3]],
+                               f"avoids {_avoided(m)})" for m in ms[:3]],
         "changed_since_previous_depth": changes[:4], "details": path}, {path: "\n".join(doc)})
 
 

@@ -42,15 +42,24 @@ def test_likely_and_possible_rule():
     # Fractional damage at 2 ft (C-CONTENTS-DEPTH): fraction = (depth - lowest point) / critical height, capped at 1.
     # a1 floor inventory (critical 1.5): low (2-0.5)/1.5 -> 1, high 1.  a3 IT (0.5): 1 and 1.
     # a4 HVAC (1.5): low lowest 2.5 -> 0, high (2-1.5)/1.5 = 1/3.  a5 other (2.0): low (2-1)/2 = 0.5, high 1.
-    assert s["loss_usd_low"] == 5000 + 1000 + round(1000 * 0.5)
-    assert s["loss_usd_high"] == round(50000 + 2000 + 2000 / 3 + 2000)
+    # These are the extreme bounds (v1.3): every item at its low end, or every item at its high end.
+    lo, hi = model.contents_loss(ASSETS, 2.0)
+    assert round(lo) == 5000 + 1000 + round(1000 * 0.5)
+    assert round(hi) == round(50000 + 2000 + 2000 / 3 + 2000)
+    x = next(a for a in s["assumptions"] if a["id"] == "X-EXTREME-BOUNDS")
+    assert "$6,500" in x["text"] and f"${round(hi):,}" in x["text"]
+    assert lo <= s["loss_usd_low"] <= s["loss_usd_median"] <= s["loss_usd_high"] <= hi
 
 
 def test_structure_uses_hazus_curve_value_and_coverage():
     lo, hi = model.damage_pct("COM2", 2.0)
+    s_lo, s_hi, _ = model.structure_loss(B, 2.0)
+    assert round(s_lo) == round(1_000_000 * 0.5 * lo / 100) and round(s_hi) == round(1_000_000 * 0.5 * hi / 100)
     s = model.scenario(B, [], 2.0)
-    assert s["structure_loss_usd_low"] == round(1_000_000 * 0.5 * lo / 100)
-    assert s["structure_loss_usd_high"] == round(1_000_000 * 0.5 * hi / 100)
+    # Simulated (C-MC-STRUCT): uniform between the Hazus low and high curves, so p10, median, p90 sit at about 10%,
+    # 50% and 90% of the way (3 significant figures).
+    for k, q in (("structure_loss_usd_low", 0.1), ("structure_loss_usd_median", 0.5), ("structure_loss_usd_high", 0.9)):
+        assert s[k] == pytest.approx(s_lo + q * (s_hi - s_lo), rel=0.03), k
     ids = {a["id"] for a in s["assumptions"]}
     assert "C-HAZUS-COM2" in ids and "S-VALUE-BASIS" in ids
     assert not any(a["placeholder"] for a in s["assumptions"] if a["id"] in ("C-HAZUS-COM2", "S-VALUE-BASIS"))
@@ -72,14 +81,21 @@ def _by_kind(depth, eps=()):
 
 
 def test_move_inventory_avoids_floor_inventory_loss():
-    m, _ = _by_kind(2.0)
-    assert m["move_inventory"]["avoided_loss_usd_low"] == 5000 and m["move_inventory"]["avoided_loss_usd_high"] == 50000
+    # At 2 ft the floor stock (lowest point 0-0.5 ft, critical 1.5 ft) is a total loss in every draw, so moving it avoids
+    # its whole value: lognormal with $5,000 and $50,000 as the 10th and 90th percentiles.
+    m = _by_kind(2.0)[0]["move_inventory"]
+    assert m["avoided_loss_usd_low"] == pytest.approx(5000, rel=0.06)
+    assert m["avoided_loss_usd_median"] == pytest.approx((5000 * 50000) ** 0.5, rel=0.06)
+    assert m["avoided_loss_usd_high"] == pytest.approx(50000, rel=0.06)
 
 
 def test_relocate_electrical_only_matters_when_water_reaches_it():
     assert _by_kind(2.0)[0]["relocate_asset"]["avoided_loss_usd_high"] == 0
-    assert _by_kind(4.0)[0]["relocate_asset"]["avoided_loss_usd_high"] == 25000 * 0.5    # half a foot into a 1 ft critical height
-    assert _by_kind(5.0)[0]["relocate_asset"]["avoided_loss_usd_high"] == 25000
+    at4, at5 = _by_kind(4.0)[0]["relocate_asset"], _by_kind(5.0)[0]["relocate_asset"]
+    assert 0 < at4["avoided_loss_usd_median"] < at5["avoided_loss_usd_median"]
+    # Extreme bounds: at most half a foot into a 1 ft critical height at 4 ft, the whole item at 5 ft.
+    lo4, hi4 = model.contents_loss([ASSETS[1]], 4.0)
+    assert at4["avoided_loss_usd_high"] <= hi4 == 25000 * 0.5
 
 
 def test_raise_asset_lifts_items_out_of_shallow_water():
@@ -93,7 +109,9 @@ def test_entry_barrier_works_only_up_to_its_rating():
     at1 = _by_kind(1.0, eps)[0]["entry_barrier"]
     at3 = _by_kind(3.0, eps)[0]["entry_barrier"]
     s1 = model.scenario(B, ASSETS, 1.0)
-    assert at1["avoided_loss_usd_high"] == s1["loss_usd_high"] + s1["structure_loss_usd_high"]
+    # Same draws: below its rating the barrier avoids the whole total loss, draw by draw.
+    assert (at1["avoided_loss_usd_low"], at1["avoided_loss_usd_median"], at1["avoided_loss_usd_high"]) == \
+        (s1["total_usd_low"], s1["total_usd_median"], s1["total_usd_high"])
     rows = _all(3.0, eps)
     assert at3["avoided_loss_usd_high"] == 0
     assert all(at3["rank"] > x["rank"] for x in rows if x["avoided_loss_usd_high"] > 0)

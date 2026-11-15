@@ -352,7 +352,8 @@ data/cache/costar/, matterport/, vexcel/, public/   Phase 0 discovery files
 
   (At 0 ft: COM2 3%, IND2 0%, COM1 2%.)
 - **Shape check:** our curve is steeper. On E at 2 ft we lose 54–69% of the surveyed contents value (Hazus COM2: 27%); at 4 ft, 91–95% (Hazus: 49%). The survey lists only items low enough to flood, mostly on the floor, while Hazus averages over a building's whole contents, including stock stored high.
-- **Totals check** (recomputed 2026-11-14 on the full stored surveys). Contents value is set equal to the structure basis (improvement value × scan coverage); that ratio has not been verified.
+- **Superseded by the like-for-like comparison (contracts v1.3).** `/scenario_table` `standard_method` applies these default contents and inventory functions to the same simulated item values as our own loss. It compares the medians at 1, 2, 4 and 6 ft and says whether ours is higher, lower or about the same. The older check below set contents value equal to the structure basis, a ratio that was never verified, and compared it against the old worst-case sums.
+- **Totals check, old (recomputed 2026-11-14 on the full stored surveys).** Contents value is set equal to the structure basis (improvement value × scan coverage); that ratio has not been verified.
 
   | | Ours, 2 ft | Hazus-style, 2 ft | Ours, 4 ft | Hazus-style, 4 ft |
   |---|---|---|---|---|
@@ -363,3 +364,28 @@ data/cache/costar/, matterport/, vexcel/, public/   Phase 0 discovery files
   - **B:** a dense machine shop with a low assessed improvement value. Our range is 1.2–7.4 times the Hazus-style figure; the middle of the range (geometric mean) is about 3 times.
   - So the middle of our range sits within a factor of about 3 of Hazus. B's high end does not.
   - The Hazus curves are not used in the numbers.
+
+## 16. CoStar tenant fields as a contents-value anchor (checked 2026-11-14, judge feedback A5; NOT USED)
+
+- **What the kit has per tenant:**
+  - company-detail `numEmployees` and `profile.industryType`
+  - location-occupancy `spaces[].squareFeetOccupied`, and `industryType` for unknown tenants
+  - There is no sales volume, revenue or NAICS/SIC code. `IndustryType` is CoStar's own coarse enum (for example `PersonalServices`, `ProfessionalScientificAndTechnicalServices`).
+- **What our eight buildings get** (current tenancies, streamed from the JSONL, aggregates only; cached in `data/cache/costar/tenant_anchors.json`):
+
+  | Building | Current tenancies | With employee count | With occupied area | Industry enums |
+  |---|---|---|---|---|
+  | A | 1 | 0 | 1 | ProfessionalScientificAndTechnicalServices |
+  | B | 1 | 1 (13 employees) | 1 | PersonalServices |
+  | C | 2 | 2 (15) | 2 | PersonalServices, Unknown |
+  | D | 0 | 0 | 0 | (none) |
+  | E | 1 | 0 | 1 | ProfessionalScientificAndTechnicalServices |
+  | F | 2 | 0 | 2 | Unknown |
+  | G | 19 | 13 (114) | 17 | 10 industries |
+  | H | 3 | 1 (8) | 3 | ProfessionalScientificAndTechnicalServices, Unknown |
+
+- **Why it is not used:**
+  - **No dollar figure.** The kit has no figure that converts employees, industry or area into a contents value. Doing so needs an outside benchmark, such as contents value per employee or per square foot by industry, which we have not found and verified.
+  - **Coverage.** Employee counts exist for only 4 of 8 buildings, and for none of the two demo buildings' contents-heavy tenants: E has no count, and B has one tenant of 13 people.
+  - **Fit.** The coarse industry enum does not match what the scan shows. B is recorded as `PersonalServices`, but the scan shows a machine shop. E is `ProfessionalScientificAndTechnicalServices`, but the scan shows a warehouse of lifts and stock.
+- **Possible later use:** employee counts could sanity-check the number of desks and computers the survey finds, but not their value.

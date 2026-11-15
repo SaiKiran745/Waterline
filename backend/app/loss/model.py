@@ -8,6 +8,10 @@
   high = value_usd_high x fraction with the lowest point at height_ft_low (likely + possible).
 - Structure loss: Hazus 6.1 depth-damage % (curves.yaml) x assessor improvement value x scan coverage.
 Interior loss covers the scanned area only (the assets come from the scan).
+
+Contracts v1.3: the reported figures are the median and the 80% interval (10th-90th percentile) of a simulation
+(app/loss/sim.py). The low-high sums above (contents_loss, structure_loss) are the extreme bounds, listed only in the
+assumptions (X-EXTREME-BOUNDS).
 """
 import re
 from functools import lru_cache
@@ -82,7 +86,7 @@ def fractions(asset: dict, depth_ft: float, span_ft: float | None = None) -> tup
 
 def assumption_by_id(aid: str) -> dict | None:
     a = assumptions()
-    return next((x for group in ("structure", "contents", "assets", "mitigations") for x in a.get(group, [])
+    return next((x for group in ("structure", "contents", "simulation", "assets", "mitigations") for x in a.get(group, [])
                  if x["id"] == aid), None)
 
 
@@ -148,23 +152,45 @@ def structure_loss(building: dict, depth_ft: float) -> tuple[float, float, list[
     return basis * lo / 100.0, basis * hi / 100.0, [curve_entry, basis_entry]
 
 
-def scenario(building: dict, assets: list[dict], depth_ft: float) -> dict:
+def _row(draws, assets: list[dict], depth_ft: float) -> tuple[dict, dict]:
+    """One depth: the simulated median and 80% interval, the measured counts, the top contributors and the
+    standard-method figure (contracts v1.3). Returns (row fields, raw summary)."""
+    from app.loss import sim
+    r = sim.summarise(draws, depth_ft)
+    c, st, t = r["contents"], r["structure"], r["total"]
     likely, possible = hits(assets, depth_ft)
-    c_lo, c_hi = contents_loss(assets, depth_ft)
-    s_lo, s_hi, s_entries = structure_loss(building, depth_ft)
+    row = {"depth_ft": depth_ft,
+           "loss_usd_low": sim.sig(c[0]), "loss_usd_median": sim.sig(c[1]), "loss_usd_high": sim.sig(c[2]),
+           "structure_loss_usd_low": sim.sig(st[0]), "structure_loss_usd_median": sim.sig(st[1]),
+           "structure_loss_usd_high": sim.sig(st[2]),
+           "total_usd_low": sim.sig(t[0]), "total_usd_median": sim.sig(t[1]), "total_usd_high": sim.sig(t[2]),
+           "assets_hit": [{"asset_id": a["id"], "status": "likely"} for a in likely]
+                         + [{"asset_id": a["id"], "status": "possible"} for a in possible],
+           "items_in_water": sim.in_water(assets, depth_ft),
+           "top_contributors": [{"asset_id": x["asset_id"], "expected_loss_usd": sim.sig(x["expected_loss_usd"]),
+                                 "share": round(x["share"], 3)} for x in r["top"]],
+           "standard_contents_usd_median": sim.sig(r["standard"][1]) if r["standard"] else None}
+    return row, r
+
+
+def scenario(building: dict, assets: list[dict], depth_ft: float, structure_fn=None, structure_entries=None) -> dict:
+    """ScenarioResult (contracts v1.3): median and 80% interval by simulation; the old sums in the assumptions."""
+    from app.loss import sim
+    draws = sim.Draws(building, assets, structure_fn)
+    row, _ = _row(draws, assets, depth_ft)
+    likely, possible = hits(assets, depth_ft)
+    if structure_entries is None:
+        s_lo, s_hi, s_entries = structure_loss(building, depth_ft)
+    else:
+        (s_lo, s_hi), s_entries = draws.structure_fn(depth_ft), structure_entries
     used = sorted({a["value_basis"] for a in likely + possible})
     entries = [as_entry(assumption_by_id(u)) for u in used if assumption_by_id(u)]
     if likely or possible:
         entries.append(as_entry(assumption_by_id("C-CONTENTS-DEPTH")))
     entries += s_entries
-    return {
-        "building_id": building["id"], "depth_ft": depth_ft, "depth_reference": DEPTH_REFERENCE,
-        "loss_usd_low": round(c_lo), "loss_usd_high": round(c_hi),
-        "assets_hit": [{"asset_id": a["id"], "status": "likely"} for a in likely]
-                      + [{"asset_id": a["id"], "status": "possible"} for a in possible],
-        "structure_loss_usd_low": round(s_lo), "structure_loss_usd_high": round(s_hi),
-        "assumptions": entries,
-    }
+    entries += sim.method_entries() + [sim.extreme_entry(building, assets, depth_ft, s_lo, s_hi)]
+    return {"building_id": building["id"], "depth_ft": depth_ft, "depth_reference": DEPTH_REFERENCE,
+            **{k: v for k, v in row.items() if k != "depth_ft"}, "assumptions": entries}
 
 
 def slug(s: str) -> str:
@@ -176,45 +202,43 @@ MAX_FT = 8.0
 
 
 def scenario_table(building: dict, assets: list[dict], structure_fn=None) -> dict:
-    """Every slider step (0 to 8 ft by 0.25 ft) at once, with each asset's damage fraction per step (contracts v1.2)."""
+    """Every slider step (0 to 8 ft by 0.25 ft) at once (contracts v1.2), with the simulated median and 80% interval,
+    each asset's damage fractions and expected loss per step, the measured thresholds and the standard-method
+    comparison (v1.3). Each row equals GET /scenario at that depth."""
+    from app.loss import sim
     steps = [round(i * STEP_FT, 2) for i in range(int(MAX_FT / STEP_FT) + 1)]
     spans = _spans(assets)
     crit = {a["id"]: critical_ft(a, spans.get(a["id"])) for a in assets}
-    structure_fn = structure_fn or (lambda d: structure_loss(building, d)[:2])
-    rows, per_asset = [], {a["id"]: ([], []) for a in assets}
+    draws = sim.Draws(building, assets, structure_fn)
+    rows, per_asset, expected = [], {a["id"]: ([], []) for a in assets}, {a["id"]: [] for a in assets}
     for d in steps:
-        c_lo = c_hi = 0.0
-        likely, possible = [], []
-        for a in assets:
-            f_lo = fraction(d, a["height_ft_high"], crit[a["id"]])
-            f_hi = fraction(d, a["height_ft_low"], crit[a["id"]])
-            per_asset[a["id"]][0].append(round(f_lo, 3))
-            per_asset[a["id"]][1].append(round(f_hi, 3))
-            c_lo += a["value_usd_low"] * f_lo
-            c_hi += a["value_usd_high"] * f_hi
-            if d > 0 and d >= a["height_ft_high"]:
-                likely.append({"asset_id": a["id"], "status": "likely"})
-            elif d > 0 and d >= a["height_ft_low"]:
-                possible.append({"asset_id": a["id"], "status": "possible"})
-        s_lo, s_hi = structure_fn(d)
-        rows.append({"depth_ft": d, "loss_usd_low": round(c_lo), "loss_usd_high": round(c_hi),
-                     "structure_loss_usd_low": round(s_lo), "structure_loss_usd_high": round(s_hi),
-                     "total_usd_low": round(c_lo) + round(s_lo), "total_usd_high": round(c_hi) + round(s_hi),
-                     "assets_hit": likely + possible})
+        row, r = _row(draws, assets, d)
+        for i, a in enumerate(assets):
+            per_asset[a["id"]][0].append(round(fraction(d, a["height_ft_high"], crit[a["id"]]), 3))
+            per_asset[a["id"]][1].append(round(fraction(d, a["height_ft_low"], crit[a["id"]]), 3))
+            expected[a["id"]].append(sim.sig(float(r["expected"][i])) if len(r["expected"]) else 0)
+        rows.append(row)
     used = sorted({a["value_basis"] for a in assets})
     entries = [as_entry(assumption_by_id(u)) for u in used if assumption_by_id(u)]
     entries.append(as_entry(assumption_by_id("C-CONTENTS-DEPTH")))
-    if building.get("id") and occupancy_for(building) is not None:
+    if building.get("id") and occupancy_for(building) is not None and structure_fn is None:
         entries += structure_loss(building, MAX_FT)[2][1:]          # value basis (curve text is per depth)
         c = curves()["curves"][occupancy_for(building)]
         entries.insert(len(entries) - 1, {"id": c["id"], "text": f"Hazus 6.1 structure depth-damage, {occupancy_for(building)} "
                                           f"{c['name']} ({c['range_basis']})", "source": curves()["source"],
                                           "placeholder": False})
+    entries += sim.method_entries()
+    for d in (1.0, 2.0, 4.0, 6.0):
+        s_lo, s_hi = draws.structure_fn(d)
+        entries.append({**sim.extreme_entry(building, assets, d, s_lo, s_hi), "id": f"X-EXTREME-BOUNDS-{d:g}FT"})
     return {"building_id": building["id"], "depth_reference": DEPTH_REFERENCE, "step_ft": STEP_FT,
             "steps_ft": steps, "rows": rows,
             "assets": [{"asset_id": a["id"], "value_basis": a["value_basis"], "value_usd_low": a["value_usd_low"],
                         "value_usd_high": a["value_usd_high"], "critical_ft": round(crit[a["id"]], 2),
                         "movable": bool((assumption_by_id(a["value_basis"]) or {}).get("movable")),
-                        "fraction_low": per_asset[a["id"]][0], "fraction_high": per_asset[a["id"]][1]}
+                        "fraction_low": per_asset[a["id"]][0], "fraction_high": per_asset[a["id"]][1],
+                        "expected_loss_usd": expected[a["id"]]}
                        for a in assets],
+            "thresholds": sim.thresholds(assets),
+            "standard_method": sim.standard_method(building, assets, rows),
             "assumptions": entries}

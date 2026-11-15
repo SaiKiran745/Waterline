@@ -99,7 +99,9 @@ Both tools work on `main` in the same folder. Claude Code commits only `backend/
 
 ## 8. Contracts (frozen)
 
-**`contracts/` v1.2.0 is the source of truth.** Read `contracts/README.md` for the schemas (Building, EntryPoint, Asset, ScenarioResult, Mitigation, AgentEvent), the fixtures, and the changelog.
+**`contracts/` v1.3.0 is the source of truth.** Read `contracts/README.md` for the schemas (Building, EntryPoint, Asset, ScenarioResult, Mitigation, AgentEvent), the fixtures, and the changelog.
+
+v1.3.0 (judge feedback, 2026-11-14) reports every loss as a median with an 80% interval from a simulation, adds measured counts and thresholds, a Hazus standard-method comparison and the top contributors; see the changelog.
 
 v1.2.0 added `ScenarioTable` (`GET /buildings/{id}/scenario_table`) and `Triage` (`GET /triage`), made contents loss gradual and added value classes. Codex's change list is in the `contracts/README.md` changelog.
 
@@ -128,7 +130,8 @@ API (backend):
 - The slider sets **interior water depth above the ground-floor slab**, 0 to 8 ft. Entry points explain where water enters first; they do not need to drive a hydraulic model.
 - An asset is **likely** hit when `depth >= height_ft_high`, **possible** when `depth >= height_ft_low`.
 - Contents damage is gradual (human decision 2026-11-14, assumption `C-CONTENTS-DEPTH`). Each asset loses a fraction of its value: (depth − lowest vulnerable point) ÷ the critical height of its value class, capped at 1. The critical height is capped by the item's own height from the mesh.
-- `loss_low` uses `value_usd_low` with the lowest point at `height_ft_high`, so only likely hits count. `loss_high` uses `value_usd_high` with the lowest point at `height_ft_low`, so likely and possible hits count.
+- `loss_low` uses `value_usd_low` with the lowest point at `height_ft_high`, so only likely hits count. `loss_high` uses `value_usd_high` with the lowest point at `height_ft_low`, so likely and possible hits count. Since contracts v1.3 these two sums are the **extreme bounds**, listed only in the assumptions (`X-EXTREME-BOUNDS`).
+- **Reported figures (contracts v1.3, judge feedback 2026-11-14):** the median and 80% interval (10th–90th percentile) of 4,000 seeded draws (`backend/app/loss/sim.py`). Each item's value is lognormal with its low and high as the 10th and 90th percentiles, and items in one value class share half their value uncertainty (correlation 0.5). Each lowest vulnerable point is uniform in its height range. Structure is uniform between the Hazus low and high curves. Each draw is evaluated at every depth, so no percentile falls as depth rises.
 - Road vehicles (`V-VEHICLE`) are listed as movable assets at risk and are not in contents loss.
 - Structure and finishes loss comes from a depth-damage curve per property type in `curves.yaml`, applied to a value basis from CoStar data. Source the curves from FEMA Hazus documentation if you can retrieve and cite them. If you cannot, write a clearly labelled placeholder curve, set `placeholder: true`, and show that label in the UI. Never present a placeholder as a FEMA figure.
 - Asset replacement values come from `assumptions.yaml`: 15 value classes with low-high ranges and critical heights. These are assumptions, each with an id, shown in the UI.

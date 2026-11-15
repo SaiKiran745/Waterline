@@ -41,21 +41,36 @@
     {
       "depth_ft": 0.0,
       "loss_usd_low": 0,
+      "loss_usd_median": 0,
       "loss_usd_high": 0,
       "structure_loss_usd_low": 0,
+      "structure_loss_usd_median": 0,
       "structure_loss_usd_high": 0,
       "total_usd_low": 0,
+      "total_usd_median": 0,
       "total_usd_high": 0,
-      "assets_hit": []
+      "assets_hit": [],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 0,
+        "count_high": 0,
+        "share_low": 0.0,
+        "share_high": 0.0
+      },
+      "top_contributors": [],
+      "standard_contents_usd_median": 0
     },
     {
       "depth_ft": 0.25,
-      "loss_usd_low": 1100,
-      "loss_usd_high": 35690,
-      "structure_loss_usd_low": 23250,
-      "structure_loss_usd_high": 54250,
-      "total_usd_low": 24350,
-      "total_usd_high": 89940,
+      "loss_usd_low": 3770,
+      "loss_usd_median": 6940,
+      "loss_usd_high": 12600,
+      "structure_loss_usd_low": 26600,
+      "structure_loss_usd_median": 39200,
+      "structure_loss_usd_high": 51300,
+      "total_usd_low": 33400,
+      "total_usd_median": 46900,
+      "total_usd_high": 59200,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a5",
@@ -117,16 +132,54 @@
           "asset_id": "fixture-1-a21",
           "status": "possible"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 3,
+        "count_high": 15,
+        "share_low": 0.12,
+        "share_high": 0.6
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a5",
+          "expected_loss_usd": 1680,
+          "share": 0.218
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 1570,
+          "share": 0.204
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 1570,
+          "share": 0.204
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "expected_loss_usd": 786,
+          "share": 0.102
+        },
+        {
+          "asset_id": "fixture-1-a22",
+          "expected_loss_usd": 560,
+          "share": 0.073
+        }
+      ],
+      "standard_contents_usd_median": 16300
     },
     {
       "depth_ft": 0.5,
-      "loss_usd_low": 4640,
-      "loss_usd_high": 83380,
-      "structure_loss_usd_low": 46500,
-      "structure_loss_usd_high": 108500,
-      "total_usd_low": 51140,
-      "total_usd_high": 191880,
+      "loss_usd_low": 19700,
+      "loss_usd_median": 27800,
+      "loss_usd_high": 39400,
+      "structure_loss_usd_low": 53300,
+      "structure_loss_usd_median": 78400,
+      "structure_loss_usd_high": 103000,
+      "total_usd_low": 80300,
+      "total_usd_median": 107000,
+      "total_usd_high": 133000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -196,16 +249,54 @@
           "asset_id": "fixture-1-a24",
           "status": "possible"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 12,
+        "count_high": 17,
+        "share_low": 0.48,
+        "share_high": 0.68
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 6380,
+          "share": 0.22
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 6330,
+          "share": 0.219
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "expected_loss_usd": 3780,
+          "share": 0.131
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "expected_loss_usd": 3150,
+          "share": 0.109
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "expected_loss_usd": 2240,
+          "share": 0.077
+        }
+      ],
+      "standard_contents_usd_median": 24500
     },
     {
       "depth_ft": 0.75,
-      "loss_usd_low": 21569,
-      "loss_usd_high": 134820,
-      "structure_loss_usd_low": 69750,
-      "structure_loss_usd_high": 162750,
-      "total_usd_low": 91319,
-      "total_usd_high": 297570,
+      "loss_usd_low": 45200,
+      "loss_usd_median": 58700,
+      "loss_usd_high": 77700,
+      "structure_loss_usd_low": 79900,
+      "structure_loss_usd_median": 118000,
+      "structure_loss_usd_high": 154000,
+      "total_usd_low": 137000,
+      "total_usd_median": 178000,
+      "total_usd_high": 216000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -275,16 +366,54 @@
           "asset_id": "fixture-1-a24",
           "status": "possible"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 13,
+        "count_high": 17,
+        "share_low": 0.52,
+        "share_high": 0.68
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 12800,
+          "share": 0.212
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 12700,
+          "share": 0.21
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "expected_loss_usd": 7890,
+          "share": 0.131
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "expected_loss_usd": 5880,
+          "share": 0.097
+        },
+        {
+          "asset_id": "fixture-1-a8",
+          "expected_loss_usd": 5510,
+          "share": 0.091
+        }
+      ],
+      "standard_contents_usd_median": 32700
     },
     {
       "depth_ft": 1.0,
-      "loss_usd_low": 38098,
-      "loss_usd_high": 180260,
-      "structure_loss_usd_low": 93000,
-      "structure_loss_usd_high": 217000,
-      "total_usd_low": 131098,
-      "total_usd_high": 397260,
+      "loss_usd_low": 70000,
+      "loss_usd_median": 89500,
+      "loss_usd_high": 117000,
+      "structure_loss_usd_low": 107000,
+      "structure_loss_usd_median": 157000,
+      "structure_loss_usd_high": 205000,
+      "total_usd_low": 194000,
+      "total_usd_median": 248000,
+      "total_usd_high": 299000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -358,16 +487,54 @@
           "asset_id": "fixture-1-a25",
           "status": "possible"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 16,
+        "count_high": 18,
+        "share_low": 0.64,
+        "share_high": 0.72
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 19100,
+          "share": 0.209
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 19000,
+          "share": 0.207
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 12200,
+          "share": 0.133
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "expected_loss_usd": 11300,
+          "share": 0.123
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "expected_loss_usd": 7980,
+          "share": 0.087
+        }
+      ],
+      "standard_contents_usd_median": 40900
     },
     {
       "depth_ft": 1.25,
-      "loss_usd_low": 54202,
-      "loss_usd_high": 222117,
-      "structure_loss_usd_low": 116250,
-      "structure_loss_usd_high": 255750,
-      "total_usd_low": 170452,
-      "total_usd_high": 477867,
+      "loss_usd_low": 91600,
+      "loss_usd_median": 116000,
+      "loss_usd_high": 151000,
+      "structure_loss_usd_low": 132000,
+      "structure_loss_usd_median": 188000,
+      "structure_loss_usd_high": 243000,
+      "total_usd_low": 244000,
+      "total_usd_median": 307000,
+      "total_usd_high": 366000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -441,16 +608,54 @@
           "asset_id": "fixture-1-a25",
           "status": "possible"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 16,
+        "count_high": 18,
+        "share_low": 0.64,
+        "share_high": 0.72
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 25500,
+          "share": 0.214
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 25300,
+          "share": 0.213
+        },
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 22600,
+          "share": 0.19
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "expected_loss_usd": 11300,
+          "share": 0.095
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "expected_loss_usd": 8400,
+          "share": 0.071
+        }
+      ],
+      "standard_contents_usd_median": 48100
     },
     {
       "depth_ft": 1.5,
-      "loss_usd_low": 68907,
-      "loss_usd_high": 257973,
-      "structure_loss_usd_low": 139500,
-      "structure_loss_usd_high": 294500,
-      "total_usd_low": 208407,
-      "total_usd_high": 552473,
+      "loss_usd_low": 112000,
+      "loss_usd_median": 141000,
+      "loss_usd_high": 184000,
+      "structure_loss_usd_low": 156000,
+      "structure_loss_usd_median": 219000,
+      "structure_loss_usd_high": 280000,
+      "total_usd_low": 293000,
+      "total_usd_median": 364000,
+      "total_usd_high": 432000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -532,16 +737,54 @@
           "asset_id": "fixture-1-a25",
           "status": "possible"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 17,
+        "count_high": 20,
+        "share_low": 0.68,
+        "share_high": 0.8
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 32600,
+          "share": 0.224
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 31900,
+          "share": 0.219
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 31700,
+          "share": 0.218
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "expected_loss_usd": 11300,
+          "share": 0.078
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "expected_loss_usd": 8400,
+          "share": 0.058
+        }
+      ],
+      "standard_contents_usd_median": 55400
     },
     {
       "depth_ft": 1.75,
-      "loss_usd_low": 83731,
-      "loss_usd_high": 271997,
-      "structure_loss_usd_low": 162750,
-      "structure_loss_usd_high": 333250,
-      "total_usd_low": 246481,
-      "total_usd_high": 605247,
+      "loss_usd_low": 129000,
+      "loss_usd_median": 162000,
+      "loss_usd_high": 208000,
+      "structure_loss_usd_low": 181000,
+      "structure_loss_usd_median": 250000,
+      "structure_loss_usd_high": 317000,
+      "total_usd_low": 338000,
+      "total_usd_median": 417000,
+      "total_usd_high": 491000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -623,16 +866,54 @@
           "asset_id": "fixture-1-a25",
           "status": "possible"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 17,
+        "count_high": 20,
+        "share_low": 0.68,
+        "share_high": 0.8
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 39200,
+          "share": 0.235
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 36700,
+          "share": 0.221
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 36400,
+          "share": 0.219
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "expected_loss_usd": 11300,
+          "share": 0.068
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "expected_loss_usd": 8400,
+          "share": 0.051
+        }
+      ],
+      "standard_contents_usd_median": 62700
     },
     {
       "depth_ft": 2.0,
-      "loss_usd_low": 98555,
-      "loss_usd_high": 286020,
-      "structure_loss_usd_low": 186000,
-      "structure_loss_usd_high": 372000,
-      "total_usd_low": 284555,
-      "total_usd_high": 658020,
+      "loss_usd_low": 140000,
+      "loss_usd_median": 174000,
+      "loss_usd_high": 220000,
+      "structure_loss_usd_low": 206000,
+      "structure_loss_usd_median": 282000,
+      "structure_loss_usd_high": 355000,
+      "total_usd_low": 374000,
+      "total_usd_median": 459000,
+      "total_usd_high": 541000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -714,16 +995,54 @@
           "asset_id": "fixture-1-a18",
           "status": "possible"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 18,
+        "count_high": 20,
+        "share_low": 0.72,
+        "share_high": 0.8
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 41400,
+          "share": 0.232
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 38300,
+          "share": 0.215
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 38000,
+          "share": 0.213
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "expected_loss_usd": 11300,
+          "share": 0.063
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "expected_loss_usd": 8400,
+          "share": 0.047
+        }
+      ],
+      "standard_contents_usd_median": 69900
     },
     {
       "depth_ft": 2.25,
-      "loss_usd_low": 101796,
-      "loss_usd_high": 296693,
-      "structure_loss_usd_low": 205375,
-      "structure_loss_usd_high": 403000,
-      "total_usd_low": 307171,
-      "total_usd_high": 699693,
+      "loss_usd_low": 147000,
+      "loss_usd_median": 181000,
+      "loss_usd_high": 228000,
+      "structure_loss_usd_low": 227000,
+      "structure_loss_usd_median": 307000,
+      "structure_loss_usd_high": 384000,
+      "total_usd_low": 403000,
+      "total_usd_median": 492000,
+      "total_usd_high": 577000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -805,16 +1124,54 @@
           "asset_id": "fixture-1-a18",
           "status": "possible"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 18,
+        "count_high": 20,
+        "share_low": 0.72,
+        "share_high": 0.8
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 41400,
+          "share": 0.223
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 38300,
+          "share": 0.206
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 38000,
+          "share": 0.205
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "expected_loss_usd": 11300,
+          "share": 0.061
+        },
+        {
+          "asset_id": "fixture-1-a5",
+          "expected_loss_usd": 8400,
+          "share": 0.045
+        }
+      ],
+      "standard_contents_usd_median": 75700
     },
     {
       "depth_ft": 2.5,
-      "loss_usd_low": 105037,
-      "loss_usd_high": 307367,
-      "structure_loss_usd_low": 224750,
-      "structure_loss_usd_high": 434000,
-      "total_usd_low": 329787,
-      "total_usd_high": 741367,
+      "loss_usd_low": 155000,
+      "loss_usd_median": 189000,
+      "loss_usd_high": 236000,
+      "structure_loss_usd_low": 248000,
+      "structure_loss_usd_median": 332000,
+      "structure_loss_usd_high": 414000,
+      "total_usd_low": 432000,
+      "total_usd_median": 525000,
+      "total_usd_high": 615000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -900,16 +1257,54 @@
           "asset_id": "fixture-1-a17",
           "status": "possible"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 20,
+        "count_high": 21,
+        "share_low": 0.8,
+        "share_high": 0.84
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 41400,
+          "share": 0.214
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 38300,
+          "share": 0.198
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 38000,
+          "share": 0.196
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "expected_loss_usd": 11300,
+          "share": 0.058
+        },
+        {
+          "asset_id": "fixture-1-a15",
+          "expected_loss_usd": 9150,
+          "share": 0.047
+        }
+      ],
+      "standard_contents_usd_median": 81600
     },
     {
       "depth_ft": 2.75,
-      "loss_usd_low": 110765,
-      "loss_usd_high": 315783,
-      "structure_loss_usd_low": 244125,
-      "structure_loss_usd_high": 465000,
-      "total_usd_low": 354890,
-      "total_usd_high": 780783,
+      "loss_usd_low": 162000,
+      "loss_usd_median": 196000,
+      "loss_usd_high": 244000,
+      "structure_loss_usd_low": 268000,
+      "structure_loss_usd_median": 358000,
+      "structure_loss_usd_high": 444000,
+      "total_usd_low": 460000,
+      "total_usd_median": 557000,
+      "total_usd_high": 652000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -995,16 +1390,54 @@
           "asset_id": "fixture-1-a17",
           "status": "possible"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 20,
+        "count_high": 21,
+        "share_low": 0.8,
+        "share_high": 0.84
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 41400,
+          "share": 0.206
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 38300,
+          "share": 0.19
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 38000,
+          "share": 0.189
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "expected_loss_usd": 13000,
+          "share": 0.064
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "expected_loss_usd": 11300,
+          "share": 0.056
+        }
+      ],
+      "standard_contents_usd_median": 87400
     },
     {
       "depth_ft": 3.0,
-      "loss_usd_low": 115853,
-      "loss_usd_high": 324200,
-      "structure_loss_usd_low": 263500,
-      "structure_loss_usd_high": 496000,
-      "total_usd_low": 379353,
-      "total_usd_high": 820200,
+      "loss_usd_low": 168000,
+      "loss_usd_median": 203000,
+      "loss_usd_high": 251000,
+      "structure_loss_usd_low": 289000,
+      "structure_loss_usd_median": 383000,
+      "structure_loss_usd_high": 474000,
+      "total_usd_low": 488000,
+      "total_usd_median": 588000,
+      "total_usd_high": 688000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -1094,16 +1527,54 @@
           "asset_id": "fixture-1-a17",
           "status": "possible"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 20,
+        "count_high": 22,
+        "share_low": 0.8,
+        "share_high": 0.88
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 41400,
+          "share": 0.199
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 38300,
+          "share": 0.184
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 38000,
+          "share": 0.183
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "expected_loss_usd": 17300,
+          "share": 0.083
+        },
+        {
+          "asset_id": "fixture-1-a7",
+          "expected_loss_usd": 11300,
+          "share": 0.054
+        }
+      ],
+      "standard_contents_usd_median": 93200
     },
     {
       "depth_ft": 3.25,
-      "loss_usd_low": 120057,
-      "loss_usd_high": 326950,
-      "structure_loss_usd_low": 282875,
-      "structure_loss_usd_high": 527000,
-      "total_usd_low": 402932,
-      "total_usd_high": 853950,
+      "loss_usd_low": 173000,
+      "loss_usd_median": 209000,
+      "loss_usd_high": 257000,
+      "structure_loss_usd_low": 310000,
+      "structure_loss_usd_median": 408000,
+      "structure_loss_usd_high": 504000,
+      "total_usd_low": 515000,
+      "total_usd_median": 620000,
+      "total_usd_high": 723000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -1193,16 +1664,54 @@
           "asset_id": "fixture-1-a17",
           "status": "possible"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 20,
+        "count_high": 22,
+        "share_low": 0.8,
+        "share_high": 0.88
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 41400,
+          "share": 0.194
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 38300,
+          "share": 0.18
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 38000,
+          "share": 0.178
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "expected_loss_usd": 21000,
+          "share": 0.099
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "expected_loss_usd": 11500,
+          "share": 0.054
+        }
+      ],
+      "standard_contents_usd_median": 100000
     },
     {
       "depth_ft": 3.5,
-      "loss_usd_low": 124260,
-      "loss_usd_high": 329700,
-      "structure_loss_usd_low": 302250,
-      "structure_loss_usd_high": 558000,
-      "total_usd_low": 426510,
-      "total_usd_high": 887700,
+      "loss_usd_low": 177000,
+      "loss_usd_median": 213000,
+      "loss_usd_high": 262000,
+      "structure_loss_usd_low": 330000,
+      "structure_loss_usd_median": 434000,
+      "structure_loss_usd_high": 534000,
+      "total_usd_low": 541000,
+      "total_usd_median": 650000,
+      "total_usd_high": 757000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -1296,16 +1805,54 @@
           "asset_id": "fixture-1-a23",
           "status": "possible"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 21,
+        "count_high": 23,
+        "share_low": 0.84,
+        "share_high": 0.92
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 41400,
+          "share": 0.19
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 38300,
+          "share": 0.176
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 38000,
+          "share": 0.175
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "expected_loss_usd": 23700,
+          "share": 0.109
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "expected_loss_usd": 11700,
+          "share": 0.054
+        }
+      ],
+      "standard_contents_usd_median": 107000
     },
     {
       "depth_ft": 3.75,
-      "loss_usd_low": 127755,
-      "loss_usd_high": 334200,
-      "structure_loss_usd_low": 321625,
-      "structure_loss_usd_high": 589000,
-      "total_usd_low": 449380,
-      "total_usd_high": 923200,
+      "loss_usd_low": 181000,
+      "loss_usd_median": 217000,
+      "loss_usd_high": 266000,
+      "structure_loss_usd_low": 351000,
+      "structure_loss_usd_median": 459000,
+      "structure_loss_usd_high": 564000,
+      "total_usd_low": 565000,
+      "total_usd_median": 679000,
+      "total_usd_high": 790000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -1399,16 +1946,54 @@
           "asset_id": "fixture-1-a23",
           "status": "possible"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 21,
+        "count_high": 23,
+        "share_low": 0.84,
+        "share_high": 0.92
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 41400,
+          "share": 0.187
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 38300,
+          "share": 0.173
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 38000,
+          "share": 0.172
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "expected_loss_usd": 25300,
+          "share": 0.115
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "expected_loss_usd": 11700,
+          "share": 0.053
+        }
+      ],
+      "standard_contents_usd_median": 114000
     },
     {
       "depth_ft": 4.0,
-      "loss_usd_low": 131250,
-      "loss_usd_high": 338700,
-      "structure_loss_usd_low": 341000,
-      "structure_loss_usd_high": 620000,
-      "total_usd_low": 472250,
-      "total_usd_high": 958700,
+      "loss_usd_low": 184000,
+      "loss_usd_median": 220000,
+      "loss_usd_high": 269000,
+      "structure_loss_usd_low": 372000,
+      "structure_loss_usd_median": 485000,
+      "structure_loss_usd_high": 594000,
+      "total_usd_low": 589000,
+      "total_usd_median": 707000,
+      "total_usd_high": 823000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -1502,16 +2087,54 @@
           "asset_id": "fixture-1-a23",
           "status": "possible"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 22,
+        "count_high": 23,
+        "share_low": 0.88,
+        "share_high": 0.92
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 41400,
+          "share": 0.184
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 38300,
+          "share": 0.171
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 38000,
+          "share": 0.169
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "expected_loss_usd": 25900,
+          "share": 0.115
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "expected_loss_usd": 11700,
+          "share": 0.052
+        }
+      ],
+      "standard_contents_usd_median": 121000
     },
     {
       "depth_ft": 4.25,
-      "loss_usd_low": 132625,
-      "loss_usd_high": 341700,
-      "structure_loss_usd_low": 354562,
-      "structure_loss_usd_high": 643250,
-      "total_usd_low": 487187,
-      "total_usd_high": 984950,
+      "loss_usd_low": 187000,
+      "loss_usd_median": 223000,
+      "loss_usd_high": 271000,
+      "structure_loss_usd_low": 386000,
+      "structure_loss_usd_median": 503000,
+      "structure_loss_usd_high": 616000,
+      "total_usd_low": 607000,
+      "total_usd_median": 729000,
+      "total_usd_high": 847000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -1605,16 +2228,54 @@
           "asset_id": "fixture-1-a23",
           "status": "possible"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 22,
+        "count_high": 23,
+        "share_low": 0.88,
+        "share_high": 0.92
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 41400,
+          "share": 0.182
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 38300,
+          "share": 0.169
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 38000,
+          "share": 0.167
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "expected_loss_usd": 25900,
+          "share": 0.114
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "expected_loss_usd": 11700,
+          "share": 0.052
+        }
+      ],
+      "standard_contents_usd_median": 126000
     },
     {
       "depth_ft": 4.5,
-      "loss_usd_low": 134000,
-      "loss_usd_high": 344700,
-      "structure_loss_usd_low": 368125,
-      "structure_loss_usd_high": 666500,
-      "total_usd_low": 502125,
-      "total_usd_high": 1011200,
+      "loss_usd_low": 189000,
+      "loss_usd_median": 225000,
+      "loss_usd_high": 274000,
+      "structure_loss_usd_low": 401000,
+      "structure_loss_usd_median": 522000,
+      "structure_loss_usd_high": 639000,
+      "total_usd_low": 624000,
+      "total_usd_median": 750000,
+      "total_usd_high": 872000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -1712,16 +2373,54 @@
           "asset_id": "fixture-1-a9",
           "status": "possible"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 23,
+        "count_high": 24,
+        "share_low": 0.92,
+        "share_high": 0.96
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 41400,
+          "share": 0.18
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 38300,
+          "share": 0.167
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 38000,
+          "share": 0.165
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "expected_loss_usd": 25900,
+          "share": 0.113
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "expected_loss_usd": 11700,
+          "share": 0.051
+        }
+      ],
+      "standard_contents_usd_median": 131000
     },
     {
       "depth_ft": 4.75,
-      "loss_usd_low": 136250,
-      "loss_usd_high": 346950,
-      "structure_loss_usd_low": 381688,
-      "structure_loss_usd_high": 689750,
-      "total_usd_low": 517938,
-      "total_usd_high": 1036700,
+      "loss_usd_low": 192000,
+      "loss_usd_median": 228000,
+      "loss_usd_high": 277000,
+      "structure_loss_usd_low": 415000,
+      "structure_loss_usd_median": 540000,
+      "structure_loss_usd_high": 661000,
+      "total_usd_low": 642000,
+      "total_usd_median": 771000,
+      "total_usd_high": 896000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -1819,16 +2518,54 @@
           "asset_id": "fixture-1-a9",
           "status": "possible"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 23,
+        "count_high": 24,
+        "share_low": 0.92,
+        "share_high": 0.96
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 41400,
+          "share": 0.178
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 38300,
+          "share": 0.165
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 38000,
+          "share": 0.164
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "expected_loss_usd": 25900,
+          "share": 0.111
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "expected_loss_usd": 11700,
+          "share": 0.05
+        }
+      ],
+      "standard_contents_usd_median": 136000
     },
     {
       "depth_ft": 5.0,
-      "loss_usd_low": 138500,
-      "loss_usd_high": 349200,
-      "structure_loss_usd_low": 395250,
-      "structure_loss_usd_high": 713000,
-      "total_usd_low": 533750,
-      "total_usd_high": 1062200,
+      "loss_usd_low": 195000,
+      "loss_usd_median": 231000,
+      "loss_usd_high": 280000,
+      "structure_loss_usd_low": 430000,
+      "structure_loss_usd_median": 559000,
+      "structure_loss_usd_high": 683000,
+      "total_usd_low": 659000,
+      "total_usd_median": 793000,
+      "total_usd_high": 920000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -1926,16 +2663,54 @@
           "asset_id": "fixture-1-a25",
           "status": "likely"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 24,
+        "count_high": 24,
+        "share_low": 0.96,
+        "share_high": 0.96
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 41400,
+          "share": 0.176
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 38300,
+          "share": 0.163
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 38000,
+          "share": 0.162
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "expected_loss_usd": 25900,
+          "share": 0.11
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "expected_loss_usd": 11700,
+          "share": 0.05
+        }
+      ],
+      "standard_contents_usd_median": 141000
     },
     {
       "depth_ft": 5.25,
-      "loss_usd_low": 141000,
-      "loss_usd_high": 349200,
-      "structure_loss_usd_low": 408812,
-      "structure_loss_usd_high": 736250,
-      "total_usd_low": 549812,
-      "total_usd_high": 1085450,
+      "loss_usd_low": 196000,
+      "loss_usd_median": 233000,
+      "loss_usd_high": 281000,
+      "structure_loss_usd_low": 445000,
+      "structure_loss_usd_median": 577000,
+      "structure_loss_usd_high": 706000,
+      "total_usd_low": 676000,
+      "total_usd_median": 813000,
+      "total_usd_high": 945000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -2033,16 +2808,54 @@
           "asset_id": "fixture-1-a25",
           "status": "likely"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 24,
+        "count_high": 24,
+        "share_low": 0.96,
+        "share_high": 0.96
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 41400,
+          "share": 0.174
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 38300,
+          "share": 0.162
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 38000,
+          "share": 0.16
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "expected_loss_usd": 25900,
+          "share": 0.109
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "expected_loss_usd": 11700,
+          "share": 0.049
+        }
+      ],
+      "standard_contents_usd_median": 145000
     },
     {
       "depth_ft": 5.5,
-      "loss_usd_low": 143500,
-      "loss_usd_high": 349200,
-      "structure_loss_usd_low": 422375,
-      "structure_loss_usd_high": 759500,
-      "total_usd_low": 565875,
-      "total_usd_high": 1108700,
+      "loss_usd_low": 197000,
+      "loss_usd_median": 233000,
+      "loss_usd_high": 282000,
+      "structure_loss_usd_low": 459000,
+      "structure_loss_usd_median": 596000,
+      "structure_loss_usd_high": 728000,
+      "total_usd_low": 691000,
+      "total_usd_median": 831000,
+      "total_usd_high": 967000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -2140,16 +2953,54 @@
           "asset_id": "fixture-1-a25",
           "status": "likely"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 24,
+        "count_high": 24,
+        "share_low": 0.96,
+        "share_high": 0.96
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 41400,
+          "share": 0.174
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 38300,
+          "share": 0.161
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 38000,
+          "share": 0.16
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "expected_loss_usd": 25900,
+          "share": 0.109
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "expected_loss_usd": 11700,
+          "share": 0.049
+        }
+      ],
+      "standard_contents_usd_median": 148000
     },
     {
       "depth_ft": 5.75,
-      "loss_usd_low": 143500,
-      "loss_usd_high": 349200,
-      "structure_loss_usd_low": 435938,
-      "structure_loss_usd_high": 782750,
-      "total_usd_low": 579438,
-      "total_usd_high": 1131950,
+      "loss_usd_low": 197000,
+      "loss_usd_median": 233000,
+      "loss_usd_high": 282000,
+      "structure_loss_usd_low": 474000,
+      "structure_loss_usd_median": 614000,
+      "structure_loss_usd_high": 750000,
+      "total_usd_low": 706000,
+      "total_usd_median": 850000,
+      "total_usd_high": 990000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -2247,16 +3098,54 @@
           "asset_id": "fixture-1-a25",
           "status": "likely"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 24,
+        "count_high": 24,
+        "share_low": 0.96,
+        "share_high": 0.96
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 41400,
+          "share": 0.174
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 38300,
+          "share": 0.161
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 38000,
+          "share": 0.16
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "expected_loss_usd": 25900,
+          "share": 0.109
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "expected_loss_usd": 11700,
+          "share": 0.049
+        }
+      ],
+      "standard_contents_usd_median": 152000
     },
     {
       "depth_ft": 6.0,
-      "loss_usd_low": 143500,
-      "loss_usd_high": 349200,
-      "structure_loss_usd_low": 449500,
-      "structure_loss_usd_high": 806000,
-      "total_usd_low": 593000,
-      "total_usd_high": 1155200,
+      "loss_usd_low": 197000,
+      "loss_usd_median": 233000,
+      "loss_usd_high": 282000,
+      "structure_loss_usd_low": 489000,
+      "structure_loss_usd_median": 633000,
+      "structure_loss_usd_high": 773000,
+      "total_usd_low": 721000,
+      "total_usd_median": 869000,
+      "total_usd_high": 1010000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -2354,16 +3243,54 @@
           "asset_id": "fixture-1-a25",
           "status": "likely"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 24,
+        "count_high": 24,
+        "share_low": 0.96,
+        "share_high": 0.96
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 41400,
+          "share": 0.174
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 38300,
+          "share": 0.161
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 38000,
+          "share": 0.16
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "expected_loss_usd": 25900,
+          "share": 0.109
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "expected_loss_usd": 11700,
+          "share": 0.049
+        }
+      ],
+      "standard_contents_usd_median": 155000
     },
     {
       "depth_ft": 6.25,
-      "loss_usd_low": 143500,
-      "loss_usd_high": 349200,
-      "structure_loss_usd_low": 463062,
-      "structure_loss_usd_high": 829250,
-      "total_usd_low": 606562,
-      "total_usd_high": 1178450,
+      "loss_usd_low": 197000,
+      "loss_usd_median": 233000,
+      "loss_usd_high": 282000,
+      "structure_loss_usd_low": 503000,
+      "structure_loss_usd_median": 651000,
+      "structure_loss_usd_high": 795000,
+      "total_usd_low": 736000,
+      "total_usd_median": 888000,
+      "total_usd_high": 1030000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -2461,16 +3388,54 @@
           "asset_id": "fixture-1-a25",
           "status": "likely"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 24,
+        "count_high": 24,
+        "share_low": 0.96,
+        "share_high": 0.96
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 41400,
+          "share": 0.174
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 38300,
+          "share": 0.161
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 38000,
+          "share": 0.16
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "expected_loss_usd": 25900,
+          "share": 0.109
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "expected_loss_usd": 11700,
+          "share": 0.049
+        }
+      ],
+      "standard_contents_usd_median": 159000
     },
     {
       "depth_ft": 6.5,
-      "loss_usd_low": 143500,
-      "loss_usd_high": 349200,
-      "structure_loss_usd_low": 476625,
-      "structure_loss_usd_high": 852500,
-      "total_usd_low": 620125,
-      "total_usd_high": 1201700,
+      "loss_usd_low": 197000,
+      "loss_usd_median": 233000,
+      "loss_usd_high": 282000,
+      "structure_loss_usd_low": 518000,
+      "structure_loss_usd_median": 670000,
+      "structure_loss_usd_high": 817000,
+      "total_usd_low": 751000,
+      "total_usd_median": 906000,
+      "total_usd_high": 1060000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -2572,16 +3537,54 @@
           "asset_id": "fixture-1-a10",
           "status": "possible"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 24,
+        "count_high": 25,
+        "share_low": 0.96,
+        "share_high": 1.0
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 41400,
+          "share": 0.174
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 38300,
+          "share": 0.161
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 38000,
+          "share": 0.16
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "expected_loss_usd": 25900,
+          "share": 0.109
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "expected_loss_usd": 11700,
+          "share": 0.049
+        }
+      ],
+      "standard_contents_usd_median": 163000
     },
     {
       "depth_ft": 6.75,
-      "loss_usd_low": 143500,
-      "loss_usd_high": 350033,
-      "structure_loss_usd_low": 490188,
-      "structure_loss_usd_high": 875750,
-      "total_usd_low": 633688,
-      "total_usd_high": 1225783,
+      "loss_usd_low": 197000,
+      "loss_usd_median": 233000,
+      "loss_usd_high": 282000,
+      "structure_loss_usd_low": 532000,
+      "structure_loss_usd_median": 689000,
+      "structure_loss_usd_high": 840000,
+      "total_usd_low": 766000,
+      "total_usd_median": 925000,
+      "total_usd_high": 1080000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -2683,16 +3686,54 @@
           "asset_id": "fixture-1-a10",
           "status": "possible"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 24,
+        "count_high": 25,
+        "share_low": 0.96,
+        "share_high": 1.0
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 41400,
+          "share": 0.174
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 38300,
+          "share": 0.161
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 38000,
+          "share": 0.16
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "expected_loss_usd": 25900,
+          "share": 0.109
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "expected_loss_usd": 11700,
+          "share": 0.049
+        }
+      ],
+      "standard_contents_usd_median": 167000
     },
     {
       "depth_ft": 7.0,
-      "loss_usd_low": 143500,
-      "loss_usd_high": 350867,
-      "structure_loss_usd_low": 503750,
-      "structure_loss_usd_high": 899000,
-      "total_usd_low": 647250,
-      "total_usd_high": 1249867,
+      "loss_usd_low": 197000,
+      "loss_usd_median": 234000,
+      "loss_usd_high": 283000,
+      "structure_loss_usd_low": 547000,
+      "structure_loss_usd_median": 707000,
+      "structure_loss_usd_high": 862000,
+      "total_usd_low": 781000,
+      "total_usd_median": 944000,
+      "total_usd_high": 1100000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -2794,16 +3835,54 @@
           "asset_id": "fixture-1-a25",
           "status": "likely"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 25,
+        "count_high": 25,
+        "share_low": 1.0,
+        "share_high": 1.0
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 41400,
+          "share": 0.173
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 38300,
+          "share": 0.161
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 38000,
+          "share": 0.159
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "expected_loss_usd": 25900,
+          "share": 0.109
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "expected_loss_usd": 11700,
+          "share": 0.049
+        }
+      ],
+      "standard_contents_usd_median": 170000
     },
     {
       "depth_ft": 7.25,
-      "loss_usd_low": 143917,
-      "loss_usd_high": 351700,
-      "structure_loss_usd_low": 517312,
-      "structure_loss_usd_high": 922250,
-      "total_usd_low": 661229,
-      "total_usd_high": 1273950,
+      "loss_usd_low": 198000,
+      "loss_usd_median": 235000,
+      "loss_usd_high": 283000,
+      "structure_loss_usd_low": 562000,
+      "structure_loss_usd_median": 726000,
+      "structure_loss_usd_high": 884000,
+      "total_usd_low": 797000,
+      "total_usd_median": 963000,
+      "total_usd_high": 1120000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -2905,16 +3984,54 @@
           "asset_id": "fixture-1-a25",
           "status": "likely"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 25,
+        "count_high": 25,
+        "share_low": 1.0,
+        "share_high": 1.0
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 41400,
+          "share": 0.173
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 38300,
+          "share": 0.16
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 38000,
+          "share": 0.159
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "expected_loss_usd": 25900,
+          "share": 0.108
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "expected_loss_usd": 11700,
+          "share": 0.049
+        }
+      ],
+      "standard_contents_usd_median": 172000
     },
     {
       "depth_ft": 7.5,
-      "loss_usd_low": 144333,
-      "loss_usd_high": 352533,
-      "structure_loss_usd_low": 530875,
-      "structure_loss_usd_high": 945500,
-      "total_usd_low": 675208,
-      "total_usd_high": 1298033,
+      "loss_usd_low": 199000,
+      "loss_usd_median": 235000,
+      "loss_usd_high": 284000,
+      "structure_loss_usd_low": 576000,
+      "structure_loss_usd_median": 744000,
+      "structure_loss_usd_high": 907000,
+      "total_usd_low": 813000,
+      "total_usd_median": 982000,
+      "total_usd_high": 1150000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -3016,16 +4133,54 @@
           "asset_id": "fixture-1-a25",
           "status": "likely"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 25,
+        "count_high": 25,
+        "share_low": 1.0,
+        "share_high": 1.0
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 41400,
+          "share": 0.173
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 38300,
+          "share": 0.16
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 38000,
+          "share": 0.159
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "expected_loss_usd": 25900,
+          "share": 0.108
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "expected_loss_usd": 11700,
+          "share": 0.049
+        }
+      ],
+      "standard_contents_usd_median": 174000
     },
     {
       "depth_ft": 7.75,
-      "loss_usd_low": 144750,
-      "loss_usd_high": 353367,
-      "structure_loss_usd_low": 544438,
-      "structure_loss_usd_high": 968750,
-      "total_usd_low": 689188,
-      "total_usd_high": 1322117,
+      "loss_usd_low": 199000,
+      "loss_usd_median": 236000,
+      "loss_usd_high": 285000,
+      "structure_loss_usd_low": 591000,
+      "structure_loss_usd_median": 763000,
+      "structure_loss_usd_high": 929000,
+      "total_usd_low": 828000,
+      "total_usd_median": 1000000,
+      "total_usd_high": 1170000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -3127,16 +4282,54 @@
           "asset_id": "fixture-1-a25",
           "status": "likely"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 25,
+        "count_high": 25,
+        "share_low": 1.0,
+        "share_high": 1.0
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 41400,
+          "share": 0.172
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 38300,
+          "share": 0.159
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 38000,
+          "share": 0.158
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "expected_loss_usd": 25900,
+          "share": 0.108
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "expected_loss_usd": 11700,
+          "share": 0.049
+        }
+      ],
+      "standard_contents_usd_median": 176000
     },
     {
       "depth_ft": 8.0,
-      "loss_usd_low": 145167,
-      "loss_usd_high": 354200,
-      "structure_loss_usd_low": 558000,
-      "structure_loss_usd_high": 992000,
-      "total_usd_low": 703167,
-      "total_usd_high": 1346200,
+      "loss_usd_low": 200000,
+      "loss_usd_median": 237000,
+      "loss_usd_high": 285000,
+      "structure_loss_usd_low": 606000,
+      "structure_loss_usd_median": 781000,
+      "structure_loss_usd_high": 951000,
+      "total_usd_low": 843000,
+      "total_usd_median": 1020000,
+      "total_usd_high": 1190000,
       "assets_hit": [
         {
           "asset_id": "fixture-1-a1",
@@ -3238,7 +4431,42 @@
           "asset_id": "fixture-1-a25",
           "status": "likely"
         }
-      ]
+      ],
+      "items_in_water": {
+        "of": 25,
+        "count_low": 25,
+        "count_high": 25,
+        "share_low": 1.0,
+        "share_high": 1.0
+      },
+      "top_contributors": [
+        {
+          "asset_id": "fixture-1-a24",
+          "expected_loss_usd": 41400,
+          "share": 0.172
+        },
+        {
+          "asset_id": "fixture-1-a12",
+          "expected_loss_usd": 38300,
+          "share": 0.159
+        },
+        {
+          "asset_id": "fixture-1-a13",
+          "expected_loss_usd": 38000,
+          "share": 0.158
+        },
+        {
+          "asset_id": "fixture-1-a14",
+          "expected_loss_usd": 25900,
+          "share": 0.108
+        },
+        {
+          "asset_id": "fixture-1-a25",
+          "expected_loss_usd": 11700,
+          "share": 0.049
+        }
+      ],
+      "standard_contents_usd_median": 178000
     }
   ],
   "assets": [
@@ -3318,6 +4546,41 @@
         1.0,
         1.0,
         1.0
+      ],
+      "expected_loss_usd": [
+        0,
+        237,
+        793,
+        1120,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130
       ]
     },
     {
@@ -3396,6 +4659,41 @@
         1.0,
         1.0,
         1.0
+      ],
+      "expected_loss_usd": [
+        0,
+        236,
+        793,
+        1120,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130
       ]
     },
     {
@@ -3474,6 +4772,41 @@
         1.0,
         1.0,
         1.0
+      ],
+      "expected_loss_usd": [
+        0,
+        174,
+        673,
+        1060,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130,
+        1130
       ]
     },
     {
@@ -3552,6 +4885,41 @@
         1.0,
         1.0,
         1.0
+      ],
+      "expected_loss_usd": [
+        0,
+        14,
+        57,
+        131,
+        234,
+        367,
+        529,
+        705,
+        881,
+        1060,
+        1230,
+        1390,
+        1530,
+        1630,
+        1700,
+        1750,
+        1760,
+        1760,
+        1760,
+        1760,
+        1760,
+        1760,
+        1760,
+        1760,
+        1760,
+        1760,
+        1760,
+        1760,
+        1760,
+        1760,
+        1760,
+        1760,
+        1760
       ]
     },
     {
@@ -3630,6 +4998,41 @@
         1.0,
         1.0,
         1.0
+      ],
+      "expected_loss_usd": [
+        0,
+        1680,
+        3780,
+        5880,
+        7980,
+        8400,
+        8400,
+        8400,
+        8400,
+        8400,
+        8400,
+        8400,
+        8400,
+        8400,
+        8400,
+        8400,
+        8400,
+        8400,
+        8400,
+        8400,
+        8400,
+        8400,
+        8400,
+        8400,
+        8400,
+        8400,
+        8400,
+        8400,
+        8400,
+        8400,
+        8400,
+        8400,
+        8400
       ]
     },
     {
@@ -3708,6 +5111,41 @@
         1.0,
         1.0,
         1.0
+      ],
+      "expected_loss_usd": [
+        0,
+        330,
+        880,
+        1430,
+        1980,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200
       ]
     },
     {
@@ -3786,6 +5224,41 @@
         1.0,
         1.0,
         1.0
+      ],
+      "expected_loss_usd": [
+        0,
+        0,
+        2240,
+        7890,
+        11300,
+        11300,
+        11300,
+        11300,
+        11300,
+        11300,
+        11300,
+        11300,
+        11300,
+        11300,
+        11300,
+        11300,
+        11300,
+        11300,
+        11300,
+        11300,
+        11300,
+        11300,
+        11300,
+        11300,
+        11300,
+        11300,
+        11300,
+        11300,
+        11300,
+        11300,
+        11300,
+        11300,
+        11300
       ]
     },
     {
@@ -3864,6 +5337,41 @@
         1.0,
         1.0,
         1.0
+      ],
+      "expected_loss_usd": [
+        0,
+        786,
+        3150,
+        5510,
+        6290,
+        6290,
+        6290,
+        6290,
+        6290,
+        6290,
+        6290,
+        6290,
+        6290,
+        6290,
+        6290,
+        6290,
+        6290,
+        6290,
+        6290,
+        6290,
+        6290,
+        6290,
+        6290,
+        6290,
+        6290,
+        6290,
+        6290,
+        6290,
+        6290,
+        6290,
+        6290,
+        6290,
+        6290
       ]
     },
     {
@@ -3942,6 +5450,41 @@
         1.0,
         1.0,
         1.0
+      ],
+      "expected_loss_usd": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        379,
+        1550,
+        2740,
+        3140,
+        3140,
+        3140,
+        3140,
+        3140,
+        3140,
+        3140,
+        3140,
+        3140,
+        3140,
+        3140
       ]
     },
     {
@@ -4020,6 +5563,41 @@
         0.667,
         0.833,
         1.0
+      ],
+      "expected_loss_usd": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        151,
+        610,
+        1220,
+        1830,
+        2440,
+        3060
       ]
     },
     {
@@ -4098,6 +5676,41 @@
         1.0,
         1.0,
         1.0
+      ],
+      "expected_loss_usd": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        146,
+        565,
+        1260,
+        2220,
+        3180,
+        3870,
+        4280,
+        4420,
+        4420,
+        4420,
+        4420,
+        4420,
+        4420,
+        4420,
+        4420,
+        4420,
+        4420,
+        4420,
+        4420,
+        4420
       ]
     },
     {
@@ -4176,6 +5789,41 @@
         1.0,
         1.0,
         1.0
+      ],
+      "expected_loss_usd": [
+        0,
+        1570,
+        6380,
+        12800,
+        19100,
+        25500,
+        31900,
+        36700,
+        38300,
+        38300,
+        38300,
+        38300,
+        38300,
+        38300,
+        38300,
+        38300,
+        38300,
+        38300,
+        38300,
+        38300,
+        38300,
+        38300,
+        38300,
+        38300,
+        38300,
+        38300,
+        38300,
+        38300,
+        38300,
+        38300,
+        38300,
+        38300,
+        38300
       ]
     },
     {
@@ -4254,6 +5902,41 @@
         1.0,
         1.0,
         1.0
+      ],
+      "expected_loss_usd": [
+        0,
+        1570,
+        6330,
+        12700,
+        19000,
+        25300,
+        31700,
+        36400,
+        38000,
+        38000,
+        38000,
+        38000,
+        38000,
+        38000,
+        38000,
+        38000,
+        38000,
+        38000,
+        38000,
+        38000,
+        38000,
+        38000,
+        38000,
+        38000,
+        38000,
+        38000,
+        38000,
+        38000,
+        38000,
+        38000,
+        38000,
+        38000,
+        38000
       ]
     },
     {
@@ -4332,6 +6015,41 @@
         1.0,
         1.0,
         1.0
+      ],
+      "expected_loss_usd": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        561,
+        2200,
+        4900,
+        8660,
+        13000,
+        17300,
+        21000,
+        23700,
+        25300,
+        25900,
+        25900,
+        25900,
+        25900,
+        25900,
+        25900,
+        25900,
+        25900,
+        25900,
+        25900,
+        25900,
+        25900,
+        25900,
+        25900,
+        25900,
+        25900,
+        25900
       ]
     },
     {
@@ -4410,6 +6128,41 @@
         1.0,
         1.0,
         1.0
+      ],
+      "expected_loss_usd": [
+        0,
+        148,
+        605,
+        1370,
+        2440,
+        3660,
+        4880,
+        6090,
+        7310,
+        8380,
+        9150,
+        9600,
+        9750,
+        9750,
+        9750,
+        9750,
+        9750,
+        9750,
+        9750,
+        9750,
+        9750,
+        9750,
+        9750,
+        9750,
+        9750,
+        9750,
+        9750,
+        9750,
+        9750,
+        9750,
+        9750,
+        9750,
+        9750
       ]
     },
     {
@@ -4488,6 +6241,41 @@
         1.0,
         1.0,
         1.0
+      ],
+      "expected_loss_usd": [
+        0,
+        100,
+        387,
+        864,
+        1470,
+        2080,
+        2690,
+        3300,
+        3910,
+        4420,
+        4750,
+        4880,
+        4880,
+        4880,
+        4880,
+        4880,
+        4880,
+        4880,
+        4880,
+        4880,
+        4880,
+        4880,
+        4880,
+        4880,
+        4880,
+        4880,
+        4880,
+        4880,
+        4880,
+        4880,
+        4880,
+        4880,
+        4880
       ]
     },
     {
@@ -4566,6 +6354,41 @@
         1.0,
         1.0,
         1.0
+      ],
+      "expected_loss_usd": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        122,
+        468,
+        1040,
+        1840,
+        2630,
+        3200,
+        3540,
+        3650,
+        3650,
+        3650,
+        3650,
+        3650,
+        3650,
+        3650,
+        3650,
+        3650,
+        3650,
+        3650,
+        3650,
+        3650,
+        3650,
+        3650
       ]
     },
     {
@@ -4644,6 +6467,41 @@
         1.0,
         1.0,
         1.0
+      ],
+      "expected_loss_usd": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        47,
+        187,
+        417,
+        738,
+        1100,
+        1470,
+        1790,
+        2020,
+        2160,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200,
+        2200
       ]
     },
     {
@@ -4722,6 +6580,41 @@
         1.0,
         1.0,
         1.0
+      ],
+      "expected_loss_usd": [
+        0,
+        39,
+        159,
+        322,
+        485,
+        648,
+        810,
+        973,
+        1140,
+        1260,
+        1300,
+        1300,
+        1300,
+        1300,
+        1300,
+        1300,
+        1300,
+        1300,
+        1300,
+        1300,
+        1300,
+        1300,
+        1300,
+        1300,
+        1300,
+        1300,
+        1300,
+        1300,
+        1300,
+        1300,
+        1300,
+        1300,
+        1300
       ]
     },
     {
@@ -4800,6 +6693,41 @@
         1.0,
         1.0,
         1.0
+      ],
+      "expected_loss_usd": [
+        0,
+        74,
+        299,
+        650,
+        1010,
+        1380,
+        1740,
+        2110,
+        2470,
+        2760,
+        2900,
+        2910,
+        2910,
+        2910,
+        2910,
+        2910,
+        2910,
+        2910,
+        2910,
+        2910,
+        2910,
+        2910,
+        2910,
+        2910,
+        2910,
+        2910,
+        2910,
+        2910,
+        2910,
+        2910,
+        2910,
+        2910,
+        2910
       ]
     },
     {
@@ -4878,6 +6806,41 @@
         1.0,
         1.0,
         1.0
+      ],
+      "expected_loss_usd": [
+        0,
+        182,
+        613,
+        1050,
+        1490,
+        1930,
+        2370,
+        2800,
+        3240,
+        3680,
+        4120,
+        4380,
+        4380,
+        4380,
+        4380,
+        4380,
+        4380,
+        4380,
+        4380,
+        4380,
+        4380,
+        4380,
+        4380,
+        4380,
+        4380,
+        4380,
+        4380,
+        4380,
+        4380,
+        4380,
+        4380,
+        4380,
+        4380
       ]
     },
     {
@@ -4956,6 +6919,41 @@
         1.0,
         1.0,
         1.0
+      ],
+      "expected_loss_usd": [
+        0,
+        560,
+        1480,
+        2400,
+        3330,
+        3690,
+        3690,
+        3690,
+        3690,
+        3690,
+        3690,
+        3690,
+        3690,
+        3690,
+        3690,
+        3690,
+        3690,
+        3690,
+        3690,
+        3690,
+        3690,
+        3690,
+        3690,
+        3690,
+        3690,
+        3690,
+        3690,
+        3690,
+        3690,
+        3690,
+        3690,
+        3690,
+        3690
       ]
     },
     {
@@ -5034,6 +7032,41 @@
         1.0,
         1.0,
         1.0
+      ],
+      "expected_loss_usd": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        284,
+        1130,
+        2540,
+        4480,
+        6400,
+        7750,
+        8540,
+        8790,
+        8790,
+        8790,
+        8790,
+        8790,
+        8790,
+        8790,
+        8790,
+        8790,
+        8790,
+        8790
       ]
     },
     {
@@ -5112,6 +7145,41 @@
         1.0,
         1.0,
         1.0
+      ],
+      "expected_loss_usd": [
+        0,
+        0,
+        320,
+        4070,
+        12200,
+        22600,
+        32600,
+        39200,
+        41400,
+        41400,
+        41400,
+        41400,
+        41400,
+        41400,
+        41400,
+        41400,
+        41400,
+        41400,
+        41400,
+        41400,
+        41400,
+        41400,
+        41400,
+        41400,
+        41400,
+        41400,
+        41400,
+        41400,
+        41400,
+        41400,
+        41400,
+        41400,
+        41400
       ]
     },
     {
@@ -5190,9 +7258,146 @@
         1.0,
         1.0,
         1.0
+      ],
+      "expected_loss_usd": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        245,
+        977,
+        2200,
+        3930,
+        5880,
+        7830,
+        9540,
+        10800,
+        11500,
+        11700,
+        11700,
+        11700,
+        11700,
+        11700,
+        11700,
+        11700,
+        11700,
+        11700,
+        11700,
+        11700,
+        11700,
+        11700,
+        11700,
+        11700,
+        11700,
+        11700,
+        11700,
+        11700
       ]
     }
   ],
+  "thresholds": {
+    "contents_items": 25,
+    "heights_from_mesh": 0,
+    "heights_estimated": 25,
+    "first_loss_ft": [
+      0.0,
+      0.1
+    ],
+    "half_items_ft": [
+      0.0,
+      0.6
+    ],
+    "most_items_ft": [
+      1.5,
+      2.5
+    ],
+    "critical_systems": [
+      {
+        "system": "electrical",
+        "name": "electrical gear",
+        "items": 5,
+        "first_reached_ft": [
+          0.0,
+          0.2
+        ]
+      },
+      {
+        "system": "it",
+        "name": "IT equipment",
+        "items": 6,
+        "first_reached_ft": [
+          0.0,
+          0.3
+        ]
+      }
+    ]
+  },
+  "standard_method": {
+    "method": "Hazus 6.1 default contents and inventory depth-damage functions for COM2",
+    "functions": [
+      {
+        "kind": "contents",
+        "function_id": 195,
+        "description": "Average wholesale trade, Contents",
+        "source": "USACE - Galveston",
+        "pct_at_1_2_4_6_ft": [
+          16.0,
+          27.0,
+          49.0,
+          63.0
+        ]
+      },
+      {
+        "kind": "inventory",
+        "function_id": 46,
+        "description": "Average Wholesale Trade, Inventory",
+        "source": "USACE - Galveston",
+        "pct_at_1_2_4_6_ft": [
+          19.0,
+          33.0,
+          54.0,
+          69.0
+        ]
+      }
+    ],
+    "citation": "FEMA Hazus 6.1 flood contents and inventory damage functions (HazusFloodDamageFunctions_Hazus61.xlsx), contents and inventory sheets as published in NHERI SimCenter Damage and Loss Model Library",
+    "source_url": "https://raw.githubusercontent.com/NHERI-SimCenter/DamageAndLossModelLibrary/main/data_sources/flood/building/portfolio/Hazus%20v6.1/input_files/HazusFloodDamageFunctions_Hazus61_{contents,inventory}.csv",
+    "value_basis": "The same simulated item values as Waterline's contents loss (like for like): the Hazus inventory function for stock, the contents function for everything else; road vehicles and building fabric are excluded from both.",
+    "compare": [
+      {
+        "depth_ft": 1.0,
+        "ours_median_usd": 89500,
+        "standard_median_usd": 40900,
+        "ratio": 2.19,
+        "verdict": "higher"
+      },
+      {
+        "depth_ft": 2.0,
+        "ours_median_usd": 174000,
+        "standard_median_usd": 69900,
+        "ratio": 2.49,
+        "verdict": "higher"
+      },
+      {
+        "depth_ft": 4.0,
+        "ours_median_usd": 220000,
+        "standard_median_usd": 121000,
+        "ratio": 1.82,
+        "verdict": "higher"
+      },
+      {
+        "depth_ft": 6.0,
+        "ours_median_usd": 233000,
+        "standard_median_usd": 155000,
+        "ratio": 1.5,
+        "verdict": "higher"
+      }
+    ],
+    "statement": "Against the Hazus-style figure on the same item values, at 1 ft ours is higher (2.2 times); at 2 ft ours is higher (2.5 times); at 4 ft ours is higher (1.8 times); at 6 ft ours is higher (1.5 times).",
+    "why_shapes_differ": "Hazus applies a building-average percentage from the first inch of water (16% of contents and 19% of inventory at 1 ft for COM2) and never reaches 100% (72% and 79% at 8 ft), because a building's contents include things stored above the water. Waterline prices only the items the survey saw, each from its own lowest vulnerable point: nothing is lost until the water reaches an item, and an item is a total loss once the water is its critical height above that point. In this building 73% of the surveyed contents value (at the middle of each range) sits in items whose lowest vulnerable part may be below 1 ft.",
+    "share_of_value_below_1ft": 0.732
+  },
   "assumptions": [
     {
       "id": "A-ELEC-CHARGER",
@@ -5331,6 +7536,60 @@
       "text": "FIXTURE: placeholder depth-damage curve on improvement value, not a FEMA figure",
       "source": "FIXTURE",
       "placeholder": true
+    },
+    {
+      "id": "C-MC-VALUE",
+      "text": "Each item's replacement value is uncertain: lognormal, with the low and high ends of its value range as the 10th and 90th percentiles (the median is the geometric mean of the two). A range starting at $0 is spread evenly between $0 and the high end.",
+      "source": "Waterline method (judge feedback 2026-11-14)",
+      "placeholder": false
+    },
+    {
+      "id": "C-MC-CLASS-CORR",
+      "text": "Items in the same value class share half of their value uncertainty (correlation 0.5 between log-values), because a class range set too high or too low is wrong for every item in it. Classes are independent of each other.",
+      "source": "team-set assumption: assumed, editable",
+      "placeholder": true
+    },
+    {
+      "id": "C-MC-HEIGHT",
+      "text": "Each item's lowest vulnerable point is uncertain: spread evenly between the bottom and top of its measured or estimated height range, independently for each item.",
+      "source": "Waterline method (judge feedback 2026-11-14)",
+      "placeholder": false
+    },
+    {
+      "id": "C-MC-STRUCT",
+      "text": "Structure damage is uncertain between the Hazus low and high curves: spread evenly between them, at the same relative place at every depth within one draw, independent of contents.",
+      "source": "Waterline method (judge feedback 2026-11-14)",
+      "placeholder": false
+    },
+    {
+      "id": "C-MC-DRAWS",
+      "text": "4,000 simulated draws with a fixed seed (20261114), each evaluated at every depth, so results are reproducible and never fall as depth rises. Reported: the median and the 10th-90th percentile range (80% interval). Percentiles do not add up: the total's interval is not the sum of the contents and structure intervals.",
+      "source": "Waterline method (judge feedback 2026-11-14)",
+      "placeholder": false
+    },
+    {
+      "id": "X-EXTREME-BOUNDS-1FT",
+      "text": "Extreme bounds at 1 ft, for reference only: every item at the low end of its value range and the top of its height range gives contents $38,098, structure $93,000, total $131,098; every item at the high end and the bottom gives contents $180,260, structure $217,000, total $397,260. Both are far less likely than the 80% interval, because items do not all err the same way.",
+      "source": "Waterline method: the sums reported as the range before contracts v1.3",
+      "placeholder": false
+    },
+    {
+      "id": "X-EXTREME-BOUNDS-2FT",
+      "text": "Extreme bounds at 2 ft, for reference only: every item at the low end of its value range and the top of its height range gives contents $98,555, structure $186,000, total $284,555; every item at the high end and the bottom gives contents $286,020, structure $372,000, total $658,020. Both are far less likely than the 80% interval, because items do not all err the same way.",
+      "source": "Waterline method: the sums reported as the range before contracts v1.3",
+      "placeholder": false
+    },
+    {
+      "id": "X-EXTREME-BOUNDS-4FT",
+      "text": "Extreme bounds at 4 ft, for reference only: every item at the low end of its value range and the top of its height range gives contents $131,250, structure $341,000, total $472,250; every item at the high end and the bottom gives contents $338,700, structure $620,000, total $958,700. Both are far less likely than the 80% interval, because items do not all err the same way.",
+      "source": "Waterline method: the sums reported as the range before contracts v1.3",
+      "placeholder": false
+    },
+    {
+      "id": "X-EXTREME-BOUNDS-6FT",
+      "text": "Extreme bounds at 6 ft, for reference only: every item at the low end of its value range and the top of its height range gives contents $143,500, structure $449,500, total $593,000; every item at the high end and the bottom gives contents $349,200, structure $806,000, total $1,155,200. Both are far less likely than the 80% interval, because items do not all err the same way.",
+      "source": "Waterline method: the sums reported as the range before contracts v1.3",
+      "placeholder": false
     }
   ]
 }

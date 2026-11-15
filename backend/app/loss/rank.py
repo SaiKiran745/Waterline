@@ -42,8 +42,10 @@ def compute() -> dict:
             s = model.scenario(b, assets, d)
             out[b["id"]][str(d)] = {"contents": [s["loss_usd_low"], s["loss_usd_high"]],
                                     "structure": [s["structure_loss_usd_low"], s["structure_loss_usd_high"]],
-                                    "total": [s["loss_usd_low"] + s["structure_loss_usd_low"],
-                                              s["loss_usd_high"] + s["structure_loss_usd_high"]],
+                                    "total": [s["total_usd_low"], s["total_usd_high"]],
+                                    "contents_median": s["loss_usd_median"],
+                                    "structure_median": s["structure_loss_usd_median"],
+                                    "total_median": s["total_usd_median"],
                                     "assets": len(assets)}
     write_json(RANK_FILE, out)
     return out
@@ -53,14 +55,18 @@ def load() -> dict:
     return json.loads(RANK_FILE.read_text()) if RANK_FILE.exists() else {}
 
 
+KEYS = ("contents", "structure", "total", "contents_median", "structure_median", "total_median")
+
+
 def triage(depth: str = "2") -> list[dict]:
-    """Every building ranked by total loss (high end) at `depth` ft, each labelled surveyed or structure only."""
+    """Every building ranked by its median total loss at `depth` ft (contracts v1.3), each labelled surveyed or
+    structure only. [low, high] is the 80% interval (10th-90th percentile)."""
     r = load()
     rows = []
     for bid, v in r.items():
         rows.append({"building_id": bid, **v["survey"],
-                     "loss_by_depth_ft": {d: {k: v[d][k] for k in ("contents", "structure", "total")} for d in map(str, DEPTHS)}})
-    rows.sort(key=lambda x: (-x["loss_by_depth_ft"][depth]["total"][1], x["building_id"]))
+                     "loss_by_depth_ft": {d: {k: v[d][k] for k in KEYS} for d in map(str, DEPTHS)}})
+    rows.sort(key=lambda x: (-x["loss_by_depth_ft"][depth]["total_median"], x["building_id"]))
     for i, x in enumerate(rows, 1):
         x["rank"] = i
     return rows
@@ -71,4 +77,4 @@ if __name__ == "__main__":
     for x in triage():
         print(x["rank"], x["building_id"], f"{x['status']:<15}", f"{x['positions_read']:>2}/{x['scan_positions']:<3} positions",
               f"contents={x['contents_assets']:<3}",
-              {d: f"${v['total'][0]:,.0f}-{v['total'][1]:,.0f}" for d, v in x["loss_by_depth_ft"].items()})
+              {d: f"${v['total_median']:,.0f} ({v['total'][0]:,.0f}-{v['total'][1]:,.0f})" for d, v in x["loss_by_depth_ft"].items()})

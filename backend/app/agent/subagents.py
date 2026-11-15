@@ -30,7 +30,8 @@ class EchoFinalTool(AgentMiddleware):
             return ModelResponse(result=[AIMessage(content=text)])
         return handler(request)
 
-REPLY = "Reply to the orchestrator in at most 4 short lines: the key numbers as low-high ranges and anything uncertain."
+REPLY = ("Reply to the orchestrator in at most 4 short lines: the key numbers exactly as the tool gave them (median "
+         "and 80% interval) and anything uncertain.")
 
 SPECS = {
     "site-scout": dict(

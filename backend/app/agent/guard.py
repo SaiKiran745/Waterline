@@ -81,11 +81,15 @@ def guarded(text: str, sources, where: str, agent: str = "orchestrator") -> str:
 
 def document_sources(building: dict, assets: list[dict], depth_ft: float) -> list:
     """What the report and playbook may quote: the building record, the assets, and the scenario and ranked
-    mitigations computed at that depth (the same results run_scenario and rank_mitigations return)."""
+    mitigations computed at that depth (the same results run_scenario and rank_mitigations return), each asset's
+    expected loss, and the slider table's thresholds and standard-method comparison (contracts v1.3)."""
     from app import buildings
     from app.loss import mitigations as engine
-    from app.loss import model
+    from app.loss import model, sim
     eps = buildings.get_entry_points(building["id"])
     ms = engine.ranked(building["id"], engine.candidates(building["id"], assets, eps), assets, depth_ft,
                        engine.building_loss_fn(building))
-    return [building, assets, model.scenario(building, assets, depth_ft), ms]
+    table = model.scenario_table(building, assets)
+    return [building, assets, model.scenario(building, assets, depth_ft), ms,
+            sim.expected_by_asset(building, assets, depth_ft),
+            {"thresholds": table["thresholds"], "standard_method": table["standard_method"]}]

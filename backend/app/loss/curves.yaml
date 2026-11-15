@@ -135,3 +135,103 @@ curves:
     - 40.5
     - 43.0
     range_basis: 25th-75th percentile of 15 USACE Galveston Hazus 6.1 structure functions for IND2, widened to include the default
+standard_contents:
+  use: 'Standard-method comparison only (contracts v1.3): the Hazus 6.1 default contents and inventory functions for the occupancy, applied to
+    the same item values as Waterline''s own contents loss.'
+  source: FEMA Hazus 6.1 flood contents and inventory damage functions (HazusFloodDamageFunctions_Hazus61.xlsx), contents and inventory sheets
+    as published in NHERI SimCenter Damage and Loss Model Library
+  source_url: https://raw.githubusercontent.com/NHERI-SimCenter/DamageAndLossModelLibrary/main/data_sources/flood/building/portfolio/Hazus%20v6.1/input_files/HazusFloodDamageFunctions_Hazus61_{contents,inventory}.csv
+  occupancies:
+    COM1:
+      contents:
+        function_id: 90
+        description: Average retail trade contents (Inventory/Equipment)
+        source: USACE - Galveston
+        depth_ft: *id001
+        pct:
+        - 2.0
+        - 26.0
+        - 42.0
+        - 56.0
+        - 68.0
+        - 78.0
+        - 83.0
+        - 85.0
+        - 87.0
+      inventory:
+        function_id: 1
+        description: Average Retail Trade, Inventory
+        source: USACE - Galveston
+        depth_ft: *id001
+        pct:
+        - 4.0
+        - 31.0
+        - 49.0
+        - 65.0
+        - 76.0
+        - 85.0
+        - 90.0
+        - 92.0
+        - 93.0
+    COM2:
+      contents:
+        function_id: 195
+        description: Average wholesale trade, Contents
+        source: USACE - Galveston
+        depth_ft: *id001
+        pct:
+        - 3.0
+        - 16.0
+        - 27.0
+        - 36.0
+        - 49.0
+        - 57.0
+        - 63.0
+        - 69.0
+        - 72.0
+      inventory:
+        function_id: 46
+        description: Average Wholesale Trade, Inventory
+        source: USACE - Galveston
+        depth_ft: *id001
+        pct:
+        - 4.0
+        - 19.0
+        - 33.0
+        - 44.0
+        - 54.0
+        - 63.0
+        - 69.0
+        - 76.0
+        - 79.0
+    IND2:
+      contents:
+        function_id: 384
+        description: Average Light Industrial, Contents (Equipment/Inventory)
+        source: USACE - Galveston
+        depth_ft: *id001
+        pct:
+        - 0.0
+        - 9.0
+        - 23.0
+        - 35.0
+        - 44.0
+        - 52.0
+        - 58.0
+        - 62.0
+        - 65.0
+      inventory:
+        function_id: 81
+        description: Average Light Industrial, Inventory
+        source: USACE - Galveston
+        depth_ft: *id001
+        pct:
+        - 0.0
+        - 14.0
+        - 33.0
+        - 48.0
+        - 57.0
+        - 63.0
+        - 67.0
+        - 70.0
+        - 74.0

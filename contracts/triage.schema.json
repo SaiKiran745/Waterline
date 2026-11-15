@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "waterline/contracts/triage.schema.json",
   "title": "Triage",
-  "description": "GET /triage?depth_ft=1|2|4|6: every building ranked by total loss (high end) at that depth, each labelled 'surveyed' or 'structure only' so the map ranking says what it compares.",
+  "description": "GET /triage?depth_ft=1|2|4|6: every building ranked by median total loss at that depth (v1.3; was the high end), each labelled 'surveyed' or 'structure only' so the map ranking says what it compares.",
   "type": "array",
   "items": {
     "type": "object",
@@ -68,7 +68,10 @@
             "required": [
               "contents",
               "structure",
-              "total"
+              "total",
+              "contents_median",
+              "structure_median",
+              "total_median"
             ],
             "properties": {
               "contents": {
@@ -79,7 +82,7 @@
                 },
                 "minItems": 2,
                 "maxItems": 2,
-                "description": "[low, high] in USD"
+                "description": "[low, high] in USD: the 80% interval (10th and 90th percentile of the simulation, v1.3)."
               },
               "structure": {
                 "type": "array",
@@ -89,7 +92,7 @@
                 },
                 "minItems": 2,
                 "maxItems": 2,
-                "description": "[low, high] in USD"
+                "description": "[low, high] in USD: the 80% interval (10th and 90th percentile of the simulation, v1.3)."
               },
               "total": {
                 "type": "array",
@@ -99,7 +102,22 @@
                 },
                 "minItems": 2,
                 "maxItems": 2,
-                "description": "[low, high] in USD"
+                "description": "[low, high] in USD: the 80% interval (10th and 90th percentile of the simulation, v1.3)."
+              },
+              "contents_median": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Contents loss, median of the simulation (v1.3)."
+              },
+              "structure_median": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Structure loss, median of the simulation (v1.3)."
+              },
+              "total_median": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Total loss, median of the simulation (v1.3)."
               }
             }
           },
@@ -109,7 +127,10 @@
             "required": [
               "contents",
               "structure",
-              "total"
+              "total",
+              "contents_median",
+              "structure_median",
+              "total_median"
             ],
             "properties": {
               "contents": {
@@ -120,7 +141,7 @@
                 },
                 "minItems": 2,
                 "maxItems": 2,
-                "description": "[low, high] in USD"
+                "description": "[low, high] in USD: the 80% interval (10th and 90th percentile of the simulation, v1.3)."
               },
               "structure": {
                 "type": "array",
@@ -130,7 +151,7 @@
                 },
                 "minItems": 2,
                 "maxItems": 2,
-                "description": "[low, high] in USD"
+                "description": "[low, high] in USD: the 80% interval (10th and 90th percentile of the simulation, v1.3)."
               },
               "total": {
                 "type": "array",
@@ -140,7 +161,22 @@
                 },
                 "minItems": 2,
                 "maxItems": 2,
-                "description": "[low, high] in USD"
+                "description": "[low, high] in USD: the 80% interval (10th and 90th percentile of the simulation, v1.3)."
+              },
+              "contents_median": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Contents loss, median of the simulation (v1.3)."
+              },
+              "structure_median": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Structure loss, median of the simulation (v1.3)."
+              },
+              "total_median": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Total loss, median of the simulation (v1.3)."
               }
             }
           },
@@ -150,7 +186,10 @@
             "required": [
               "contents",
               "structure",
-              "total"
+              "total",
+              "contents_median",
+              "structure_median",
+              "total_median"
             ],
             "properties": {
               "contents": {
@@ -161,7 +200,7 @@
                 },
                 "minItems": 2,
                 "maxItems": 2,
-                "description": "[low, high] in USD"
+                "description": "[low, high] in USD: the 80% interval (10th and 90th percentile of the simulation, v1.3)."
               },
               "structure": {
                 "type": "array",
@@ -171,7 +210,7 @@
                 },
                 "minItems": 2,
                 "maxItems": 2,
-                "description": "[low, high] in USD"
+                "description": "[low, high] in USD: the 80% interval (10th and 90th percentile of the simulation, v1.3)."
               },
               "total": {
                 "type": "array",
@@ -181,7 +220,22 @@
                 },
                 "minItems": 2,
                 "maxItems": 2,
-                "description": "[low, high] in USD"
+                "description": "[low, high] in USD: the 80% interval (10th and 90th percentile of the simulation, v1.3)."
+              },
+              "contents_median": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Contents loss, median of the simulation (v1.3)."
+              },
+              "structure_median": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Structure loss, median of the simulation (v1.3)."
+              },
+              "total_median": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Total loss, median of the simulation (v1.3)."
               }
             }
           },
@@ -191,7 +245,10 @@
             "required": [
               "contents",
               "structure",
-              "total"
+              "total",
+              "contents_median",
+              "structure_median",
+              "total_median"
             ],
             "properties": {
               "contents": {
@@ -202,7 +259,7 @@
                 },
                 "minItems": 2,
                 "maxItems": 2,
-                "description": "[low, high] in USD"
+                "description": "[low, high] in USD: the 80% interval (10th and 90th percentile of the simulation, v1.3)."
               },
               "structure": {
                 "type": "array",
@@ -212,7 +269,7 @@
                 },
                 "minItems": 2,
                 "maxItems": 2,
-                "description": "[low, high] in USD"
+                "description": "[low, high] in USD: the 80% interval (10th and 90th percentile of the simulation, v1.3)."
               },
               "total": {
                 "type": "array",
@@ -222,7 +279,22 @@
                 },
                 "minItems": 2,
                 "maxItems": 2,
-                "description": "[low, high] in USD"
+                "description": "[low, high] in USD: the 80% interval (10th and 90th percentile of the simulation, v1.3)."
+              },
+              "contents_median": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Contents loss, median of the simulation (v1.3)."
+              },
+              "structure_median": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Structure loss, median of the simulation (v1.3)."
+              },
+              "total_median": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Total loss, median of the simulation (v1.3)."
               }
             }
           }

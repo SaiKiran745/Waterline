@@ -18,7 +18,8 @@
     "avoided_loss_usd_low",
     "avoided_loss_usd_high",
     "payback_note",
-    "basis"
+    "basis",
+    "avoided_loss_usd_median"
   ],
   "properties": {
     "id": {
@@ -69,11 +70,13 @@
     },
     "avoided_loss_usd_low": {
       "type": "number",
-      "minimum": 0
+      "minimum": 0,
+      "description": "Avoided loss, 10th percentile of 4,000 simulated draws (contracts v1.3; was the low-end sum, now X-EXTREME-BOUNDS in assumptions)."
     },
     "avoided_loss_usd_high": {
       "type": "number",
-      "minimum": 0
+      "minimum": 0,
+      "description": "Avoided loss, 90th percentile of 4,000 simulated draws (contracts v1.3; was the high-end sum, now X-EXTREME-BOUNDS in assumptions)."
     },
     "payback_note": {
       "type": "string"
@@ -81,6 +84,11 @@
     "basis": {
       "type": "string",
       "description": "Assumption id for the cost range."
+    },
+    "avoided_loss_usd_median": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Avoided loss, median of the same simulated draws before and after the action (v1.3). The rank and the payback ratio use it."
     }
   }
 }

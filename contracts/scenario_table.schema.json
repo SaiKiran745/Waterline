@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "waterline/contracts/scenario_table.schema.json",
   "title": "ScenarioTable",
-  "description": "GET /buildings/{id}/scenario_table: the loss at every slider step (0 to 8 ft by 0.25 ft) and each asset's damage fraction per step, so the front end looks values up instead of computing them. Each row equals GET /scenario at that depth.",
+  "description": "GET /buildings/{id}/scenario_table: the loss at every slider step (0 to 8 ft by 0.25 ft) and each asset's damage fraction and expected loss per step, so the front end looks values up instead of computing them. Each row equals GET /scenario at that depth. v1.3: median and 80% interval by simulation, measured counts and thresholds, top contributors, and the standard-method comparison.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -12,7 +12,9 @@
     "steps_ft",
     "rows",
     "assets",
-    "assumptions"
+    "assumptions",
+    "thresholds",
+    "standard_method"
   ],
   "properties": {
     "building_id": {
@@ -49,7 +51,13 @@
           "structure_loss_usd_high",
           "total_usd_low",
           "total_usd_high",
-          "assets_hit"
+          "assets_hit",
+          "loss_usd_median",
+          "structure_loss_usd_median",
+          "total_usd_median",
+          "items_in_water",
+          "top_contributors",
+          "standard_contents_usd_median"
         ],
         "properties": {
           "depth_ft": {
@@ -60,30 +68,32 @@
           "loss_usd_low": {
             "type": "number",
             "minimum": 0,
-            "description": "Contents loss, low (as ScenarioResult)."
+            "description": "Contents loss, 10th percentile of 4,000 simulated draws (contracts v1.3; was the 'every item at its low end' sum, now X-EXTREME-BOUNDS in assumptions)."
           },
           "loss_usd_high": {
             "type": "number",
             "minimum": 0,
-            "description": "Contents loss, high (as ScenarioResult)."
+            "description": "Contents loss, 90th percentile of 4,000 simulated draws (contracts v1.3; was the 'every item at its high end' sum, now X-EXTREME-BOUNDS in assumptions)."
           },
           "structure_loss_usd_low": {
             "type": "number",
-            "minimum": 0
+            "minimum": 0,
+            "description": "Structure loss, 10th percentile of 4,000 simulated draws (contracts v1.3; was the 'every item at its low end' sum, now X-EXTREME-BOUNDS in assumptions)."
           },
           "structure_loss_usd_high": {
             "type": "number",
-            "minimum": 0
+            "minimum": 0,
+            "description": "Structure loss, 90th percentile of 4,000 simulated draws (contracts v1.3; was the 'every item at its high end' sum, now X-EXTREME-BOUNDS in assumptions)."
           },
           "total_usd_low": {
             "type": "number",
             "minimum": 0,
-            "description": "Contents + structure, low."
+            "description": "Contents + structure, 10th percentile of 4,000 simulated draws (contracts v1.3; was the 'every item at its low end' sum, now X-EXTREME-BOUNDS in assumptions). Percentiles do not add up: the total's percentiles are of the summed draws, not the sum of the parts' percentiles."
           },
           "total_usd_high": {
             "type": "number",
             "minimum": 0,
-            "description": "Contents + structure, high."
+            "description": "Contents + structure, 90th percentile of 4,000 simulated draws (contracts v1.3; was the 'every item at its high end' sum, now X-EXTREME-BOUNDS in assumptions). Percentiles do not add up: the total's percentiles are of the summed draws, not the sum of the parts' percentiles."
           },
           "assets_hit": {
             "type": "array",
@@ -108,6 +118,93 @@
               }
             },
             "description": "Same as ScenarioResult.assets_hit: likely first, then possible."
+          },
+          "loss_usd_median": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Contents loss, Median of 4,000 simulated draws: the central estimate (contracts v1.3, app/loss/sim.py, assumptions C-MC-*)."
+          },
+          "structure_loss_usd_median": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Structure loss, Median of 4,000 simulated draws: the central estimate (contracts v1.3, app/loss/sim.py, assumptions C-MC-*)."
+          },
+          "total_usd_median": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Contents + structure, Median of 4,000 simulated draws: the central estimate (contracts v1.3, app/loss/sim.py, assumptions C-MC-*). Percentiles do not add up: the total's percentiles are of the summed draws, not the sum of the parts' percentiles."
+          },
+          "items_in_water": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "of",
+              "count_low",
+              "count_high",
+              "share_low",
+              "share_high"
+            ],
+            "description": "Measured, no dollar assumption (v1.3): contents items (not fabric, not road vehicles) the water reaches at this depth, from item heights alone (mesh where it resolves the item, otherwise the visual estimate). count_low: water above the top of the item's height range (certainly reached); count_high: above the bottom (possibly reached).",
+            "properties": {
+              "of": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "count_low": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "count_high": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "share_low": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "share_high": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            }
+          },
+          "top_contributors": {
+            "type": "array",
+            "maxItems": 5,
+            "description": "v1.3: the (up to) five assets with the largest expected (mean simulated) loss at this depth, largest first; share = that asset's expected loss / the expected contents loss.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "asset_id",
+                "expected_loss_usd",
+                "share"
+              ],
+              "properties": {
+                "asset_id": {
+                  "type": "string"
+                },
+                "expected_loss_usd": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "share": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              }
+            }
+          },
+          "standard_contents_usd_median": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "v1.3 standard-method comparison: median Hazus-style contents loss at this depth (Hazus 6.1 default contents and inventory functions for the occupancy) on the same simulated item values. Shown beside ours, never used in it. null when the building has no Hazus occupancy mapping."
           }
         }
       }
@@ -125,7 +222,8 @@
           "critical_ft",
           "movable",
           "fraction_low",
-          "fraction_high"
+          "fraction_high",
+          "expected_loss_usd"
         ],
         "properties": {
           "asset_id": {
@@ -159,7 +257,7 @@
               "minimum": 0,
               "maximum": 1
             },
-            "description": "Share of value lost at each step, low case (lowest point at height_ft_high). Loss low = value_usd_low x fraction_low."
+            "description": "Share of value lost at each step with the lowest point at the top of its height range (likely hits only). Used for colour; the dollar figures come from the simulation."
           },
           "fraction_high": {
             "type": "array",
@@ -168,7 +266,15 @@
               "minimum": 0,
               "maximum": 1
             },
-            "description": "High case (lowest point at height_ft_low). Loss high = value_usd_high x fraction_high."
+            "description": "Share of value lost at each step with the lowest point at the bottom of its height range (likely and possible hits). Used for colour."
+          },
+          "expected_loss_usd": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "minimum": 0
+            },
+            "description": "v1.3: the asset's expected (mean simulated) loss at each step, USD, 3 significant figures. Vehicles and fabric are 0."
           }
         }
       }
@@ -177,6 +283,239 @@
       "type": "array",
       "items": {
         "$ref": "#/$defs/assumption"
+      }
+    },
+    "thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "v1.3, measured, no dollar assumption: depths at which the water first reaches a contents item, half of them, 80% of them, and each critical system.",
+      "required": [
+        "contents_items",
+        "heights_from_mesh",
+        "heights_estimated",
+        "first_loss_ft",
+        "half_items_ft",
+        "most_items_ft",
+        "critical_systems"
+      ],
+      "properties": {
+        "contents_items": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "heights_from_mesh": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Contents items whose height was measured from the Matterport mesh."
+        },
+        "heights_estimated": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Contents items whose height is a visual estimate."
+        },
+        "first_loss_ft": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "number",
+            "minimum": 0
+          },
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "[earliest, latest] depth in ft: earliest from the bottom of each item's height range, latest from the top. null if no items."
+        },
+        "half_items_ft": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "number",
+            "minimum": 0
+          },
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "[earliest, latest] depth in ft: earliest from the bottom of each item's height range, latest from the top. null if no items."
+        },
+        "most_items_ft": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "number",
+            "minimum": 0
+          },
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "80% of the items. [earliest, latest] depth in ft: earliest from the bottom of each item's height range, latest from the top. null if no items."
+        },
+        "critical_systems": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "system",
+              "name",
+              "items",
+              "first_reached_ft"
+            ],
+            "properties": {
+              "system": {
+                "type": "string",
+                "enum": [
+                  "electrical",
+                  "it"
+                ]
+              },
+              "name": {
+                "type": "string"
+              },
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "first_reached_ft": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "[earliest, latest] depth in ft: earliest from the bottom of each item's height range, latest from the top. null if no items."
+              }
+            }
+          }
+        }
+      }
+    },
+    "standard_method": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "description": "v1.3: the standard-method comparison. null when the building has no Hazus occupancy mapping.",
+      "required": [
+        "method",
+        "functions",
+        "citation",
+        "source_url",
+        "value_basis",
+        "compare",
+        "statement",
+        "why_shapes_differ",
+        "share_of_value_below_1ft"
+      ],
+      "properties": {
+        "method": {
+          "type": "string"
+        },
+        "functions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "function_id",
+              "description",
+              "source",
+              "pct_at_1_2_4_6_ft"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "contents",
+                  "inventory"
+                ]
+              },
+              "function_id": {
+                "type": "integer"
+              },
+              "description": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              },
+              "pct_at_1_2_4_6_ft": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        },
+        "citation": {
+          "type": "string"
+        },
+        "source_url": {
+          "type": "string"
+        },
+        "value_basis": {
+          "type": "string"
+        },
+        "compare": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "depth_ft",
+              "ours_median_usd",
+              "standard_median_usd",
+              "ratio",
+              "verdict"
+            ],
+            "properties": {
+              "depth_ft": {
+                "type": "number"
+              },
+              "ours_median_usd": {
+                "type": "number"
+              },
+              "standard_median_usd": {
+                "type": "number"
+              },
+              "ratio": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "verdict": {
+                "type": "string",
+                "enum": [
+                  "higher",
+                  "lower",
+                  "about the same"
+                ]
+              }
+            }
+          }
+        },
+        "statement": {
+          "type": "string",
+          "description": "Plain sentence: ours against the standard method at 1, 2, 4 and 6 ft ('about the same' = within 0.8-1.25 times)."
+        },
+        "why_shapes_differ": {
+          "type": "string"
+        },
+        "share_of_value_below_1ft": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
       }
     }
   },

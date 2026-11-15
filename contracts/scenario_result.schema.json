@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "waterline/contracts/scenario_result.schema.json",
   "title": "ScenarioResult",
-  "description": "Loss for one user-chosen water depth. A scenario, not a prediction.",
+  "description": "Loss for one user-chosen water depth. A scenario, not a prediction. v1.3: every dollar figure is the median and 80% interval (10th-90th percentile) of a simulation; the old worst-case sums are X-EXTREME-BOUNDS in assumptions.",
   "type": "object",
   "additionalProperties": false,
   "$defs": {
@@ -41,7 +41,15 @@
     "assets_hit",
     "structure_loss_usd_low",
     "structure_loss_usd_high",
-    "assumptions"
+    "assumptions",
+    "loss_usd_median",
+    "structure_loss_usd_median",
+    "total_usd_low",
+    "total_usd_median",
+    "total_usd_high",
+    "items_in_water",
+    "top_contributors",
+    "standard_contents_usd_median"
   ],
   "properties": {
     "building_id": {
@@ -59,11 +67,13 @@
     },
     "loss_usd_low": {
       "type": "number",
-      "minimum": 0
+      "minimum": 0,
+      "description": "Contents loss, 10th percentile of 4,000 simulated draws (contracts v1.3; was the 'every item at its low end' sum, now X-EXTREME-BOUNDS in assumptions)."
     },
     "loss_usd_high": {
       "type": "number",
-      "minimum": 0
+      "minimum": 0,
+      "description": "Contents loss, 90th percentile of 4,000 simulated draws (contracts v1.3; was the 'every item at its high end' sum, now X-EXTREME-BOUNDS in assumptions)."
     },
     "assets_hit": {
       "type": "array",
@@ -90,17 +100,116 @@
     },
     "structure_loss_usd_low": {
       "type": "number",
-      "minimum": 0
+      "minimum": 0,
+      "description": "Structure loss, 10th percentile of 4,000 simulated draws (contracts v1.3; was the 'every item at its low end' sum, now X-EXTREME-BOUNDS in assumptions)."
     },
     "structure_loss_usd_high": {
       "type": "number",
-      "minimum": 0
+      "minimum": 0,
+      "description": "Structure loss, 90th percentile of 4,000 simulated draws (contracts v1.3; was the 'every item at its high end' sum, now X-EXTREME-BOUNDS in assumptions)."
     },
     "assumptions": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/assumption"
       }
+    },
+    "loss_usd_median": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Contents loss, Median of 4,000 simulated draws: the central estimate (contracts v1.3, app/loss/sim.py, assumptions C-MC-*)."
+    },
+    "structure_loss_usd_median": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Structure loss, Median of 4,000 simulated draws: the central estimate (contracts v1.3, app/loss/sim.py, assumptions C-MC-*)."
+    },
+    "total_usd_low": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Contents + structure, 10th percentile of 4,000 simulated draws (contracts v1.3; was the 'every item at its low end' sum, now X-EXTREME-BOUNDS in assumptions). Percentiles do not add up: the total's percentiles are of the summed draws, not the sum of the parts' percentiles."
+    },
+    "total_usd_median": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Contents + structure, Median of 4,000 simulated draws: the central estimate (contracts v1.3, app/loss/sim.py, assumptions C-MC-*). Percentiles do not add up: the total's percentiles are of the summed draws, not the sum of the parts' percentiles."
+    },
+    "total_usd_high": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Contents + structure, 90th percentile of 4,000 simulated draws (contracts v1.3; was the 'every item at its high end' sum, now X-EXTREME-BOUNDS in assumptions). Percentiles do not add up: the total's percentiles are of the summed draws, not the sum of the parts' percentiles."
+    },
+    "items_in_water": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "of",
+        "count_low",
+        "count_high",
+        "share_low",
+        "share_high"
+      ],
+      "description": "Measured, no dollar assumption (v1.3): contents items (not fabric, not road vehicles) the water reaches at this depth, from item heights alone (mesh where it resolves the item, otherwise the visual estimate). count_low: water above the top of the item's height range (certainly reached); count_high: above the bottom (possibly reached).",
+      "properties": {
+        "of": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "count_low": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "count_high": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "share_low": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "share_high": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "top_contributors": {
+      "type": "array",
+      "maxItems": 5,
+      "description": "v1.3: the (up to) five assets with the largest expected (mean simulated) loss at this depth, largest first; share = that asset's expected loss / the expected contents loss.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "asset_id",
+          "expected_loss_usd",
+          "share"
+        ],
+        "properties": {
+          "asset_id": {
+            "type": "string"
+          },
+          "expected_loss_usd": {
+            "type": "number",
+            "minimum": 0
+          },
+          "share": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      }
+    },
+    "standard_contents_usd_median": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "v1.3 standard-method comparison: median Hazus-style contents loss at this depth (Hazus 6.1 default contents and inventory functions for the occupancy) on the same simulated item values. Shown beside ours, never used in it. null when the building has no Hazus occupancy mapping."
     }
   }
 }

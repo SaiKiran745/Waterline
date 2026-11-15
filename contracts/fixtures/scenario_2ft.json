@@ -2,8 +2,15 @@
   "building_id": "fixture-1",
   "depth_ft": 2,
   "depth_reference": "interior water depth above ground-floor slab",
-  "loss_usd_low": 98555,
-  "loss_usd_high": 286020,
+  "loss_usd_low": 140000,
+  "loss_usd_median": 174000,
+  "loss_usd_high": 220000,
+  "structure_loss_usd_low": 206000,
+  "structure_loss_usd_median": 282000,
+  "structure_loss_usd_high": 355000,
+  "total_usd_low": 374000,
+  "total_usd_median": 459000,
+  "total_usd_high": 541000,
   "assets_hit": [
     {
       "asset_id": "fixture-1-a1",
@@ -86,8 +93,41 @@
       "status": "possible"
     }
   ],
-  "structure_loss_usd_low": 186000,
-  "structure_loss_usd_high": 372000,
+  "items_in_water": {
+    "of": 25,
+    "count_low": 18,
+    "count_high": 20,
+    "share_low": 0.72,
+    "share_high": 0.8
+  },
+  "top_contributors": [
+    {
+      "asset_id": "fixture-1-a24",
+      "expected_loss_usd": 41400,
+      "share": 0.232
+    },
+    {
+      "asset_id": "fixture-1-a12",
+      "expected_loss_usd": 38300,
+      "share": 0.215
+    },
+    {
+      "asset_id": "fixture-1-a13",
+      "expected_loss_usd": 38000,
+      "share": 0.213
+    },
+    {
+      "asset_id": "fixture-1-a7",
+      "expected_loss_usd": 11300,
+      "share": 0.063
+    },
+    {
+      "asset_id": "fixture-1-a5",
+      "expected_loss_usd": 8400,
+      "share": 0.047
+    }
+  ],
+  "standard_contents_usd_median": 69900,
   "assumptions": [
     {
       "id": "A-ELEC-FLOORBOX",
@@ -196,6 +236,42 @@
       "text": "FIXTURE: placeholder depth-damage curve on improvement value, not a FEMA figure",
       "source": "FIXTURE",
       "placeholder": true
+    },
+    {
+      "id": "C-MC-VALUE",
+      "text": "Each item's replacement value is uncertain: lognormal, with the low and high ends of its value range as the 10th and 90th percentiles (the median is the geometric mean of the two). A range starting at $0 is spread evenly between $0 and the high end.",
+      "source": "Waterline method (judge feedback 2026-11-14)",
+      "placeholder": false
+    },
+    {
+      "id": "C-MC-CLASS-CORR",
+      "text": "Items in the same value class share half of their value uncertainty (correlation 0.5 between log-values), because a class range set too high or too low is wrong for every item in it. Classes are independent of each other.",
+      "source": "team-set assumption: assumed, editable",
+      "placeholder": true
+    },
+    {
+      "id": "C-MC-HEIGHT",
+      "text": "Each item's lowest vulnerable point is uncertain: spread evenly between the bottom and top of its measured or estimated height range, independently for each item.",
+      "source": "Waterline method (judge feedback 2026-11-14)",
+      "placeholder": false
+    },
+    {
+      "id": "C-MC-STRUCT",
+      "text": "Structure damage is uncertain between the Hazus low and high curves: spread evenly between them, at the same relative place at every depth within one draw, independent of contents.",
+      "source": "Waterline method (judge feedback 2026-11-14)",
+      "placeholder": false
+    },
+    {
+      "id": "C-MC-DRAWS",
+      "text": "4,000 simulated draws with a fixed seed (20261114), each evaluated at every depth, so results are reproducible and never fall as depth rises. Reported: the median and the 10th-90th percentile range (80% interval). Percentiles do not add up: the total's interval is not the sum of the contents and structure intervals.",
+      "source": "Waterline method (judge feedback 2026-11-14)",
+      "placeholder": false
+    },
+    {
+      "id": "X-EXTREME-BOUNDS",
+      "text": "Extreme bounds at 2 ft, for reference only: every item at the low end of its value range and the top of its height range gives contents $98,555, structure $186,000, total $284,555; every item at the high end and the bottom gives contents $286,020, structure $372,000, total $658,020. Both are far less likely than the 80% interval, because items do not all err the same way.",
+      "source": "Waterline method: the sums reported as the range before contracts v1.3",
+      "placeholder": false
     }
   ]
 }

@@ -56,16 +56,16 @@ def health():
 
 @app.get("/buildings")
 def list_buildings(fixture: int = 0):
-    """Buildings ranked by precomputed total loss (high end) at 2 ft, then by letter. ?fixture=1 for FIXTURE data."""
+    """Buildings ranked by precomputed median total loss at 2 ft (contracts v1.3), then by letter. ?fixture=1 for FIXTURE data."""
     if fixture:
         return [fixtures.building()]
     r = rank.load()
-    return sorted(buildings.list_buildings(), key=lambda b: (-(r.get(b["id"], {}).get("2", {}).get("total", [0, 0])[1]), b["id"]))
+    return sorted(buildings.list_buildings(), key=lambda b: (-(r.get(b["id"], {}).get("2", {}).get("total_median", 0)), b["id"]))
 
 
 @app.get("/triage")
 def triage(depth_ft: int = Query(2), fixture: int = 0):
-    """Triage ranking (not in contracts/ yet): every building ranked by total loss at 1, 2 or 4 ft, each labelled
+    """Triage ranking (contracts v1.3): every building ranked by median total loss at 1, 2, 4 or 6 ft, each labelled
     "surveyed" (with positions read and contents count) or "structure only"."""
     if str(depth_ft) not in map(str, rank.DEPTHS):
         raise HTTPException(422, f"depth_ft must be one of {list(rank.DEPTHS)}")

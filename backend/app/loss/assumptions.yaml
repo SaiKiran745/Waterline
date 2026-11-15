@@ -16,6 +16,33 @@ contents:
     source: "Waterline method; totals sanity-checked against FEMA Hazus 6.1 contents curves (USACE Galveston, COM2/IND2)"
     placeholder: false
 
+# Central estimate and 80% interval by simulation (contracts v1.3, app/loss/sim.py). The old low-high sums (every item at
+# its low end, or every item at its high end) are kept as X-EXTREME-BOUNDS in the assumptions list only.
+simulation:
+  - id: C-MC-VALUE
+    text: "Each item's replacement value is uncertain: lognormal, with the low and high ends of its value range as the 10th and 90th percentiles (the median is the geometric mean of the two). A range starting at $0 is spread evenly between $0 and the high end."
+    source: "Waterline method (judge feedback 2026-11-14)"
+    placeholder: false
+  - id: C-MC-CLASS-CORR
+    rho: 0.5
+    text: "Items in the same value class share half of their value uncertainty (correlation 0.5 between log-values), because a class range set too high or too low is wrong for every item in it. Classes are independent of each other."
+    source: "team-set assumption: assumed, editable"
+    placeholder: true
+  - id: C-MC-HEIGHT
+    text: "Each item's lowest vulnerable point is uncertain: spread evenly between the bottom and top of its measured or estimated height range, independently for each item."
+    source: "Waterline method (judge feedback 2026-11-14)"
+    placeholder: false
+  - id: C-MC-STRUCT
+    text: "Structure damage is uncertain between the Hazus low and high curves: spread evenly between them, at the same relative place at every depth within one draw, independent of contents."
+    source: "Waterline method (judge feedback 2026-11-14)"
+    placeholder: false
+  - id: C-MC-DRAWS
+    draws: 4000
+    seed: 20261114
+    text: "4,000 simulated draws with a fixed seed (20261114), each evaluated at every depth, so results are reproducible and never fall as depth rises. Reported: the median and the 10th-90th percentile range (80% interval). Percentiles do not add up: the total's interval is not the sum of the contents and structure intervals."
+    source: "Waterline method (judge feedback 2026-11-14)"
+    placeholder: false
+
 # Value classes: replacement value per surveyed item or group, USD, and critical height in ft (water depth above the
 # item's lowest vulnerable point at which it is a total loss). Team-set assumptions ("assumed range, editable"; placeholder: true) and
 # editable per asset through PATCH /buildings/{id}/assets/{asset_id}. Assigned from the vision label (app/loss/classes.py).

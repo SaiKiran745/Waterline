@@ -4,16 +4,66 @@
     "depth_ft": 0,
     "depth_reference": "interior water depth above ground-floor slab",
     "loss_usd_low": 0,
+    "loss_usd_median": 0,
     "loss_usd_high": 0,
-    "assets_hit": [],
     "structure_loss_usd_low": 0,
+    "structure_loss_usd_median": 0,
     "structure_loss_usd_high": 0,
+    "total_usd_low": 0,
+    "total_usd_median": 0,
+    "total_usd_high": 0,
+    "assets_hit": [],
+    "items_in_water": {
+      "of": 25,
+      "count_low": 0,
+      "count_high": 0,
+      "share_low": 0.0,
+      "share_high": 0.0
+    },
+    "top_contributors": [],
+    "standard_contents_usd_median": 0,
     "assumptions": [
       {
         "id": "C-STRUCT-FIXTURE",
         "text": "FIXTURE: placeholder depth-damage curve on improvement value, not a FEMA figure",
         "source": "FIXTURE",
         "placeholder": true
+      },
+      {
+        "id": "C-MC-VALUE",
+        "text": "Each item's replacement value is uncertain: lognormal, with the low and high ends of its value range as the 10th and 90th percentiles (the median is the geometric mean of the two). A range starting at $0 is spread evenly between $0 and the high end.",
+        "source": "Waterline method (judge feedback 2026-11-14)",
+        "placeholder": false
+      },
+      {
+        "id": "C-MC-CLASS-CORR",
+        "text": "Items in the same value class share half of their value uncertainty (correlation 0.5 between log-values), because a class range set too high or too low is wrong for every item in it. Classes are independent of each other.",
+        "source": "team-set assumption: assumed, editable",
+        "placeholder": true
+      },
+      {
+        "id": "C-MC-HEIGHT",
+        "text": "Each item's lowest vulnerable point is uncertain: spread evenly between the bottom and top of its measured or estimated height range, independently for each item.",
+        "source": "Waterline method (judge feedback 2026-11-14)",
+        "placeholder": false
+      },
+      {
+        "id": "C-MC-STRUCT",
+        "text": "Structure damage is uncertain between the Hazus low and high curves: spread evenly between them, at the same relative place at every depth within one draw, independent of contents.",
+        "source": "Waterline method (judge feedback 2026-11-14)",
+        "placeholder": false
+      },
+      {
+        "id": "C-MC-DRAWS",
+        "text": "4,000 simulated draws with a fixed seed (20261114), each evaluated at every depth, so results are reproducible and never fall as depth rises. Reported: the median and the 10th-90th percentile range (80% interval). Percentiles do not add up: the total's interval is not the sum of the contents and structure intervals.",
+        "source": "Waterline method (judge feedback 2026-11-14)",
+        "placeholder": false
+      },
+      {
+        "id": "X-EXTREME-BOUNDS",
+        "text": "Extreme bounds at 0 ft, for reference only: every item at the low end of its value range and the top of its height range gives contents $0, structure $0, total $0; every item at the high end and the bottom gives contents $0, structure $0, total $0. Both are far less likely than the 80% interval, because items do not all err the same way.",
+        "source": "Waterline method: the sums reported as the range before contracts v1.3",
+        "placeholder": false
       }
     ]
   },
@@ -21,8 +71,15 @@
     "building_id": "fixture-1",
     "depth_ft": 1,
     "depth_reference": "interior water depth above ground-floor slab",
-    "loss_usd_low": 38098,
-    "loss_usd_high": 180260,
+    "loss_usd_low": 70000,
+    "loss_usd_median": 89500,
+    "loss_usd_high": 117000,
+    "structure_loss_usd_low": 107000,
+    "structure_loss_usd_median": 157000,
+    "structure_loss_usd_high": 205000,
+    "total_usd_low": 194000,
+    "total_usd_median": 248000,
+    "total_usd_high": 299000,
     "assets_hit": [
       {
         "asset_id": "fixture-1-a1",
@@ -97,8 +154,41 @@
         "status": "possible"
       }
     ],
-    "structure_loss_usd_low": 93000,
-    "structure_loss_usd_high": 217000,
+    "items_in_water": {
+      "of": 25,
+      "count_low": 16,
+      "count_high": 18,
+      "share_low": 0.64,
+      "share_high": 0.72
+    },
+    "top_contributors": [
+      {
+        "asset_id": "fixture-1-a12",
+        "expected_loss_usd": 19100,
+        "share": 0.209
+      },
+      {
+        "asset_id": "fixture-1-a13",
+        "expected_loss_usd": 19000,
+        "share": 0.207
+      },
+      {
+        "asset_id": "fixture-1-a24",
+        "expected_loss_usd": 12200,
+        "share": 0.133
+      },
+      {
+        "asset_id": "fixture-1-a7",
+        "expected_loss_usd": 11300,
+        "share": 0.123
+      },
+      {
+        "asset_id": "fixture-1-a5",
+        "expected_loss_usd": 7980,
+        "share": 0.087
+      }
+    ],
+    "standard_contents_usd_median": 40900,
     "assumptions": [
       {
         "id": "A-ELEC-FLOORBOX",
@@ -195,6 +285,42 @@
         "text": "FIXTURE: placeholder depth-damage curve on improvement value, not a FEMA figure",
         "source": "FIXTURE",
         "placeholder": true
+      },
+      {
+        "id": "C-MC-VALUE",
+        "text": "Each item's replacement value is uncertain: lognormal, with the low and high ends of its value range as the 10th and 90th percentiles (the median is the geometric mean of the two). A range starting at $0 is spread evenly between $0 and the high end.",
+        "source": "Waterline method (judge feedback 2026-11-14)",
+        "placeholder": false
+      },
+      {
+        "id": "C-MC-CLASS-CORR",
+        "text": "Items in the same value class share half of their value uncertainty (correlation 0.5 between log-values), because a class range set too high or too low is wrong for every item in it. Classes are independent of each other.",
+        "source": "team-set assumption: assumed, editable",
+        "placeholder": true
+      },
+      {
+        "id": "C-MC-HEIGHT",
+        "text": "Each item's lowest vulnerable point is uncertain: spread evenly between the bottom and top of its measured or estimated height range, independently for each item.",
+        "source": "Waterline method (judge feedback 2026-11-14)",
+        "placeholder": false
+      },
+      {
+        "id": "C-MC-STRUCT",
+        "text": "Structure damage is uncertain between the Hazus low and high curves: spread evenly between them, at the same relative place at every depth within one draw, independent of contents.",
+        "source": "Waterline method (judge feedback 2026-11-14)",
+        "placeholder": false
+      },
+      {
+        "id": "C-MC-DRAWS",
+        "text": "4,000 simulated draws with a fixed seed (20261114), each evaluated at every depth, so results are reproducible and never fall as depth rises. Reported: the median and the 10th-90th percentile range (80% interval). Percentiles do not add up: the total's interval is not the sum of the contents and structure intervals.",
+        "source": "Waterline method (judge feedback 2026-11-14)",
+        "placeholder": false
+      },
+      {
+        "id": "X-EXTREME-BOUNDS",
+        "text": "Extreme bounds at 1 ft, for reference only: every item at the low end of its value range and the top of its height range gives contents $38,098, structure $93,000, total $131,098; every item at the high end and the bottom gives contents $180,260, structure $217,000, total $397,260. Both are far less likely than the 80% interval, because items do not all err the same way.",
+        "source": "Waterline method: the sums reported as the range before contracts v1.3",
+        "placeholder": false
       }
     ]
   },
@@ -202,8 +328,15 @@
     "building_id": "fixture-1",
     "depth_ft": 2,
     "depth_reference": "interior water depth above ground-floor slab",
-    "loss_usd_low": 98555,
-    "loss_usd_high": 286020,
+    "loss_usd_low": 140000,
+    "loss_usd_median": 174000,
+    "loss_usd_high": 220000,
+    "structure_loss_usd_low": 206000,
+    "structure_loss_usd_median": 282000,
+    "structure_loss_usd_high": 355000,
+    "total_usd_low": 374000,
+    "total_usd_median": 459000,
+    "total_usd_high": 541000,
     "assets_hit": [
       {
         "asset_id": "fixture-1-a1",
@@ -286,8 +419,41 @@
         "status": "possible"
       }
     ],
-    "structure_loss_usd_low": 186000,
-    "structure_loss_usd_high": 372000,
+    "items_in_water": {
+      "of": 25,
+      "count_low": 18,
+      "count_high": 20,
+      "share_low": 0.72,
+      "share_high": 0.8
+    },
+    "top_contributors": [
+      {
+        "asset_id": "fixture-1-a24",
+        "expected_loss_usd": 41400,
+        "share": 0.232
+      },
+      {
+        "asset_id": "fixture-1-a12",
+        "expected_loss_usd": 38300,
+        "share": 0.215
+      },
+      {
+        "asset_id": "fixture-1-a13",
+        "expected_loss_usd": 38000,
+        "share": 0.213
+      },
+      {
+        "asset_id": "fixture-1-a7",
+        "expected_loss_usd": 11300,
+        "share": 0.063
+      },
+      {
+        "asset_id": "fixture-1-a5",
+        "expected_loss_usd": 8400,
+        "share": 0.047
+      }
+    ],
+    "standard_contents_usd_median": 69900,
     "assumptions": [
       {
         "id": "A-ELEC-FLOORBOX",
@@ -396,6 +562,42 @@
         "text": "FIXTURE: placeholder depth-damage curve on improvement value, not a FEMA figure",
         "source": "FIXTURE",
         "placeholder": true
+      },
+      {
+        "id": "C-MC-VALUE",
+        "text": "Each item's replacement value is uncertain: lognormal, with the low and high ends of its value range as the 10th and 90th percentiles (the median is the geometric mean of the two). A range starting at $0 is spread evenly between $0 and the high end.",
+        "source": "Waterline method (judge feedback 2026-11-14)",
+        "placeholder": false
+      },
+      {
+        "id": "C-MC-CLASS-CORR",
+        "text": "Items in the same value class share half of their value uncertainty (correlation 0.5 between log-values), because a class range set too high or too low is wrong for every item in it. Classes are independent of each other.",
+        "source": "team-set assumption: assumed, editable",
+        "placeholder": true
+      },
+      {
+        "id": "C-MC-HEIGHT",
+        "text": "Each item's lowest vulnerable point is uncertain: spread evenly between the bottom and top of its measured or estimated height range, independently for each item.",
+        "source": "Waterline method (judge feedback 2026-11-14)",
+        "placeholder": false
+      },
+      {
+        "id": "C-MC-STRUCT",
+        "text": "Structure damage is uncertain between the Hazus low and high curves: spread evenly between them, at the same relative place at every depth within one draw, independent of contents.",
+        "source": "Waterline method (judge feedback 2026-11-14)",
+        "placeholder": false
+      },
+      {
+        "id": "C-MC-DRAWS",
+        "text": "4,000 simulated draws with a fixed seed (20261114), each evaluated at every depth, so results are reproducible and never fall as depth rises. Reported: the median and the 10th-90th percentile range (80% interval). Percentiles do not add up: the total's interval is not the sum of the contents and structure intervals.",
+        "source": "Waterline method (judge feedback 2026-11-14)",
+        "placeholder": false
+      },
+      {
+        "id": "X-EXTREME-BOUNDS",
+        "text": "Extreme bounds at 2 ft, for reference only: every item at the low end of its value range and the top of its height range gives contents $98,555, structure $186,000, total $284,555; every item at the high end and the bottom gives contents $286,020, structure $372,000, total $658,020. Both are far less likely than the 80% interval, because items do not all err the same way.",
+        "source": "Waterline method: the sums reported as the range before contracts v1.3",
+        "placeholder": false
       }
     ]
   },
@@ -403,8 +605,15 @@
     "building_id": "fixture-1",
     "depth_ft": 4,
     "depth_reference": "interior water depth above ground-floor slab",
-    "loss_usd_low": 131250,
-    "loss_usd_high": 338700,
+    "loss_usd_low": 184000,
+    "loss_usd_median": 220000,
+    "loss_usd_high": 269000,
+    "structure_loss_usd_low": 372000,
+    "structure_loss_usd_median": 485000,
+    "structure_loss_usd_high": 594000,
+    "total_usd_low": 589000,
+    "total_usd_median": 707000,
+    "total_usd_high": 823000,
     "assets_hit": [
       {
         "asset_id": "fixture-1-a1",
@@ -499,8 +708,41 @@
         "status": "possible"
       }
     ],
-    "structure_loss_usd_low": 341000,
-    "structure_loss_usd_high": 620000,
+    "items_in_water": {
+      "of": 25,
+      "count_low": 22,
+      "count_high": 23,
+      "share_low": 0.88,
+      "share_high": 0.92
+    },
+    "top_contributors": [
+      {
+        "asset_id": "fixture-1-a24",
+        "expected_loss_usd": 41400,
+        "share": 0.184
+      },
+      {
+        "asset_id": "fixture-1-a12",
+        "expected_loss_usd": 38300,
+        "share": 0.171
+      },
+      {
+        "asset_id": "fixture-1-a13",
+        "expected_loss_usd": 38000,
+        "share": 0.169
+      },
+      {
+        "asset_id": "fixture-1-a14",
+        "expected_loss_usd": 25900,
+        "share": 0.115
+      },
+      {
+        "asset_id": "fixture-1-a25",
+        "expected_loss_usd": 11700,
+        "share": 0.052
+      }
+    ],
+    "standard_contents_usd_median": 121000,
     "assumptions": [
       {
         "id": "A-ELEC-CHARGER",
@@ -627,6 +869,42 @@
         "text": "FIXTURE: placeholder depth-damage curve on improvement value, not a FEMA figure",
         "source": "FIXTURE",
         "placeholder": true
+      },
+      {
+        "id": "C-MC-VALUE",
+        "text": "Each item's replacement value is uncertain: lognormal, with the low and high ends of its value range as the 10th and 90th percentiles (the median is the geometric mean of the two). A range starting at $0 is spread evenly between $0 and the high end.",
+        "source": "Waterline method (judge feedback 2026-11-14)",
+        "placeholder": false
+      },
+      {
+        "id": "C-MC-CLASS-CORR",
+        "text": "Items in the same value class share half of their value uncertainty (correlation 0.5 between log-values), because a class range set too high or too low is wrong for every item in it. Classes are independent of each other.",
+        "source": "team-set assumption: assumed, editable",
+        "placeholder": true
+      },
+      {
+        "id": "C-MC-HEIGHT",
+        "text": "Each item's lowest vulnerable point is uncertain: spread evenly between the bottom and top of its measured or estimated height range, independently for each item.",
+        "source": "Waterline method (judge feedback 2026-11-14)",
+        "placeholder": false
+      },
+      {
+        "id": "C-MC-STRUCT",
+        "text": "Structure damage is uncertain between the Hazus low and high curves: spread evenly between them, at the same relative place at every depth within one draw, independent of contents.",
+        "source": "Waterline method (judge feedback 2026-11-14)",
+        "placeholder": false
+      },
+      {
+        "id": "C-MC-DRAWS",
+        "text": "4,000 simulated draws with a fixed seed (20261114), each evaluated at every depth, so results are reproducible and never fall as depth rises. Reported: the median and the 10th-90th percentile range (80% interval). Percentiles do not add up: the total's interval is not the sum of the contents and structure intervals.",
+        "source": "Waterline method (judge feedback 2026-11-14)",
+        "placeholder": false
+      },
+      {
+        "id": "X-EXTREME-BOUNDS",
+        "text": "Extreme bounds at 4 ft, for reference only: every item at the low end of its value range and the top of its height range gives contents $131,250, structure $341,000, total $472,250; every item at the high end and the bottom gives contents $338,700, structure $620,000, total $958,700. Both are far less likely than the 80% interval, because items do not all err the same way.",
+        "source": "Waterline method: the sums reported as the range before contracts v1.3",
+        "placeholder": false
       }
     ]
   },
@@ -634,8 +912,15 @@
     "building_id": "fixture-1",
     "depth_ft": 8,
     "depth_reference": "interior water depth above ground-floor slab",
-    "loss_usd_low": 145167,
-    "loss_usd_high": 354200,
+    "loss_usd_low": 200000,
+    "loss_usd_median": 237000,
+    "loss_usd_high": 285000,
+    "structure_loss_usd_low": 606000,
+    "structure_loss_usd_median": 781000,
+    "structure_loss_usd_high": 951000,
+    "total_usd_low": 843000,
+    "total_usd_median": 1020000,
+    "total_usd_high": 1190000,
     "assets_hit": [
       {
         "asset_id": "fixture-1-a1",
@@ -738,8 +1023,41 @@
         "status": "likely"
       }
     ],
-    "structure_loss_usd_low": 558000,
-    "structure_loss_usd_high": 992000,
+    "items_in_water": {
+      "of": 25,
+      "count_low": 25,
+      "count_high": 25,
+      "share_low": 1.0,
+      "share_high": 1.0
+    },
+    "top_contributors": [
+      {
+        "asset_id": "fixture-1-a24",
+        "expected_loss_usd": 41400,
+        "share": 0.172
+      },
+      {
+        "asset_id": "fixture-1-a12",
+        "expected_loss_usd": 38300,
+        "share": 0.159
+      },
+      {
+        "asset_id": "fixture-1-a13",
+        "expected_loss_usd": 38000,
+        "share": 0.158
+      },
+      {
+        "asset_id": "fixture-1-a14",
+        "expected_loss_usd": 25900,
+        "share": 0.108
+      },
+      {
+        "asset_id": "fixture-1-a25",
+        "expected_loss_usd": 11700,
+        "share": 0.049
+      }
+    ],
+    "standard_contents_usd_median": 178000,
     "assumptions": [
       {
         "id": "A-ELEC-CHARGER",
@@ -878,6 +1196,42 @@
         "text": "FIXTURE: placeholder depth-damage curve on improvement value, not a FEMA figure",
         "source": "FIXTURE",
         "placeholder": true
+      },
+      {
+        "id": "C-MC-VALUE",
+        "text": "Each item's replacement value is uncertain: lognormal, with the low and high ends of its value range as the 10th and 90th percentiles (the median is the geometric mean of the two). A range starting at $0 is spread evenly between $0 and the high end.",
+        "source": "Waterline method (judge feedback 2026-11-14)",
+        "placeholder": false
+      },
+      {
+        "id": "C-MC-CLASS-CORR",
+        "text": "Items in the same value class share half of their value uncertainty (correlation 0.5 between log-values), because a class range set too high or too low is wrong for every item in it. Classes are independent of each other.",
+        "source": "team-set assumption: assumed, editable",
+        "placeholder": true
+      },
+      {
+        "id": "C-MC-HEIGHT",
+        "text": "Each item's lowest vulnerable point is uncertain: spread evenly between the bottom and top of its measured or estimated height range, independently for each item.",
+        "source": "Waterline method (judge feedback 2026-11-14)",
+        "placeholder": false
+      },
+      {
+        "id": "C-MC-STRUCT",
+        "text": "Structure damage is uncertain between the Hazus low and high curves: spread evenly between them, at the same relative place at every depth within one draw, independent of contents.",
+        "source": "Waterline method (judge feedback 2026-11-14)",
+        "placeholder": false
+      },
+      {
+        "id": "C-MC-DRAWS",
+        "text": "4,000 simulated draws with a fixed seed (20261114), each evaluated at every depth, so results are reproducible and never fall as depth rises. Reported: the median and the 10th-90th percentile range (80% interval). Percentiles do not add up: the total's interval is not the sum of the contents and structure intervals.",
+        "source": "Waterline method (judge feedback 2026-11-14)",
+        "placeholder": false
+      },
+      {
+        "id": "X-EXTREME-BOUNDS",
+        "text": "Extreme bounds at 8 ft, for reference only: every item at the low end of its value range and the top of its height range gives contents $145,167, structure $558,000, total $703,167; every item at the high end and the bottom gives contents $354,200, structure $992,000, total $1,346,200. Both are far less likely than the 80% interval, because items do not all err the same way.",
+        "source": "Waterline method: the sums reported as the range before contracts v1.3",
+        "placeholder": false
       }
     ]
   }

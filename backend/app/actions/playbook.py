@@ -8,6 +8,9 @@ e = html.escape
 
 
 def render(building: dict, assets: list[dict], entry_points: list[dict], depth_ft: float) -> str:
+    from app.loss import model, sim
+    s = model.scenario(building, assets, depth_ft)
+    expected = sim.expected_by_asset(building, assets, depth_ft)
     mits = engine.ranked(building["id"], engine.candidates(building["id"], assets, entry_points), assets, depth_ft,
                          engine.building_loss_fn(building))
     by_asset = {t: m for m in mits for t in m["targets"]}
@@ -15,7 +18,7 @@ def render(building: dict, assets: list[dict], entry_points: list[dict], depth_f
     for a in assets:
         if a["value_basis"] != "V-VEHICLE":
             rooms.setdefault(a["room"], []).append(a)
-    room_value = {r: sum(by_asset[a["id"]]["avoided_loss_usd_high"] for a in items if a["id"] in by_asset)
+    room_value = {r: sum(by_asset[a["id"]]["avoided_loss_usd_median"] for a in items if a["id"] in by_asset)
                   for r, items in rooms.items()}
     sections = []
     for room in sorted(rooms, key=lambda r: -room_value[r]):
@@ -23,9 +26,10 @@ def render(building: dict, assets: list[dict], entry_points: list[dict], depth_f
         for a in sorted(rooms[room], key=lambda a: a["height_ft_low"]):
             m = by_asset.get(a["id"])
             if m and m["id"] not in done and m["avoided_loss_usd_high"] > 0:
-                steps.append(f"<li>{e(m['action'])} (avoids ${m['avoided_loss_usd_low']:,}-{m['avoided_loss_usd_high']:,} at {depth_ft:g} ft)</li>")
+                steps.append(f"<li>{e(m['action'])} (avoids {report.central(m['avoided_loss_usd_low'], m['avoided_loss_usd_median'], m['avoided_loss_usd_high'])} at {depth_ft:g} ft)</li>")
                 done.add(m["id"])
-        items = "".join(f"<li>{e(a['label'])}: lowest vulnerable part {a['height_ft_low']:.1f}-{a['height_ft_high']:.1f} ft</li>"
+        items = "".join(f"<li>{e(a['label'])}: lowest vulnerable part {a['height_ft_low']:.1f}-{a['height_ft_high']:.1f} ft"
+                        + (f"; expected loss about ${expected[a['id']]:,} at {depth_ft:g} ft" if expected.get(a["id"]) else "") + "</li>"
                         for a in sorted(rooms[room], key=lambda a: a["height_ft_low"]))
         sections.append(f"<h2>{e(room)}</h2><h3>Do first</h3><ol>{''.join(steps) or '<li>No action needed at this depth.</li>'}</ol>"
                         f"<h3>At risk</h3><ul>{items}</ul>")
@@ -39,4 +43,6 @@ def render(building: dict, assets: list[dict], entry_points: list[dict], depth_f
                  f"<ul>{names}</ul>")
     return (f"<article><h1>Pre-storm playbook: {e(building['name'] or building['address'])}</h1>"
             f"<p>Planned for {depth_ft:g} ft of water above the ground-floor slab (a scenario, not a forecast). "
-            f"Rooms are ordered by the loss their actions avoid. {e(report.survey_line(building['id'], assets))}</p>{lead}{''.join(sections) or '<p>No surveyed assets yet.</p>'}</article>")
+            f"Expected loss at this depth: {report.central(s['total_usd_low'], s['total_usd_median'], s['total_usd_high'])} "
+            f"(median and 80% interval). Rooms are ordered by the loss their actions avoid. "
+            f"{e(report.survey_line(building['id'], assets))}</p>{lead}{''.join(sections) or '<p>No surveyed assets yet.</p>'}</article>")

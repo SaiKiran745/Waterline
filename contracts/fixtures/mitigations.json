@@ -12,9 +12,10 @@
     ],
     "cost_usd_low": 4000,
     "cost_usd_high": 8000,
-    "avoided_loss_usd_low": 131098,
-    "avoided_loss_usd_high": 397260,
-    "payback_note": "At 1 ft it avoids $131,098-397,260 for $4,000-8,000: about 44.0 times its cost in one event",
+    "avoided_loss_usd_low": 194000,
+    "avoided_loss_usd_median": 248000,
+    "avoided_loss_usd_high": 299000,
+    "payback_note": "At 1 ft it avoids about $248,000 (80% interval $194,000-299,000) for $4,000-8,000: about 41.3 times its cost in one event",
     "basis": "M-BARRIER-2FT"
   },
   {
@@ -30,9 +31,10 @@
     ],
     "cost_usd_low": 2000,
     "cost_usd_high": 5000,
-    "avoided_loss_usd_low": 13333,
-    "avoided_loss_usd_high": 80000,
-    "payback_note": "At 1 ft it avoids $13,333-80,000 for $2,000-5,000: about 13.3 times its cost in one event",
+    "avoided_loss_usd_low": 21200,
+    "avoided_loss_usd_median": 35400,
+    "avoided_loss_usd_high": 58600,
+    "payback_note": "At 1 ft it avoids about $35,400 (80% interval $21,200-58,600) for $2,000-5,000: about 10.1 times its cost in one event",
     "basis": "M-LABOR-MOVE"
   },
   {
@@ -50,9 +52,10 @@
     ],
     "cost_usd_low": 500,
     "cost_usd_high": 1500,
-    "avoided_loss_usd_low": 3600,
-    "avoided_loss_usd_high": 7500,
-    "payback_note": "At 1 ft it avoids $3,600-7,500 for $500-1,500: about 5.5 times its cost in one event",
+    "avoided_loss_usd_low": 4280,
+    "avoided_loss_usd_median": 5310,
+    "avoided_loss_usd_high": 6530,
+    "payback_note": "At 1 ft it avoids about $5,310 (80% interval $4,280-6,530) for $500-1,500: about 5.3 times its cost in one event",
     "basis": "M-LABOR-MOVE"
   },
   {
@@ -68,9 +71,10 @@
     ],
     "cost_usd_low": 3000,
     "cost_usd_high": 7000,
-    "avoided_loss_usd_low": 12000,
-    "avoided_loss_usd_high": 24000,
-    "payback_note": "At 1 ft it avoids $12,000-24,000 for $3,000-7,000: about 3.6 times its cost in one event",
+    "avoided_loss_usd_low": 13400,
+    "avoided_loss_usd_median": 17200,
+    "avoided_loss_usd_high": 22100,
+    "payback_note": "At 1 ft it avoids about $17,200 (80% interval $13,400-22,100) for $3,000-7,000: about 3.4 times its cost in one event",
     "basis": "M-PLATFORM"
   },
   {
@@ -86,9 +90,10 @@
     ],
     "cost_usd_low": 18000,
     "cost_usd_high": 35000,
-    "avoided_loss_usd_low": 0,
-    "avoided_loss_usd_high": 36000,
-    "payback_note": "At 1 ft it avoids $0-36,000 for $18,000-35,000: about 0.7 times its cost in one event",
+    "avoided_loss_usd_low": 2090,
+    "avoided_loss_usd_median": 10900,
+    "avoided_loss_usd_high": 24100,
+    "payback_note": "At 1 ft it avoids about $10,900 (80% interval $2,090-24,100) for $18,000-35,000: about 0.4 times its cost in one event",
     "basis": "M-PLINTH"
   },
   {
@@ -104,9 +109,10 @@
     ],
     "cost_usd_low": 4000,
     "cost_usd_high": 8000,
-    "avoided_loss_usd_low": 284555,
-    "avoided_loss_usd_high": 658020,
-    "payback_note": "At 2 ft it avoids $284,555-658,020 for $4,000-8,000: about 78.5 times its cost in one event",
+    "avoided_loss_usd_low": 374000,
+    "avoided_loss_usd_median": 459000,
+    "avoided_loss_usd_high": 541000,
+    "payback_note": "At 2 ft it avoids about $459,000 (80% interval $374,000-541,000) for $4,000-8,000: about 76.5 times its cost in one event",
     "basis": "M-BARRIER-2FT"
   },
   {
@@ -122,9 +128,10 @@
     ],
     "cost_usd_low": 2000,
     "cost_usd_high": 5000,
-    "avoided_loss_usd_low": 40000,
-    "avoided_loss_usd_high": 120000,
-    "payback_note": "At 2 ft it avoids $40,000-120,000 for $2,000-5,000: about 22.9 times its cost in one event",
+    "avoided_loss_usd_low": 44200,
+    "avoided_loss_usd_median": 71300,
+    "avoided_loss_usd_high": 114000,
+    "payback_note": "At 2 ft it avoids about $71,300 (80% interval $44,200-114,000) for $2,000-5,000: about 20.4 times its cost in one event",
     "basis": "M-LABOR-MOVE"
   },
   {
@@ -142,9 +149,10 @@
     ],
     "cost_usd_low": 500,
     "cost_usd_high": 1500,
-    "avoided_loss_usd_low": 3900,
-    "avoided_loss_usd_high": 7500,
-    "payback_note": "At 2 ft it avoids $3,900-7,500 for $500-1,500: about 5.7 times its cost in one event",
+    "avoided_loss_usd_low": 4490,
+    "avoided_loss_usd_median": 5530,
+    "avoided_loss_usd_high": 6790,
+    "payback_note": "At 2 ft it avoids about $5,530 (80% interval $4,490-6,790) for $500-1,500: about 5.5 times its cost in one event",
     "basis": "M-LABOR-MOVE"
   },
   {
@@ -160,9 +168,10 @@
     ],
     "cost_usd_low": 3000,
     "cost_usd_high": 7000,
-    "avoided_loss_usd_low": 12000,
-    "avoided_loss_usd_high": 24000,
-    "payback_note": "At 2 ft it avoids $12,000-24,000 for $3,000-7,000: about 3.6 times its cost in one event",
+    "avoided_loss_usd_low": 13400,
+    "avoided_loss_usd_median": 17200,
+    "avoided_loss_usd_high": 22100,
+    "payback_note": "At 2 ft it avoids about $17,200 (80% interval $13,400-22,100) for $3,000-7,000: about 3.4 times its cost in one event",
     "basis": "M-PLATFORM"
   },
   {
@@ -178,9 +187,10 @@
     ],
     "cost_usd_low": 18000,
     "cost_usd_high": 35000,
-    "avoided_loss_usd_low": 25000,
-    "avoided_loss_usd_high": 70667,
-    "payback_note": "At 2 ft it avoids $25,000-70,667 for $18,000-35,000: about 1.8 times its cost in one event",
+    "avoided_loss_usd_low": 28800,
+    "avoided_loss_usd_median": 43200,
+    "avoided_loss_usd_high": 64000,
+    "payback_note": "At 2 ft it avoids about $43,200 (80% interval $28,800-64,000) for $18,000-35,000: about 1.6 times its cost in one event",
     "basis": "M-PLINTH"
   },
   {
@@ -196,9 +206,10 @@
     ],
     "cost_usd_low": 2000,
     "cost_usd_high": 5000,
-    "avoided_loss_usd_low": 26667,
-    "avoided_loss_usd_high": 40000,
-    "payback_note": "At 4 ft it avoids $26,667-40,000 for $2,000-5,000: about 9.5 times its cost in one event",
+    "avoided_loss_usd_low": 21100,
+    "avoided_loss_usd_median": 35500,
+    "avoided_loss_usd_high": 58000,
+    "payback_note": "At 4 ft it avoids about $35,500 (80% interval $21,100-58,000) for $2,000-5,000: about 10.1 times its cost in one event",
     "basis": "M-LABOR-MOVE"
   },
   {
@@ -214,9 +225,10 @@
     ],
     "cost_usd_low": 18000,
     "cost_usd_high": 35000,
-    "avoided_loss_usd_low": 33000,
-    "avoided_loss_usd_high": 76000,
-    "payback_note": "At 4 ft it avoids $33,000-76,000 for $18,000-35,000: about 2.1 times its cost in one event",
+    "avoided_loss_usd_low": 36300,
+    "avoided_loss_usd_median": 51100,
+    "avoided_loss_usd_high": 71900,
+    "payback_note": "At 4 ft it avoids about $51,100 (80% interval $36,300-71,900) for $18,000-35,000: about 1.9 times its cost in one event",
     "basis": "M-PLINTH"
   },
   {
@@ -234,9 +246,10 @@
     ],
     "cost_usd_low": 500,
     "cost_usd_high": 1500,
-    "avoided_loss_usd_low": 300,
-    "avoided_loss_usd_high": 0,
-    "payback_note": "Avoids no loss at 4 ft",
+    "avoided_loss_usd_low": 43,
+    "avoided_loss_usd_median": 205,
+    "avoided_loss_usd_high": 414,
+    "payback_note": "At 4 ft it avoids about $205 (80% interval $43-414) for $500-1,500: about 0.2 times its cost in one event",
     "basis": "M-LABOR-MOVE"
   },
   {
@@ -253,6 +266,7 @@
     "cost_usd_low": 3000,
     "cost_usd_high": 7000,
     "avoided_loss_usd_low": 0,
+    "avoided_loss_usd_median": 0,
     "avoided_loss_usd_high": 0,
     "payback_note": "Avoids no loss at 4 ft",
     "basis": "M-PLATFORM"
@@ -271,6 +285,7 @@
     "cost_usd_low": 4000,
     "cost_usd_high": 8000,
     "avoided_loss_usd_low": 0,
+    "avoided_loss_usd_median": 0,
     "avoided_loss_usd_high": 0,
     "payback_note": "Avoids no loss at 4 ft",
     "basis": "M-BARRIER-2FT"

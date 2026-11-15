@@ -2,14 +2,18 @@
 
 Candidates come from the assets and entry points. Ids are stable across depths: they depend on the action,
 room and category, never on the depth. Avoided loss at a depth = loss without the action - loss with it.
-Ranking is by avoided loss per dollar (midpoints); actions that avoid nothing at this depth rank last.
+Ranking is by avoided loss per dollar (median avoided loss / cost midpoint); actions that avoid nothing rank last.
+Contracts v1.3: avoided loss is simulated with the same draws as the scenario (app/loss/sim.py), before and after
+the action, so it has a median and an 80% interval like every other loss figure.
 """
 from typing import Callable
 
-from app.loss import model
+import numpy as np
+
+from app.loss import model, sim
 
 RAISE_CATEGORIES = ("it", "hvac", "equipment")
-LossFn = Callable[[list[dict], float], tuple[float, float, float, float]]   # contents low/high, structure low/high
+LossFn = Callable[[list[dict], float], tuple[np.ndarray, np.ndarray]]   # contents and structure loss per simulated draw
 
 
 def cost(mid: str) -> dict:
@@ -74,31 +78,32 @@ def _moved(spec: dict, assets: list[dict]) -> list[dict]:
     return out
 
 
-def evaluate(spec: dict, assets: list[dict], depth_ft: float, loss: LossFn) -> tuple[float, float]:
-    c_lo, c_hi, s_lo, s_hi = loss(assets, depth_ft)
+def evaluate(spec: dict, assets: list[dict], depth_ft: float, loss: LossFn) -> np.ndarray:
+    """Avoided loss per simulated draw (the same draws before and after the action)."""
+    c, st = loss(assets, depth_ft)
     if spec["kind"] == "entry_barrier":
-        return (c_lo + s_lo, c_hi + s_hi) if depth_ft <= spec["rating_ft"] else (0.0, 0.0)
-    n_lo, n_hi, _, _ = loss(_moved(spec, assets), depth_ft)
-    return max(c_lo - n_lo, 0.0), max(c_hi - n_hi, 0.0)
+        return c + st if depth_ft <= spec["rating_ft"] else np.zeros_like(c)
+    moved, _ = loss(_moved(spec, assets), depth_ft)
+    return np.maximum(c - moved, 0.0)
 
 
 def ranked(bid: str, specs: list[dict], assets: list[dict], depth_ft: float, loss: LossFn) -> list[dict]:
     rows = []
     for s in specs:
-        a_lo, a_hi = evaluate(s, assets, depth_ft, loss)
+        a_lo, a_med, a_hi = (sim.sig(x) for x in sim.pct3(evaluate(s, assets, depth_ft, loss)))
         c_lo, c_hi = s["cost"]
-        ratio = ((a_lo + a_hi) / 2) / ((c_lo + c_hi) / 2)
+        ratio = a_med / ((c_lo + c_hi) / 2)
         if s.get("movable"):
             note = (f"Protects {len(s['targets'])} movable asset{'s' if len(s['targets']) > 1 else ''} at risk; "
                     "vehicle value is not in the contents loss, so the avoided loss is not priced")
         elif a_hi > 0:
-            note = (f"At {depth_ft:g} ft it avoids ${a_lo:,.0f}-{a_hi:,.0f} for ${c_lo:,.0f}-{c_hi:,.0f}: "
-                    f"about {ratio:.1f} times its cost in one event")
+            note = (f"At {depth_ft:g} ft it avoids about ${a_med:,} (80% interval ${a_lo:,}-{a_hi:,}) for "
+                    f"${c_lo:,.0f}-{c_hi:,.0f}: about {ratio:.1f} times its cost in one event")
         else:
             note = f"Avoids no loss at {depth_ft:g} ft"
         rows.append(({"id": s["id"], "building_id": bid, "depth_ft": depth_ft, "rank": 0, "kind": s["kind"],
                       "action": s["action"], "targets": s["targets"], "cost_usd_low": c_lo, "cost_usd_high": c_hi,
-                      "avoided_loss_usd_low": round(a_lo), "avoided_loss_usd_high": round(a_hi),
+                      "avoided_loss_usd_low": a_lo, "avoided_loss_usd_median": a_med, "avoided_loss_usd_high": a_hi,
                       "payback_note": note, "basis": s["basis"]}, ratio, a_hi))
     rows.sort(key=lambda r: (r[2] <= 0, -r[1], r[0]["id"]))
     for i, (m, _, _) in enumerate(rows, 1):
@@ -106,9 +111,9 @@ def ranked(bid: str, specs: list[dict], assets: list[dict], depth_ft: float, los
     return [m for m, _, _ in rows]
 
 
-def building_loss_fn(building: dict) -> LossFn:
+def building_loss_fn(building: dict, structure_fn=None) -> LossFn:
     def loss(assets, depth):
-        c_lo, c_hi = model.contents_loss(assets, depth)
-        s_lo, s_hi, _ = model.structure_loss(building, depth)
-        return c_lo, c_hi, s_lo, s_hi
+        d = sim.Draws(building, assets, structure_fn)
+        m = d.contents(depth)
+        return (m.sum(axis=1) if m.size else np.zeros(sim.draws())), d.structure(depth)
     return loss

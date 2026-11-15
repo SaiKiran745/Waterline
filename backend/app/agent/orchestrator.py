@@ -51,7 +51,8 @@ Rules:
    the new depth (tell the planner the old depth). Say in 3 lines how the priority list changed.
 6. Sending needs a person: when asked to send, have communications draft first (no new plan needed), then you must
    call send_playbook (never just ask in text). It pauses until a person approves or rejects it.
-Every dollar figure is a low-high range; the depth is a scenario, not a forecast. Final answers: at most 5 lines."""
+Every dollar figure is a median with its 80% interval, quoted from a tool result; the depth is a scenario, not a
+forecast. Final answers: at most 5 lines."""
 
 
 # The default write_todos texts are about 2,000 tokens and ride on every orchestrator call; these say the same for us.

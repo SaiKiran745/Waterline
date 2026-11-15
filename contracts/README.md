@@ -1,6 +1,6 @@
 # Contracts
 
-**FROZEN: version 1.2.0, 2026-11-14.** Change these files only when a human says both agents (Claude Code on `backend/`, Codex on `frontend/`) have been told.
+**FROZEN: version 1.3.0, 2026-11-14.** Change these files only when a human says both agents (Claude Code on `backend/`, Codex on `frontend/`) have been told.
 
 This folder is the source of truth for data shapes. Where it differs from the sketch in AGENTS.md section 8, this folder wins.
 
@@ -150,6 +150,34 @@ Unknown building: 404. Another turn still running: 409.
 - Added `id` (sequence number), `building_id` and `data`.
 
 ## Changelog
+
+### 1.3.0 (2026-11-14, judge feedback; human lifted the freeze for these changes)
+
+The loss range was a worst-case sum (every item at its low end, or every item at its high end). It is now the median and 80% interval of a simulation (`backend/app/loss/sim.py`, assumptions `C-MC-*`). The old sums are kept only as extreme bounds in the assumptions list (`X-EXTREME-BOUNDS`).
+
+**Meaning changed (same field names, so nothing breaks)**
+- `ScenarioResult` / `ScenarioTable.rows[]`: `loss_usd_low/high`, `structure_loss_usd_low/high` and `total_usd_low/high` are the 10th and 90th percentiles. `Triage.loss_by_depth_ft[d].contents/structure/total` `[low, high]` likewise. `Mitigation.avoided_loss_usd_low/high` likewise (the same draws before and after the action).
+- Simulated figures are rounded to 3 significant figures.
+- Percentiles do not add up: `total_usd_low` is the 10th percentile of contents + structure, not `loss_usd_low + structure_loss_usd_low`.
+- `/triage` and `/buildings` rank by the median total (was the high end). `Mitigation.rank` and the payback ratio use the median avoided loss.
+
+**Added (required)**
+- `ScenarioResult` and every `ScenarioTable` row: `loss_usd_median`, `structure_loss_usd_median`, `total_usd_low`, `total_usd_median`, `total_usd_high`; `items_in_water` (`of`, `count_low`, `count_high`, `share_low`, `share_high`: contents items the water reaches, from item heights only, no dollar assumption); `top_contributors` (up to 5 `{asset_id, expected_loss_usd, share}`); `standard_contents_usd_median` (Hazus-style contents loss on the same item values, or null).
+- `ScenarioTable.assets[].expected_loss_usd`: expected loss per step.
+- `ScenarioTable.thresholds`: `first_loss_ft`, `half_items_ft`, `most_items_ft` (80%), `critical_systems[]` (electrical, IT) as `[earliest, latest]` depths, with `heights_from_mesh` / `heights_estimated` counts.
+- `ScenarioTable.standard_method`: the Hazus 6.1 default contents and inventory functions used, the citation, the value basis, `compare` at 1, 2, 4 and 6 ft (`ours_median_usd`, `standard_median_usd`, `ratio`, `verdict`: higher, lower or about the same, within 0.8–1.25 times), a plain `statement` and `why_shapes_differ`.
+- `Triage.loss_by_depth_ft[d]`: `contents_median`, `structure_median`, `total_median`.
+- `Mitigation.avoided_loss_usd_median`.
+- Assumption ids: `C-MC-VALUE`, `C-MC-CLASS-CORR` (team-set, `placeholder: true`), `C-MC-HEIGHT`, `C-MC-STRUCT`, `C-MC-DRAWS`, `X-EXTREME-BOUNDS` (per depth in `/scenario`; `X-EXTREME-BOUNDS-1FT`, `-2FT`, `-4FT` and `-6FT` in `/scenario_table`).
+
+**What Codex must change**
+1. Show the median as the headline figure, with the 80% interval beside it ("about $92,300, 80% interval $72,300–115,000"), for total, contents and structure, on the building page, the triage map and the mitigation table.
+2. Show `items_in_water` beside the dollar figure as the measured fact ("53–64 of 71 items reached").
+3. Show `thresholds` (first loss, half, 80%, electrical, IT) as marks on the depth gauge.
+4. Show the standard-method `statement` (and `standard_contents_usd_median` at the current step) with its citation.
+5. Show `top_contributors` at the current step.
+6. List `X-EXTREME-BOUNDS*` with the other assumptions only. Never show them as the range.
+7. The fixtures are regenerated. `scenarios.json` now holds simulated percentiles, and the FIXTURE structure curve is in `backend/app/fixtures.py`.
 
 ### 1.2.2 (2026-11-14, requested by Codex; no schema changed)
 
