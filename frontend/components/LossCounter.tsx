@@ -36,11 +36,11 @@ export function LossCounter({ row, scannedPercent }: { row: ScenarioTableRow; sc
   const structureHigh = useAnimatedNumber(row.structure_loss_usd_high);
   return (
     <div className="loss-counter" aria-live="polite">
-      <span>ESTIMATED TOTAL LOSS</span>
+      <span>Estimated total loss</span>
       <strong>{dollars(totalLow)} <i>–</i> {dollars(totalHigh)}</strong>
       <div className="loss-split">
-        <span><em>CONTENTS</em><b>{dollars(contentsLow)} – {dollars(contentsHigh)}</b></span>
-        <span><em>STRUCTURE</em><b>{dollars(structureLow)} – {dollars(structureHigh)}</b></span>
+        <span><em>Contents</em><b>{dollars(contentsLow)} – {dollars(contentsHigh)}</b></span>
+        <span><em>Structure</em><b>{dollars(structureLow)} – {dollars(structureHigh)}</b></span>
       </div>
       <small>scanned area only ({scannedPercent == null ? "coverage unknown" : `${scannedPercent}% of floor`}) · assumed value ranges</small>
     </div>

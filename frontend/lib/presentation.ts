@@ -2,6 +2,10 @@ import type { Building } from "./contracts";
 
 export const showAddresses = process.env.NEXT_PUBLIC_SHOW_ADDRESSES === "1";
 
+export function formatAddress(value: string) {
+  return value.replace(/\b(\d{5})[ -]?(\d{4})\b/g, "$1-$2");
+}
+
 export function buildingLabel(building: Pick<Building, "id">) {
   const slug = building.id.match(/^building-([a-z0-9]+)$/)?.[1];
   return slug ? `Building ${slug.toUpperCase()}` : "Building";

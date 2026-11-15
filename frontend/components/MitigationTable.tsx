@@ -27,24 +27,25 @@ export function MitigationTable({ buildingId, mitigations, currentDepth, dataSou
     return () => { window.clearTimeout(timer); controller.abort(); };
   }, [buildingId, currentDepth, dataSource]);
 
-  if (dataSource === "api" && requestState === "loading" && apiResult?.depth !== currentDepth) return <PanelState kind="loading" title="Re-ranking fixes" detail={`Requesting the exact ${currentDepth.toFixed(2)} ft scenario.`} />;
-  if (dataSource === "api" && requestState === "error") return <PanelState kind="error" title="Mitigations unavailable" detail={`The backend could not evaluate ${currentDepth.toFixed(2)} ft.`} />;
+  const exactFallback = mitigations.filter((item) => item.depth_ft === currentDepth);
+  if (dataSource === "api" && requestState === "loading" && apiResult?.depth !== currentDepth && exactFallback.length === 0) return <PanelState kind="loading" title="Re-ranking fixes" detail={`Requesting the exact ${currentDepth.toFixed(2)} ft scenario.`} />;
+  if (dataSource === "api" && requestState === "error" && exactFallback.length === 0) return <PanelState kind="error" title="Mitigations unavailable" detail={`The backend could not evaluate ${currentDepth.toFixed(2)} ft.`} />;
 
-  const sourceRows = dataSource === "api" ? (apiResult?.depth === currentDepth ? apiResult.rows : []) : mitigations;
+  const sourceRows = dataSource === "api" ? (apiResult?.depth === currentDepth ? apiResult.rows : exactFallback) : mitigations;
   if (sourceRows.length === 0) return <PanelState kind="empty" title="Survey pending" detail="Mitigations will appear after the interior survey and scenario model are ready." />;
   const availableDepths = [...new Set(sourceRows.map((item) => item.depth_ft))];
   const evaluatedDepth = dataSource === "api" ? currentDepth : availableDepths.reduce((nearest, candidate) => Math.abs(candidate - currentDepth) < Math.abs(nearest - currentDepth) ? candidate : nearest);
   const visibleMitigations = dataSource === "api" ? sourceRows : sourceRows.filter((item) => item.depth_ft === evaluatedDepth);
   return (
     <div className="mitigation-tab">
-      <div className="tab-heading"><span className="eyebrow">03 / MITIGATION PLANNER</span><h2>Best next moves</h2><p>Ranked by avoided loss per dollar</p></div>
+      <div className="tab-heading"><span className="eyebrow">Mitigation planner</span><h2>Best next moves</h2><p>Ranked by avoided loss per dollar</p></div>
       {evaluatedDepth !== currentDepth ? <div className="depth-note">Showing the nearest evaluated fixes at {evaluatedDepth.toFixed(2)} ft; current slider is {currentDepth.toFixed(2)} ft.</div> : null}
       <div className="mitigation-list">
         {[...visibleMitigations].sort((a, b) => a.rank - b.rank).map((item) => (
           <article className="mitigation-row" key={item.id}>
             <div className="mitigation-rank"><span>#{item.rank}</span><i /></div>
             <div className="mitigation-body"><span>{item.kind.replaceAll("_", " ")}</span><b>{item.action}</b><p>{item.payback_note}</p></div>
-            <dl><div><dt>COST</dt><dd>{compact.format(item.cost_usd_low)}–{compact.format(item.cost_usd_high)}</dd></div><div><dt>AVOIDED</dt><dd>{compact.format(item.avoided_loss_usd_low)}–{compact.format(item.avoided_loss_usd_high)}</dd></div></dl>
+            <dl><div><dt>Cost</dt><dd>{compact.format(item.cost_usd_low)}–{compact.format(item.cost_usd_high)}</dd></div><div><dt>Avoided</dt><dd>{compact.format(item.avoided_loss_usd_low)}–{compact.format(item.avoided_loss_usd_high)}</dd></div></dl>
           </article>
         ))}
       </div>

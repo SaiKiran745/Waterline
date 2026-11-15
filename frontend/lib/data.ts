@@ -74,7 +74,7 @@ export async function getBuildings(): Promise<Building[]> {
 
 export async function getTriage(depthFt: 1 | 2 | 4 | 6): Promise<TriageRow[]> {
   if (source === "api") return api<TriageRow[]>(`/triage?depth_ft=${depthFt}`);
-  return triageFixture as TriageRow[];
+  return triageFixture as unknown as TriageRow[];
 }
 
 export async function getBuildingBundle(id: string): Promise<BuildingBundle | null> {

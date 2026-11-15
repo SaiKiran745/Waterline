@@ -9,6 +9,22 @@ function fileName(path: string) {
   return path.split("/").pop() ?? path;
 }
 
+function inlineMarkdown(value: string) {
+  return value.split(/(\*\*[^*]+\*\*)/g).map((part, index) => part.startsWith("**") && part.endsWith("**") ? <strong key={index}>{part.slice(2, -2)}</strong> : part);
+}
+
+function MarkdownContent({ content }: { content: string }) {
+  if (!content.trim()) return <p>This file is empty.</p>;
+  return <div className="rendered-markdown">{content.split("\n").map((line, index) => {
+    if (line.startsWith("### ")) return <h4 key={index}>{inlineMarkdown(line.slice(4))}</h4>;
+    if (line.startsWith("## ")) return <h3 key={index}>{inlineMarkdown(line.slice(3))}</h3>;
+    if (line.startsWith("# ")) return <h2 key={index}>{inlineMarkdown(line.slice(2))}</h2>;
+    if (/^[-*] /.test(line)) return <p className="markdown-list-item" key={index}>{inlineMarkdown(line.slice(2))}</p>;
+    if (/^\d+\. /.test(line)) return <p className="markdown-list-item numbered" key={index}>{inlineMarkdown(line.replace(/^\d+\. /, ""))}</p>;
+    return line.trim() ? <p key={index}>{inlineMarkdown(line)}</p> : <br key={index} />;
+  })}</div>;
+}
+
 export function FilesPanel({ buildingId, live, refreshVersion, dataSource }: { buildingId: string; live: boolean; refreshVersion: number; dataSource: string }) {
   const [dossier, setDossier] = useState<Dossier | null>(null);
   const [selected, setSelected] = useState("");
@@ -43,13 +59,13 @@ export function FilesPanel({ buildingId, live, refreshVersion, dataSource }: { b
   const file = dossier.files.find((item) => item.path === selected) ?? dossier.files[0];
   return (
     <div className="files-tab">
-      <div className="tab-heading"><span className="eyebrow">AGENT DOSSIER</span><h2>Files</h2><p>{dossier.files.length} files {live ? "· updating live" : "· last written state"}</p></div>
+      <div className="tab-heading"><span className="eyebrow">Agent dossier</span><h2>Files</h2><p>{dossier.files.length} files {live ? "· updating live" : "· last written state"}</p></div>
       {error ? <p className="panel-inline-error">{error}</p> : null}
       <div className="dossier-files">
         <nav aria-label="Dossier files">
           {dossier.files.map((item) => <button key={item.path} className={item.path === file.path ? "active" : ""} onClick={() => setSelected(item.path)}><b>{fileName(item.path)}</b><span>{item.bytes.toLocaleString()} B</span><small>{new Date(item.modified).toLocaleTimeString()}</small></button>)}
         </nav>
-        <article><header><b>{fileName(file.path)}</b><span>{file.path}</span></header><pre>{file.content || "This file is empty."}</pre></article>
+        <article><header><b>{fileName(file.path)}</b><span>{file.path}</span></header><MarkdownContent content={file.content} /></article>
       </div>
     </div>
   );

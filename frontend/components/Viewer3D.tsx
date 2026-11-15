@@ -9,11 +9,11 @@ import { damageColour } from "@/lib/scenario";
 
 const WATER = 0x28b8db;
 
-export function Viewer3D({ assets, damageByAsset, depthFt, meshUrl }: { assets: Asset[]; damageByAsset: Map<string, AssetDamage>; depthFt: number; meshUrl: string | null }) {
+export function Viewer3D({ assets, damageByAsset, depthFt, meshUrl, selectedAssetId }: { assets: Asset[]; damageByAsset: Map<string, AssetDamage>; depthFt: number; meshUrl: string | null; selectedAssetId: string | null }) {
   const hostRef = useRef<HTMLDivElement>(null);
-  const waterRef = useRef<THREE.Mesh<THREE.PlaneGeometry, THREE.MeshPhysicalMaterial> | null>(null);
+  const waterRef = useRef<THREE.Mesh<THREE.BoxGeometry, THREE.MeshPhysicalMaterial> | null>(null);
   const waterEdgeRef = useRef<THREE.LineLoop | null>(null);
-  const markerMaterialsRef = useRef(new Map<string, THREE.MeshStandardMaterial>());
+  const markerMaterialsRef = useRef(new Map<string, THREE.MeshBasicMaterial>());
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [message, setMessage] = useState("Preparing model");
 
@@ -65,23 +65,21 @@ export function Viewer3D({ assets, damageByAsset, depthFt, meshUrl }: { assets: 
     assets.filter((asset) => asset.position).forEach((asset) => {
       const position = asset.position!;
       const damage = damageByAsset.get(asset.id);
-      const material = new THREE.MeshStandardMaterial({ color: new THREE.Color(damageColour(damage?.fractionHigh ?? 0)), emissive: damage?.fractionHigh ? 0x4c1a16 : 0x0b2827, emissiveIntensity: 0.4 });
-      const geometry = damage?.movable ? new THREE.OctahedronGeometry(0.62, 0) : new THREE.SphereGeometry(0.48, 20, 20);
+      const material = new THREE.MeshBasicMaterial({ color: new THREE.Color(damageColour(damage?.fractionHigh ?? 0)), side: THREE.DoubleSide, transparent: true, opacity: 0.96 });
+      const geometry = new THREE.RingGeometry(damage?.movable ? 0.3 : 0.34, damage?.movable ? 0.54 : 0.52, damage?.movable ? 4 : 32);
       const marker = new THREE.Mesh(geometry, material);
       marker.position.set(position.x, position.y, Math.max(position.z, 0.4));
+      marker.scale.setScalar(asset.id === selectedAssetId ? 1.45 : 1);
       markerGroup.add(marker);
       markerMaterials.set(asset.id, material);
-      const stem = new THREE.Line(
-        new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(position.x, position.y, 0), new THREE.Vector3(position.x, position.y, Math.max(position.z, 0.4))]),
-        new THREE.LineBasicMaterial({ color: material.color, transparent: true, opacity: 0.45 }),
-      );
-      markerGroup.add(stem);
     });
     scene.add(markerGroup);
 
-    const waterMaterial = new THREE.MeshPhysicalMaterial({ color: WATER, transparent: true, opacity: 0.31, roughness: 0.08, metalness: 0.02, transmission: 0.14, side: THREE.DoubleSide, depthWrite: false });
-    const water = new THREE.Mesh(new THREE.PlaneGeometry(80, 50), waterMaterial);
-    water.position.set(-10, -4, depthFt * 0.3048);
+    const waterMaterial = new THREE.MeshPhysicalMaterial({ color: WATER, transparent: true, opacity: 0.28, roughness: 0.08, metalness: 0.02, transmission: 0.18, side: THREE.DoubleSide, depthWrite: false });
+    const initialWaterHeight = Math.max(depthFt * 0.3048, 0.001);
+    const water = new THREE.Mesh(new THREE.BoxGeometry(80, 50, 1), waterMaterial);
+    water.scale.z = initialWaterHeight;
+    water.position.set(-10, -4, initialWaterHeight / 2);
     water.renderOrder = 4;
     scene.add(water);
     waterRef.current = water;
@@ -155,7 +153,7 @@ export function Viewer3D({ assets, damageByAsset, depthFt, meshUrl }: { assets: 
         water.geometry.dispose();
         const waterWidth = Math.max(size.x * 1.08, 10);
         const waterHeight = Math.max(size.y * 1.08, 10);
-        water.geometry = new THREE.PlaneGeometry(waterWidth, waterHeight);
+        water.geometry = new THREE.BoxGeometry(waterWidth, waterHeight, 1);
         water.position.x = center.x;
         water.position.y = center.y;
         waterEdge.geometry.dispose();
@@ -201,25 +199,28 @@ export function Viewer3D({ assets, damageByAsset, depthFt, meshUrl }: { assets: 
     };
     // Scene construction is intentionally independent of slider depth.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [assets, meshUrl]);
+  }, [assets, meshUrl, selectedAssetId]);
 
   useEffect(() => {
-    if (waterRef.current) waterRef.current.position.z = depthFt * 0.3048;
+    if (waterRef.current) {
+      const height = Math.max(depthFt * 0.3048, 0.001);
+      waterRef.current.scale.z = height;
+      waterRef.current.position.z = height / 2;
+      waterRef.current.visible = depthFt > 0.001;
+    }
     if (waterEdgeRef.current) waterEdgeRef.current.position.z = depthFt * 0.3048;
     markerMaterialsRef.current.forEach((material, assetId) => {
       const damage = damageByAsset.get(assetId);
       material.color.set(damageColour(damage?.fractionHigh ?? 0));
-      material.emissive.setHex(damage?.fractionHigh ? 0x4c1a16 : 0x0b2827);
       material.needsUpdate = true;
     });
   }, [damageByAsset, depthFt]);
 
   return (
     <div className="viewer3d" ref={hostRef}>
-      {status === "loading" ? <div className="viewer-status">◌ {message}</div> : null}
+      {status === "loading" ? <div className="viewer-status">{message}</div> : null}
       {status === "error" ? <div className="viewer-webgl-fallback"><span>3D VIEW UNAVAILABLE</span><strong>Use Room Safety View</strong><p>The rest of the scenario remains interactive.</p></div> : null}
-      {status !== "ready" ? <div className={`model-status ${status}`}>{status === "error" ? "!" : "●"} {message}</div> : null}
-      <div className="orbit-hint">DRAG TO ORBIT · SCROLL TO ZOOM</div>
+      {status !== "ready" ? <div className={`model-status ${status}`}>{message}</div> : null}
     </div>
   );
 }

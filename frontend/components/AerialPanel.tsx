@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { PanelState } from "./PanelState";
-import type { Building, EntryPoint, MediaManifest } from "@/lib/contracts";
+import type { AgentEvent, Building, EntryPoint, MediaManifest } from "@/lib/contracts";
 import { buildingLabel } from "@/lib/presentation";
 
 const fixtureMarkerPositions = [
@@ -17,15 +17,26 @@ function entryMatchesImage(entry: EntryPoint, imageKind: string) {
   return entry.image_kind === `oblique-${imageKind}` || entry.image_kind === imageKind;
 }
 
-export function AerialPanel({ building, entryPoints, media, dataSource }: { building: Building; entryPoints: EntryPoint[]; media: MediaManifest | null; dataSource: string }) {
+function aerialLabel(kind: string) {
+  if (kind === "ortho") return "Overhead";
+  const label = kind.replace(/^oblique-/, "").replaceAll("-", " ");
+  return `${label[0]?.toUpperCase() ?? ""}${label.slice(1)}`;
+}
+
+export function AerialPanel({ building, entryPoints, media, events, dataSource }: { building: Building; entryPoints: EntryPoint[]; media: MediaManifest | null; events: AgentEvent[]; dataSource: string }) {
   const aerials = Object.entries(media?.aerial ?? {}).sort(([a], [b]) => Number(b === "ortho") - Number(a === "ortho"));
-  const [selectedKind, setSelectedKind] = useState(aerials[0]?.[0] ?? "");
+  const firstEvidenceImage = entryPoints[0] ? aerials.find(([kind]) => entryMatchesImage(entryPoints[0], kind))?.[0] : undefined;
+  const [selectedKind, setSelectedKind] = useState(firstEvidenceImage ?? aerials[0]?.[0] ?? "");
   const [activeId, setActiveId] = useState(entryPoints[0]?.id ?? "");
   const [imageState, setImageState] = useState<"loading" | "ready" | "error">("loading");
   const [imageSize, setImageSize] = useState<{ width: number; height: number } | null>(null);
   const selectedImage = aerials.find(([kind]) => kind === selectedKind)?.[1] ?? null;
   const active = entryPoints.find((entry) => entry.id === activeId);
   const visibleMarkers = entryPoints.filter((entry) => entryMatchesImage(entry, selectedKind));
+  const layerDiscrepancy = media?.notes?.find((note) => /layer discrepancy/i.test(note))
+    ?? events.find((event) => /layer discrepancy/i.test(event.text))?.text
+    ?? entryPoints.find((entry) => /layer discrepancy/i.test(entry.evidence))?.evidence
+    ?? null;
 
   const chooseImage = (kind: string) => {
     setSelectedKind(kind);
@@ -38,15 +49,16 @@ export function AerialPanel({ building, entryPoints, media, dataSource }: { buil
   return (
     <aside className="aerial-panel panel-frame">
       <div className="panel-title">
-        <div><span className="eyebrow">01 / SITE SCOUT</span><h2>Aerial evidence</h2></div>
-        <span className="confidence-chip">{entryPoints.length} FOUND</span>
+        <div><span className="eyebrow">Site scout</span><h2>Aerial evidence</h2></div>
+        <span className="confidence-chip">{entryPoints.length} found</span>
       </div>
 
       {aerials.length > 0 ? (
         <>
           <div className="aerial-angle-tabs" role="tablist" aria-label="Aerial image angle">
-            {aerials.map(([kind]) => <button key={kind} className={kind === selectedKind ? "active" : ""} onClick={() => chooseImage(kind)}>{kind === "ortho" ? "OVERHEAD" : kind.toUpperCase()}</button>)}
+            {aerials.map(([kind]) => <button key={kind} className={kind === selectedKind ? "active" : ""} onClick={() => chooseImage(kind)} aria-label={`${aerialLabel(kind)} aerial angle`}>{aerialLabel(kind)}</button>)}
           </div>
+          {layerDiscrepancy ? <aside className="layer-discrepancy"><b>Layer discrepancy</b><span>{layerDiscrepancy}</span></aside> : null}
           <div className="aerial-visual real-aerial">
             {selectedImage ? (
               <div className="aerial-image-canvas" style={imageSize ? { aspectRatio: `${imageSize.width} / ${imageSize.height}` } : undefined}>
@@ -97,14 +109,14 @@ export function AerialPanel({ building, entryPoints, media, dataSource }: { buil
           <div className="entry-evidence">
             <div><span className="entry-index">{String(entryPoints.indexOf(active) + 1).padStart(2, "0")}</span><span><b>{active.kind.replace("_", " ")}</b><small>{active.image_kind} · {Math.round(active.confidence * 100)}% confidence</small></span></div>
             <p>{active.evidence}</p>
-            <dl><div><dt>THRESHOLD</dt><dd>{active.threshold_elevation_ft == null ? "Not measured" : `${active.threshold_elevation_ft} ft`}</dd></div><div><dt>GROUND</dt><dd>{building.ground_elevation_ft?.toFixed(1) ?? "—"} ft</dd></div></dl>
+            <dl><div><dt>Threshold</dt><dd>{active.threshold_elevation_ft == null ? "Not measured" : `${active.threshold_elevation_ft} ft`}</dd></div><div><dt>Ground</dt><dd>{building.ground_elevation_ft?.toFixed(1) ?? "—"} ft</dd></div></dl>
           </div>
           <div className="entry-list">
             {entryPoints.map((entry, index) => <button className={entry.id === activeId ? "active" : ""} key={entry.id} onClick={() => { setActiveId(entry.id); const match = aerials.find(([kind]) => entryMatchesImage(entry, kind)); if (match) chooseImage(match[0]); }}><span>{index + 1}</span>{entry.kind.replace("_", " ")}<i>{Math.round(entry.confidence * 100)}%</i></button>)}
           </div>
         </>
       ) : null}
-      <div className="panel-source">VEXCEL · {selectedImage?.collection ?? building.aerial_collection ?? "COLLECTION UNKNOWN"} · {selectedImage?.capture_date ?? building.aerial_capture_date ?? "DATE UNKNOWN"}</div>
+      <div className="panel-source">Vexcel · {selectedImage?.collection ?? building.aerial_collection ?? "collection unknown"} · {selectedImage?.capture_date ?? building.aerial_capture_date ?? "date unknown"}</div>
     </aside>
   );
 }
@@ -113,7 +125,7 @@ function FixtureAerial({ entryPoints, activeId, onActivate }: { entryPoints: Ent
   return (
     <div className="aerial-visual">
       <div className="aerial-grid" />
-      <div className="building-footprint"><i /><i /><i /><span>FIXTURE AERIAL<br />IMAGE UNAVAILABLE</span></div>
+      <div className="building-footprint"><i /><i /><i /><span>Fixture aerial<br />image unavailable</span></div>
       <div className="north">N ↑</div>
       {entryPoints.map((entry, index) => <button key={entry.id} className={`entry-marker ${activeId === entry.id ? "active" : ""}`} style={fixtureMarkerPositions[index % fixtureMarkerPositions.length]} onMouseEnter={() => onActivate(entry.id)} onFocus={() => onActivate(entry.id)} onClick={() => onActivate(entry.id)} aria-label={`${entry.kind} entry point`}>{index + 1}<span className="entry-tooltip">{entry.evidence}</span></button>)}
     </div>

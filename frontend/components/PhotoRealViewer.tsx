@@ -82,7 +82,7 @@ function coordinateRms(locations: MatterportLocation[], sweeps: SweepData[]) {
   return { matches: errors.length, rms: errors.length ? Math.sqrt(errors.reduce((sum, value) => sum + value, 0) / errors.length) : null };
 }
 
-export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locationId, locations, insideRequest, onFailure }: {
+export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locationId, locations, insideRequest, requestedMode, onFailure }: {
   modelId: string | null;
   assets: Asset[];
   damageByAsset: Map<string, AssetDamage>;
@@ -90,6 +90,7 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
   locationId: string | null;
   locations: MatterportLocation[];
   insideRequest: number;
+  requestedMode: ViewMode;
   onFailure: (message: string) => void;
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -109,10 +110,7 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
   const [floorLevel, setFloorLevel] = useState(0);
   const [floorDraft, setFloorDraft] = useState("0.000");
   const [calibrating, setCalibrating] = useState(false);
-  const [floorSource, setFloorSource] = useState("Matterport floor pucks");
   const [currentPuckLevel, setCurrentPuckLevel] = useState<number | null>(null);
-  const [coordinateCheck, setCoordinateCheck] = useState("Checking shared scan positions");
-  const [activeLocationId, setActiveLocationId] = useState<string | null>(null);
   const sdkKey = process.env.NEXT_PUBLIC_MATTERPORT_SDK_KEY ?? "";
   const bundleUrl = useMemo(() => modelId && sdkKey ? `/matterport-bundle/showcase.html?m=${encodeURIComponent(modelId)}&play=1&qs=1&title=${showAddresses ? "1" : "0"}&applicationKey=${encodeURIComponent(sdkKey)}` : "", [modelId, sdkKey]);
 
@@ -166,10 +164,8 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
         const initialFloor = saved == null ? automaticFloor : Number(saved);
         setFloorLevel(initialFloor);
         setFloorDraft(initialFloor.toFixed(3));
-        setFloorSource(saved == null ? `Matterport pucks · floor ${groundSequence + 1}` : "Saved manual calibration");
 
         const check = coordinateRms(locations, sweeps);
-        setCoordinateCheck(check.rms == null ? "No shared scan points" : `${check.matches} shared points · RMS ${check.rms.toFixed(3)} m`);
         if (check.rms != null && check.rms > 0.2) throw new Error(`Mesh/viewer coordinate check failed (${check.rms.toFixed(3)} m RMS).`);
 
         setLoadingStage("Aligning water and asset markers");
@@ -198,11 +194,12 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
             root.add(water);
             assets.filter((asset) => asset.position).forEach((asset) => {
               const damage = damageByAsset.get(asset.id);
-              const material = new THREE.MeshBasicMaterial({ color: damageColour(damage?.fractionHigh ?? 0), depthTest: true });
-              const geometry = damage?.movable ? new THREE.OctahedronGeometry(0.5, 0) : new THREE.SphereGeometry(0.38, 16, 12);
+              const material = new THREE.MeshBasicMaterial({ color: damageColour(damage?.fractionHigh ?? 0), depthTest: true, side: THREE.DoubleSide, transparent: true, opacity: 0.96 });
+              const geometry = new THREE.RingGeometry(damage?.movable ? 0.26 : 0.3, damage?.movable ? 0.48 : 0.46, damage?.movable ? 4 : 32);
               const marker = new THREE.Mesh(geometry, material);
               const point = meshToViewer(asset.position!);
               marker.position.set(point.x, point.y, point.z);
+              marker.rotation.x = -Math.PI / 2;
               marker.renderOrder = 3;
               root.add(marker);
               markerMaterials.set(asset.id, material);
@@ -227,7 +224,7 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
           inspect();
         }), 5_000, "Matterport Scene overlay did not initialize.");
         sceneObjectRef.current = sceneObject;
-        setCoordinateCheck((label) => `${label} · ${objectRoot.children.length - 1} markers`);
+        void objectRoot;
         setLoadingStage("Opening dollhouse view");
         await sdk.Mode.moveTo(sdk.Mode.Mode.DOLLHOUSE, { transition: sdk.Camera.TransitionType.FLY });
         setMode("dollhouse");
@@ -277,14 +274,14 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
 
   useEffect(() => {
     if (insideRequest === 0 || status !== "ready" || !locationId || !sdkRef.current) return;
-    sdkRef.current.Sweep.moveTo(locationId, { transition: sdkRef.current.Camera.TransitionType.FADEOUT }).then(() => { setMode("inside"); setActiveLocationId(locationId); }).catch((caught) => setError(caught instanceof Error ? caught.message : String(caught)));
+    sdkRef.current.Sweep.moveTo(locationId, { transition: sdkRef.current.Camera.TransitionType.FADEOUT }).then(() => setMode("inside")).catch((caught) => setError(caught instanceof Error ? caught.message : String(caught)));
   }, [insideRequest, locationId, status]);
 
   const switchMode = async (next: ViewMode) => {
     const sdk = sdkRef.current;
     if (!sdk) return;
     try {
-      if (next === "inside" && locationId) { await sdk.Sweep.moveTo(locationId, { transition: sdk.Camera.TransitionType.FADEOUT }); setActiveLocationId(locationId); }
+      if (next === "inside" && locationId) await sdk.Sweep.moveTo(locationId, { transition: sdk.Camera.TransitionType.FADEOUT });
       else await sdk.Mode.moveTo(next === "inside" ? sdk.Mode.Mode.INSIDE : sdk.Mode.Mode.DOLLHOUSE, { transition: sdk.Camera.TransitionType.FLY });
       setMode(next);
     } catch (caught) {
@@ -292,11 +289,18 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
     }
   };
 
+  useEffect(() => {
+    if (status !== "ready" || mode === requestedMode) return;
+    const timer = window.setTimeout(() => void switchMode(requestedMode), 0);
+    return () => window.clearTimeout(timer);
+    // switchMode is intentionally driven by the stage-level view toggle.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requestedMode, status]);
+
   const applyFloor = () => {
     const value = Number(floorDraft);
     if (!Number.isFinite(value)) return;
     setFloorLevel(value);
-    setFloorSource("Saved manual calibration");
     if (modelId) window.localStorage.setItem(`waterline-floor-${modelId}`, String(value));
     setCalibrating(false);
   };
@@ -305,7 +309,6 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
     const value = automaticFloorRef.current;
     setFloorLevel(value);
     setFloorDraft(value.toFixed(3));
-    setFloorSource("Matterport floor pucks");
     if (modelId) window.localStorage.removeItem(`waterline-floor-${modelId}`);
     setCalibrating(false);
   };
@@ -315,17 +318,11 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
   return (
     <div className="photo-real-viewer">
       <iframe ref={iframeRef} src={bundleUrl} title="Photo-real Matterport water view" allow="fullscreen; xr-spatial-tracking" onLoad={() => { setLoadingStage("Connecting to Matterport SDK"); setIframeReady(true); }} />
-      <div className="photo-real-toolbar">
-        <div className="photo-mode-toggle"><button className={mode === "inside" ? "active" : ""} onClick={() => void switchMode("inside")}>INSIDE</button><button className={mode === "dollhouse" ? "active" : ""} onClick={() => void switchMode("dollhouse")}>DOLLHOUSE</button></div>
-        <span>{status === "ready" ? `● PHOTO-REAL · ${coordinateCheck}${mode === "inside" && activeLocationId ? ` · SCAN ${activeLocationId}` : ""}` : status === "error" ? "! BUNDLE FAILED" : `◌ ${loadingStage.toUpperCase()} · ${elapsedSeconds}s`}</span>
-      </div>
       {status === "loading" ? <div className="photo-real-loading" role="status"><i /><b>{loadingStage}</b><span>{elapsedSeconds}s elapsed · large spaces can take longer on first load</span></div> : null}
       <div className="photo-floor-control">
-        <span>FLOOR {floorLevel.toFixed(3)} M · {floorSource}</span>
-        <button onClick={() => setCalibrating((value) => !value)}>SET FLOOR LEVEL</button>
+        <button className="photo-settings-button" aria-label="Photo-real settings" title="Floor-level settings" onClick={() => setCalibrating((value) => !value)}>⚙</button>
         {calibrating ? <div><input aria-label="Photo-real floor level in metres" type="number" step="0.01" value={floorDraft} onChange={(event) => setFloorDraft(event.target.value)} /><button onClick={applyFloor}>APPLY</button><button onClick={resetFloor}>AUTO</button>{currentPuckLevel != null ? <button onClick={() => setFloorDraft(currentPuckLevel.toFixed(3))}>CURRENT PUCK</button> : null}</div> : null}
       </div>
-      <div className="photo-depth-readout"><span>WATER ABOVE SLAB</span><b>{depthFt.toFixed(2)} FT</b></div>
       {error ? <div className="photo-real-error"><b>Photo-real view issue</b><span>{error}</span><small>Returning to the offline 3D model.</small></div> : null}
     </div>
   );

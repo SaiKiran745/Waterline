@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PanelState } from "./PanelState";
+import { FilesPanel } from "./FilesPanel";
 import { subscribeToEvents } from "@/lib/data";
 import type { AgentSessionController } from "@/hooks/useAgentSession";
 import type { AgentEvent, ReplayRun } from "@/lib/contracts";
@@ -35,8 +36,8 @@ function isCached(event: AgentEvent) {
 }
 
 const signalLabels: Record<Exclude<Signal, null>, string> = {
-  plan: "PLAN", batch: "SURVEY BATCH + REASON", relook: "RE-LOOK", discrepancy: "LAYER DISCREPANCY",
-  "memory-applied": "MEMORY APPLIED", "memory-skipped": "MEMORY SKIPPED + REASON", replan: "RE-PLAN + PRIORITIES", skill: "SKILL LOADED", file: "FILE WRITTEN", approval: "APPROVAL WAIT",
+  plan: "Plan", batch: "Survey batch · reason", relook: "Re-look", discrepancy: "Layer discrepancy",
+  "memory-applied": "Memory applied", "memory-skipped": "Memory skipped · reason", replan: "Re-plan · priorities", skill: "Skill loaded", file: "File written", approval: "Approval wait",
 };
 
 const eventIcons: Record<AgentEvent["type"], string> = {
@@ -47,6 +48,7 @@ export function AgentTrace({ buildingId, fixtureEvents, dataSource, session }: {
   const [events, setEvents] = useState<AgentEvent[]>([]);
   const [state, setState] = useState<"idle" | "connecting" | "open" | "replay" | "error" | "ended">(dataSource === "api" ? "idle" : "connecting");
   const [replayRun, setReplayRun] = useState<ReplayRun | null>(session.replay);
+  const [filesOpen, setFilesOpen] = useState(false);
   const runIdRef = useRef("");
 
   useEffect(() => {
@@ -69,43 +71,38 @@ export function AgentTrace({ buildingId, fixtureEvents, dataSource, session }: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [buildingId, dataSource, fixtureEvents, session.eventsUrl, session.replay, session.status?.run_id, session.streamVersion]);
 
-  const groups = useMemo(() => {
-    const grouped = new Map<AgentEvent["agent"], AgentEvent[]>();
-    events.forEach((event) => grouped.set(event.agent, [...(grouped.get(event.agent) ?? []), event]));
-    return [...grouped.entries()];
-  }, [events]);
   const replay = async () => { try { await session.playReplay(); } catch { /* Error is rendered verbatim. */ } };
   const recordedAt = replayRun?.recorded_at ?? session.latestRun?.recorded_at;
   const visibleState = replayRun ? "replay" : state;
 
   return (
     <div className="trace-tab">
-      <div className="tab-heading trace-heading"><div><span className="eyebrow">LIVE AGENT FLOW</span><h2>Agent activity</h2></div><span className={`stream-state ${visibleState}`}>{visibleState === "replay" ? "REPLAY" : visibleState.toUpperCase()}</span></div>
+      <div className="tab-heading trace-heading"><div><span className="eyebrow">Live agent flow</span><h2>Agent activity</h2></div><span className={`stream-state ${visibleState}`}>{visibleState === "replay" ? "Replay" : visibleState}</span></div>
       <div className="agent-run-controls">
         <span className={`agent-status ${session.statusLabel.toLowerCase().replaceAll(" ", "-")}`}>{session.statusLabel}</span>
-        <button className="replay-button" disabled={session.busy || dataSource !== "api"} onClick={() => void replay()}>REPLAY LAST RUN{session.latestRun ? ` · ${new Date(session.latestRun.recorded_at).toLocaleString()}` : ""}</button>
+        <button className="files-toggle" onClick={() => setFilesOpen((value) => !value)}>{filesOpen ? "Activity" : "Files"}</button>
+        <button className="replay-button" disabled={session.busy || dataSource !== "api"} onClick={() => void replay()}>Replay last run{session.latestRun ? ` · ${new Date(session.latestRun.recorded_at).toLocaleString()}` : ""}</button>
       </div>
-      {replayRun ? <div className="replay-banner"><b>REPLAY · NOT LIVE</b><span>{replayRun.label}</span></div> : null}
+      {replayRun ? <div className="replay-banner"><b>Replay · not live</b><span>{replayRun.label}</span></div> : null}
       {session.error ? <PanelState kind="error" title="Agent endpoint error" detail={session.error} /> : null}
-      {state === "error" && events.length === 0 ? <PanelState kind="error" title="Event stream disconnected" detail={`GET ${session.eventsUrl ?? `/buildings/${buildingId}/events`} → event stream disconnected`} /> : null}
-      {events.length === 0 && state !== "error" ? <PanelState kind={state === "idle" ? "empty" : "loading"} title={state === "idle" ? "Agent has not run" : "Waiting for agent events"} detail={state === "idle" ? "Run the agent live, or replay the saved run with its timestamp." : "Plans, survey decisions, and artifacts will appear here."} /> : (
-        <div className="trace-groups">
-          {groups.map(([agent, agentEvents]) => <section className="trace-group" key={agent}>
-            <h3><i />{agentLabels[agent]}<span>{agentEvents.length}</span></h3>
-            {agentEvents.map((event) => {
+      {filesOpen ? <FilesPanel buildingId={buildingId} live={Boolean(session.status?.running)} refreshVersion={session.streamVersion} dataSource={dataSource} /> : <>
+        {state === "error" && events.length === 0 ? <PanelState kind="error" title="Event stream disconnected" detail={`GET ${session.eventsUrl ?? `/buildings/${buildingId}/events`} → event stream disconnected`} /> : null}
+        {events.length === 0 && state !== "error" ? <PanelState kind={state === "idle" ? "empty" : "loading"} title={state === "idle" ? "Agent has not run" : "Waiting for agent events"} detail={state === "idle" ? "Run the agent live, or replay the saved run with its timestamp." : "Plans, survey decisions, and artifacts will appear here."} /> : (
+        <div className="trace-timeline">
+            {events.map((event) => {
               const signal = eventSignal(event); const cached = isCached(event);
               return <details className={`trace-event ${event.type} ${signal ? `signal-${signal}` : ""}`} key={event.id}>
                 <summary>
                   <span className="trace-event-icon" aria-hidden="true">{eventIcons[event.type]}</span>
-                  <span className="trace-event-copy"><span>{signal ? signalLabels[signal] : event.type.replace("_", " ")}{cached ? " · CACHED" : ""}</span><b>{event.text}</b></span>
+                  <span className="trace-event-copy"><span>{signal ? signalLabels[signal] : event.type.replace("_", " ")}{cached ? " · cached" : ""}</span><b>{event.text}</b></span>
                   <time>{new Date(event.ts).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })}</time>
                 </summary>
-                <div className="trace-event-details"><span>{agentLabels[agent]} · {event.type.replace("_", " ")}</span>{cached ? <b className="cache-badge">CACHED RESULT</b> : null}<p>{event.text}</p>{event.refs.length ? <small>{event.refs.join(" · ")}</small> : null}</div>
+                <div className="trace-event-details"><span>{agentLabels[event.agent]} · {event.type.replace("_", " ")}</span>{cached ? <b className="cache-badge">Cached result</b> : null}<p>{event.text}</p>{event.refs.length ? <small>{event.refs.join(" · ")}</small> : null}</div>
               </details>;
             })}
-          </section>)}
         </div>
-      )}
+        )}
+      </>}
       {recordedAt && replayRun ? <footer className="replay-footer">Saved run recorded {new Date(recordedAt).toLocaleString()} · replay, not a live agent session</footer> : null}
     </div>
   );

@@ -5,37 +5,28 @@ import { AssetList } from "./AssetList";
 import { MitigationTable } from "./MitigationTable";
 import { AgentTrace } from "./AgentTrace";
 import { ApprovePanel } from "./ApprovePanel";
-import { FilesPanel } from "./FilesPanel";
+import { AerialPanel } from "./AerialPanel";
 import type { AgentSessionController } from "@/hooks/useAgentSession";
 import type { AssetDamage, BuildingBundle, ScenarioResult } from "@/lib/contracts";
 
 const tabs = [
-  { id: "assets", label: "ASSETS" },
-  { id: "mitigation", label: "FIXES" },
-  { id: "trace", label: "TRACE" },
-  { id: "files", label: "FILES" },
-  { id: "approve", label: "APPROVE" },
+  { id: "agent", label: "Agent" }, { id: "assets", label: "Assets" }, { id: "fixes", label: "Fixes" }, { id: "site", label: "Site" }, { id: "send", label: "Send" },
 ] as const;
-
 type TabId = (typeof tabs)[number]["id"];
 
-export function DetailTabs({ bundle, scenario, damageByAsset, dataSource, selectedAssetId, memoryAppliedAssetIds, onSelectAsset, onCorrect, correctionState, session, traceRequest }: { bundle: BuildingBundle; scenario: ScenarioResult; damageByAsset: Map<string, AssetDamage>; dataSource: string; selectedAssetId: string | null; memoryAppliedAssetIds: Set<string>; onSelectAsset: (assetId: string) => void; onCorrect: (assetId: string, method: "PATCH" | "DELETE", changes: Record<string, unknown>) => Promise<void>; correctionState: { kind: "idle" | "saving" | "success" | "error"; message: string }; session: AgentSessionController; traceRequest: number }) {
-  const [tab, setTab] = useState<TabId>(traceRequest > 0 ? "trace" : "assets");
+export function DetailTabs({ bundle, scenario, damageByAsset, dataSource, selectedAssetId, memoryAppliedAssetIds, onSelectAsset, onCorrect, correctionState, session }: { bundle: BuildingBundle; scenario: ScenarioResult; damageByAsset: Map<string, AssetDamage>; dataSource: string; selectedAssetId: string | null; memoryAppliedAssetIds: Set<string>; onSelectAsset: (assetId: string) => void; onCorrect: (assetId: string, method: "PATCH" | "DELETE", changes: Record<string, unknown>) => Promise<void>; correctionState: { kind: "idle" | "saving" | "success" | "error"; message: string }; session: AgentSessionController; traceRequest: number }) {
+  const [tab, setTab] = useState<TabId>("agent");
   return (
-    <aside className="details-panel panel-frame">
-      <div className="tab-list" role="tablist" aria-label="Building details">
-        {tabs.map((item) => (
-          <button key={item.id} role="tab" aria-selected={tab === item.id} className={tab === item.id ? "active" : ""} onClick={() => setTab(item.id)}>
-            {item.label}{item.id === "trace" ? <i className="trace-live" /> : null}
-          </button>
-        ))}
+    <aside className="glass-rail">
+      <div className="rail-tabs" role="tablist" aria-label="Building details">
+        {tabs.map((item) => <button key={item.id} role="tab" aria-selected={tab === item.id} className={tab === item.id ? "active" : ""} onClick={() => setTab(item.id)}>{item.label}{item.id === "agent" && session.status?.running ? <i className="trace-live" /> : null}</button>)}
       </div>
-      <div className="tab-content" role="tabpanel">
+      <div className="rail-content" role="tabpanel">
+        {tab === "agent" ? <AgentTrace buildingId={bundle.building.id} fixtureEvents={bundle.events} dataSource={dataSource} session={session} /> : null}
         {tab === "assets" ? <AssetList assets={bundle.assets} scenario={scenario} damageByAsset={damageByAsset} selectedAssetId={selectedAssetId} memoryAppliedAssetIds={memoryAppliedAssetIds} onSelectAsset={onSelectAsset} onCorrect={onCorrect} correctionState={correctionState} correctionsEnabled={dataSource === "api"} /> : null}
-        {tab === "mitigation" ? <MitigationTable buildingId={bundle.building.id} mitigations={bundle.mitigations} currentDepth={scenario.depth_ft} dataSource={dataSource} /> : null}
-        {tab === "trace" ? <AgentTrace buildingId={bundle.building.id} fixtureEvents={bundle.events} dataSource={dataSource} session={session} /> : null}
-        {tab === "files" ? <FilesPanel buildingId={bundle.building.id} live={Boolean(session.status?.running)} refreshVersion={session.streamVersion} dataSource={dataSource} /> : null}
-        {tab === "approve" ? <ApprovePanel building={bundle.building} mitigations={bundle.mitigations} currentDepth={scenario.depth_ft} dataSource={dataSource} session={session} /> : null}
+        {tab === "fixes" ? <MitigationTable buildingId={bundle.building.id} mitigations={bundle.mitigations} currentDepth={scenario.depth_ft} dataSource={dataSource} /> : null}
+        {tab === "site" ? <AerialPanel building={bundle.building} entryPoints={bundle.entryPoints} media={bundle.media} events={bundle.events} dataSource={dataSource} /> : null}
+        {tab === "send" ? <ApprovePanel building={bundle.building} mitigations={bundle.mitigations} currentDepth={scenario.depth_ft} dataSource={dataSource} session={session} /> : null}
       </div>
     </aside>
   );

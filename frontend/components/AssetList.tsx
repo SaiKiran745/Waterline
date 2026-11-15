@@ -19,26 +19,23 @@ export function AssetList({ assets, scenario, damageByAsset, selectedAssetId, me
   const movableAssets = assets.filter((asset) => damageByAsset.get(asset.id)?.movable);
   const contentsAssets = assets.filter((asset) => !damageByAsset.get(asset.id)?.movable);
   const sorted = [...contentsAssets].sort((a, b) => {
-    const order = { likely: 0, possible: 1, clear: 2 };
-    return order[damageByAsset.get(a.id)?.status ?? "clear"] - order[damageByAsset.get(b.id)?.status ?? "clear"];
+    const aRisk = a.value_usd_high * (damageByAsset.get(a.id)?.fractionHigh ?? 0);
+    const bRisk = b.value_usd_high * (damageByAsset.get(b.id)?.fractionHigh ?? 0);
+    return bRisk - aRisk || b.value_usd_high - a.value_usd_high;
   });
   const likely = contentsAssets.filter((asset) => damageByAsset.get(asset.id)?.status === "likely").length;
   const possible = contentsAssets.filter((asset) => damageByAsset.get(asset.id)?.status === "possible").length;
-  const selectedAsset = assets.find((asset) => asset.id === selectedAssetId) ?? null;
   return (
     <div className="asset-tab">
-      <div className="tab-heading"><span className="eyebrow">02 / INTERIOR SURVEY</span><h2>Asset inventory</h2><p>Exposure at {scenario.depth_ft.toFixed(2)} ft</p></div>
+      <div className="tab-heading"><span className="eyebrow">Interior survey</span><h2>Asset inventory</h2><p>Exposure at {scenario.depth_ft.toFixed(2)} ft</p></div>
       <div className="asset-summary">
-        <span><b>{likely}</b> LIKELY</span>
-        <span><b>{possible}</b> POSSIBLE</span>
-        <span><b>{contentsAssets.length - likely - possible}</b> CLEAR</span>
+        <span><b>{likely}</b> Likely</span>
+        <span><b>{possible}</b> Possible</span>
+        <span><b>{contentsAssets.length - likely - possible}</b> Clear</span>
       </div>
-      {selectedAsset && correctionsEnabled ? <CorrectionPanel key={selectedAsset.id} asset={selectedAsset} state={correctionState} onCorrect={onCorrect} /> : null}
       <div className="asset-list">
-        {movableAssets.length > 0 ? <div className="movable-heading"><span className="vehicle-marker">◆</span><div><b>Movable assets at risk</b><small>Road vehicles are excluded from loss totals.</small></div></div> : null}
-        {movableAssets.map((asset) => <AssetRow key={asset.id} asset={asset} damage={damageByAsset.get(asset.id)} selected={asset.id === selectedAssetId} memoryApplied={memoryAppliedAssetIds.has(asset.id)} movable onSelect={onSelectAsset} />)}
-        {movableAssets.length > 0 ? <div className="contents-heading">CONTENTS INCLUDED IN LOSS</div> : null}
-        {sorted.map((asset) => <AssetRow key={asset.id} asset={asset} damage={damageByAsset.get(asset.id)} selected={asset.id === selectedAssetId} memoryApplied={memoryAppliedAssetIds.has(asset.id)} onSelect={onSelectAsset} />)}
+        {sorted.map((asset) => <div className="asset-row-wrap" key={asset.id}><AssetRow asset={asset} damage={damageByAsset.get(asset.id)} selected={asset.id === selectedAssetId} memoryApplied={memoryAppliedAssetIds.has(asset.id)} onSelect={onSelectAsset} />{asset.id === selectedAssetId && correctionsEnabled ? <CorrectionPanel asset={asset} state={correctionState} onCorrect={onCorrect} /> : null}</div>)}
+        {movableAssets.length > 0 ? <details className="movable-assets"><summary><span className="vehicle-marker">◇</span><span><b>Movable assets at risk</b><small>{movableAssets.length} vehicles · excluded from loss totals</small></span></summary>{movableAssets.map((asset) => <div className="asset-row-wrap" key={asset.id}><AssetRow asset={asset} damage={damageByAsset.get(asset.id)} selected={asset.id === selectedAssetId} memoryApplied={memoryAppliedAssetIds.has(asset.id)} movable onSelect={onSelectAsset} />{asset.id === selectedAssetId && correctionsEnabled ? <CorrectionPanel asset={asset} state={correctionState} onCorrect={onCorrect} /> : null}</div>)}</details> : null}
       </div>
     </div>
   );
@@ -60,13 +57,13 @@ function CorrectionPanel({ asset, state, onCorrect }: { asset: Asset; state: { k
   };
   return (
     <div className="correction-panel">
-      <button className="correction-toggle" onClick={() => setOpen((value) => !value)}><span>HUMAN CORRECTION</span><b>{open ? "CLOSE" : "EDIT SELECTED ASSET"}</b></button>
+      <button className="correction-toggle" onClick={() => setOpen((value) => !value)}><span>Human correction</span><b>{open ? "Close" : "Edit selected asset"}</b></button>
       {open ? <div className="correction-form">
-        <label><span>LABEL</span><input value={label} onChange={(event) => setLabel(event.target.value)} /></label>
-        <div className="correction-pair"><label><span>HEIGHT LOW · FT</span><input type="number" min="0" max="30" step="0.01" value={heightLow} onChange={(event) => setHeightLow(event.target.value)} /></label><label><span>HEIGHT HIGH · FT</span><input type="number" min="0" max="30" step="0.01" value={heightHigh} onChange={(event) => setHeightHigh(event.target.value)} /></label></div>
-        <label><span>VALUE CLASS</span><input value={valueBasis} onChange={(event) => setValueBasis(event.target.value)} /></label>
-        <label><span>REVIEW NOTE</span><input value={note} onChange={(event) => setNote(event.target.value)} placeholder="What changed and why" /></label>
-        <div className="correction-actions"><button disabled={saving} onClick={() => void save()}>SAVE & RECALCULATE</button><button className={confirmDelete ? "confirm" : "delete"} disabled={saving} onClick={remove}>{confirmDelete ? "CONFIRM REMOVE" : "REMOVE FALSE ASSET"}</button></div>
+        <label><span>Label</span><input value={label} onChange={(event) => setLabel(event.target.value)} /></label>
+        <div className="correction-pair"><label><span>Height low · ft</span><input type="number" min="0" max="30" step="0.01" value={heightLow} onChange={(event) => setHeightLow(event.target.value)} /></label><label><span>Height high · ft</span><input type="number" min="0" max="30" step="0.01" value={heightHigh} onChange={(event) => setHeightHigh(event.target.value)} /></label></div>
+        <label><span>Value class</span><input value={valueBasis} onChange={(event) => setValueBasis(event.target.value)} /></label>
+        <label><span>Review note</span><input value={note} onChange={(event) => setNote(event.target.value)} placeholder="What changed and why" /></label>
+        <div className="correction-actions"><button disabled={saving} onClick={() => void save()}>Save and recalculate</button><button className={confirmDelete ? "confirm" : "delete"} disabled={saving} onClick={remove}>{confirmDelete ? "Confirm remove" : "Remove false asset"}</button></div>
       </div> : null}
       {state.message ? <p className={`correction-message ${state.kind}`}>{state.message}</p> : null}
     </div>
@@ -82,21 +79,22 @@ function AssetRow({ asset, damage, selected, memoryApplied, movable = false, onS
   const style = { "--damage-color": damageColour(fraction) } as CSSProperties;
   return (
     <button style={style} className={`asset-row ${status} ${movable ? "movable" : ""} ${selected ? "selected" : ""} ${asset.source !== "vision" || memoryApplied ? "memory-applied" : ""}`} onClick={() => onSelect(asset.id)}>
-      <div className="asset-status">{movable ? <i className="vehicle-shape">◆</i> : <i />}<span>{movable ? "MOVE" : `${Math.round(fraction * 100)}%`}</span></div>
+      <div className="asset-status">{movable ? <i className="vehicle-shape">◆</i> : <i />}<span>{movable ? "Move" : `${Math.round(fraction * 100)}%`}</span></div>
       <div className="asset-main">
         <span className="asset-room">{asset.room} · {asset.category}</span>
         <b>{asset.label}</b>
         <small>{asset.height_ft_low}–{asset.height_ft_high} ft vulnerable height · {Math.round(asset.confidence * 100)}% confidence</small>
-        {measuredFromMesh(asset) ? <span className="mesh-measured-badge">MEASURED FROM MESH</span> : null}
-        {asset.source !== "vision" || memoryApplied ? <span className="memory-applied-badge">AGENT MEMORY · CORRECTION {memoryApplied || asset.source === "human-propagated" ? "APPLIED" : "RECORDED"}</span> : null}
+        <span className="asset-damage-bar" aria-label={`${Math.round(fraction * 100)}% damage`}><i style={{ width: `${Math.round(fraction * 100)}%` }} /></span>
+        {measuredFromMesh(asset) ? <span className="mesh-measured-badge">Measured from mesh</span> : null}
+        {asset.source !== "vision" || memoryApplied ? <span className="memory-applied-badge">Agent memory · correction {memoryApplied || asset.source === "human-propagated" ? "applied" : "recorded"}</span> : null}
         {selected && observations.length > 1 ? (
           <span className="relook-comparison">
-            <span><em>RE-LOOK BEFORE</em>{before.height_ft_low}–{before.height_ft_high} ft · {Math.round(before.confidence * 100)}%</span>
-            <span><em>AFTER</em>{after.height_ft_low}–{after.height_ft_high} ft · {Math.round(after.confidence * 100)}%</span>
+            <span><em>Re-look before</em>{before.height_ft_low}–{before.height_ft_high} ft · {Math.round(before.confidence * 100)}%</span>
+            <span><em>After</em>{after.height_ft_low}–{after.height_ft_high} ft · {Math.round(after.confidence * 100)}%</span>
           </span>
         ) : null}
       </div>
-      <span className="asset-value">{movable ? "EXCLUDED" : money(asset.value_usd_low, asset.value_usd_high)}</span>
+      <span className="asset-value">{movable ? "Excluded" : money(asset.value_usd_low, asset.value_usd_high)}</span>
     </button>
   );
 }
