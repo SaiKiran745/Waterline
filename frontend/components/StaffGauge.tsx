@@ -20,7 +20,9 @@ export function StaffGauge({ depth, grounding, thresholds, onChange, onCommit }:
   const above = marks.filter((mark) => Math.max(...mark.range) >= 0); const below = marks.filter((mark) => Math.max(...mark.range) < 0);
   const step = grounding?.steps.find((item) => Math.abs(item.depth_ft - depth) < .01);
   const commit = (value: string) => void onCommit(Number(value));
+  const reserve = below.length ? below.length * 24 + 34 : 0;   // room under the gauge for marks below the floor, clear of the depth tag at 0 ft
   return <div className="staff-gauge" aria-label="Water depth control">
+    <div className="staff-body" style={{ bottom: reserve }}>
     <div className="staff-depth-tag" style={{ bottom: `calc(${percent}% - 24px)` }}><b>{depth.toFixed(2)}</b><span>ft above floor</span>{step ? <small>Outside {step.water_surface_ft.toFixed(1)} ft NAVD 88<br />({step.water_surface_ft_low.toFixed(1)}–{step.water_surface_ft_high.toFixed(1)})</small> : null}</div>
     <div className="staff-column">
       <div className="staff-wet" style={{ height: `${percent}%` }} />
@@ -29,7 +31,7 @@ export function StaffGauge({ depth, grounding, thresholds, onChange, onCommit }:
       <input aria-label="Interior water depth in feet" type="range" min="0" max={MAX_DEPTH} step="0.25" value={depth} onChange={(event) => onChange(Number(event.target.value))} onPointerUp={(event) => commit(event.currentTarget.value)} onKeyUp={(event) => commit(event.currentTarget.value)} />
     </div>
     <span className="staff-unit">Water above slab</span>
+    </div>
     {below.length ? <div className="staff-below-zero">{below.map((mark) => <span key={mark.id} title={mark.sentence}><b>{mark.label}</b><small>{mark.sentence}</small></span>)}</div> : null}
-    {grounding ? <p className="staff-method">{grounding.method}</p> : null}
   </div>;
 }

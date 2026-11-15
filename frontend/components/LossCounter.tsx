@@ -42,7 +42,8 @@ export function LossCounter({ row, onExplain }: { row: ScenarioTableRow; onExpla
       </div>
       <small className="measured-line">Water reaches {row.items_in_water.count_low} to {row.items_in_water.count_high} of {row.items_in_water.of} items at {row.depth_ft.toFixed(row.depth_ft % 1 ? 2 : 0)} ft, measured from the 3D scan.</small>
       <small className="scenario-note">A scenario tied to elevation, not a forecast.</small>
-      <button className="number-explain" onClick={onExplain}>How this number is built <span>→</span></button>
+      <small className="loss-caveat">Scanned area only. Values are assumed ranges.</small>
+      <button className="number-explain" onClick={onExplain}>How this number is built</button>
     </div>
   );
 }

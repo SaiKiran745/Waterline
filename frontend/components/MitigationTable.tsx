@@ -38,7 +38,7 @@ export function MitigationTable({ buildingId, mitigations, currentDepth, dataSou
   const visibleMitigations = dataSource === "api" ? sourceRows : sourceRows.filter((item) => item.depth_ft === evaluatedDepth);
   return (
     <div className="mitigation-tab">
-      <div className="tab-heading"><span className="eyebrow">Mitigation planner</span><h2>Best next moves</h2><p>Ranked by avoided loss per dollar</p></div>
+      <div className="tab-heading"><h2>Best next moves</h2><p>Ranked by avoided loss per dollar</p></div>
       {evaluatedDepth !== currentDepth ? <div className="depth-note">Showing the nearest evaluated fixes at {evaluatedDepth.toFixed(2)} ft; current slider is {currentDepth.toFixed(2)} ft.</div> : null}
       <div className="mitigation-list">
         {[...visibleMitigations].sort((a, b) => a.rank - b.rank).map((item) => (

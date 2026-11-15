@@ -52,7 +52,7 @@ export function AerialPanel({ building, entryPoints, media, events, dataSource, 
   return (
     <aside className="aerial-panel panel-frame">
       <div className="panel-title">
-        <div><span className="eyebrow">Site scout</span><h2>Aerial evidence</h2></div>
+        <div><h2>Aerial evidence</h2></div>
         <span className="confidence-chip">{entryPoints.length} found</span>
       </div>
 
@@ -106,7 +106,7 @@ export function AerialPanel({ building, entryPoints, media, events, dataSource, 
       )}
 
       {grounding ? <section className="site-grounding">
-        <span className="eyebrow">Elevation grounding</span>
+        <h3>Elevation</h3>
         <p>{grounding.first_door.sentence}</p>
         <dl><div><dt>Estimated floor</dt><dd>{grounding.floor.elevation_ft.toFixed(1)} ft NAVD 88 <small>{grounding.floor.elevation_ft_low.toFixed(1)}–{grounding.floor.elevation_ft_high.toFixed(1)} ft</small></dd></div><div><dt>FEMA 1% level</dt><dd>{grounding.fema_1pct.found ? `${grounding.fema_1pct.relative_to_floor_ft! >= 0 ? "+" : ""}${grounding.fema_1pct.relative_to_floor_ft?.toFixed(1)} ft against floor` : "Not found"}</dd></div><div><dt>Ground accuracy</dt><dd>±{grounding.ground.accuracy_rmse_ft.toFixed(2)} ft · 1 RMSE</dd></div></dl>
       </section> : <PanelState kind="empty" title="Elevation grounding pending" detail="The building has no cached floor and FEMA reference yet." />}

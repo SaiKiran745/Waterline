@@ -10,7 +10,7 @@ import { DetailTabs } from "./DetailTabs";
 import type { RailView } from "./DetailTabs";
 import { AssumptionsDrawer } from "./AssumptionsDrawer";
 import { assetDamageMap, scenarioFromTable, scenarioRow } from "@/lib/scenario";
-import { correctAsset } from "@/lib/data";
+import { correctAsset, resetDemo } from "@/lib/data";
 import { buildingTitle, floodZoneLabel, formatAddress, showAddresses } from "@/lib/presentation";
 import { useAgentSession } from "@/hooks/useAgentSession";
 import type { BuildingBundle } from "@/lib/contracts";
@@ -32,6 +32,8 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
   const [insideRequest, setInsideRequest] = useState(0);
   const [traceRequest, setTraceRequest] = useState(0);
   const [railView, setRailView] = useState<RailView>("agent");
+  const [resetState, setResetState] = useState<"idle" | "resetting" | "error">("idle");
+  const [resetError, setResetError] = useState("");
   const [correctionState, setCorrectionState] = useState<{ kind: "idle" | "saving" | "success" | "error"; message: string }>({ kind: "idle", message: "" });
   const scenario = useMemo(() => scenarioFromTable(scenarioTable, depth), [scenarioTable, depth]);
   const row = useMemo(() => scenarioRow(scenarioTable, depth), [scenarioTable, depth]);
@@ -100,6 +102,18 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
     }
   };
 
+  const handleReset = async () => {
+    setResetState("resetting");
+    try {
+      if (dataSource === "api") await resetDemo();
+      window.location.reload();
+    } catch (error) {
+      console.error(error);
+      setResetError("Reset failed. Check that the Waterline server is running on this computer.");
+      setResetState("error");
+    }
+  };
+
   const commitDepth = async (nextDepth: number) => {
     if (!session.active || session.busy || nextDepth === lastAgentDepth.current) return;
     try { await session.changeDepth(nextDepth); lastAgentDepth.current = nextDepth; } catch { /* The agent rail renders the exact response. */ }
@@ -124,12 +138,14 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
           <span><b>{floodZone.plain}</b>{floodZone.code ? <small>{floodZone.code}</small> : null}</span>
           <span><b>{bundle.triage ? `${bundle.triage.positions_read} of ${bundle.triage.scan_positions} positions read` : "Position count unavailable"}</b><small>Agent memory: {memoryCorrections} corrections</small></span>
         </div>
-        <div className="stage-run"><button className="run-agent-button" disabled={session.busy || dataSource !== "api"} onClick={() => void handleRun()}>{session.action === "run" ? "Starting…" : "Run agent"}</button><span className={`agent-stage stage-${agentStage.replaceAll(" ", "-")}`}><i />{agentStage}</span></div>
-        <details className="stage-menu"><summary aria-label="Demo menu">•••</summary><button onClick={() => window.location.reload()}>Reset demo</button></details>
+        <div className="stage-run"><button className="run-agent-button" disabled={session.busy || dataSource !== "api"} onClick={() => void handleRun()}>{session.action === "run" ? "Starting…" : "Run agent"}</button><span className={`agent-stage stage-${agentStage.replaceAll(" ", "-")}`}><i />{agentStage.charAt(0).toUpperCase() + agentStage.slice(1)}</span></div>
+        <details className="stage-menu"><summary aria-label="Demo menu">•••</summary><button disabled={resetState === "resetting"} onClick={() => void handleReset()}>{resetState === "resetting" ? "Resetting…" : "Reset demo"}</button>{resetState === "error" ? <span className="stage-menu-error">{resetError}</span> : null}</details>
       </header>
 
-      <div className="stage-gauge"><StaffGauge depth={depth} grounding={bundle.grounding} thresholds={scenarioTable.thresholds} onChange={setDepth} onCommit={commitDepth} /></div>
-      <div className="stage-loss"><LossCounter row={row} onExplain={() => setRailView("number")} /><button className="assumptions-button" onClick={() => setAssumptionsOpen(true)}>Assumptions <b>({scenario.assumptions.length + (bundle.grounding?.assumptions.length ?? 0)})</b></button></div>
+      <div className="stage-left">
+        <div className="stage-gauge"><StaffGauge depth={depth} grounding={bundle.grounding} thresholds={scenarioTable.thresholds} onChange={setDepth} onCommit={commitDepth} /></div>
+        <div className="stage-loss"><LossCounter row={row} onExplain={() => setRailView("number")} /><button className="assumptions-button" onClick={() => setAssumptionsOpen(true)}>Assumptions <b>({scenario.assumptions.length + (bundle.grounding?.assumptions.length ?? 0)})</b></button></div>
+      </div>
       <div className="stage-controls">
         <div className="stage-key" aria-label="Asset damage key"><span><i className="key-ring clear" />Clear</span><span><i className="key-ring partial" />Partial</span><span><i className="key-ring lost" />Severe</span><span><i className="key-vehicle" />Vehicle</span></div>
         <div className="stage-view-switch" role="group" aria-label="Flood view"><button className={view === "dollhouse" ? "active" : ""} disabled={!photoAvailable} onClick={() => selectView("dollhouse")}>Dollhouse</button><button className={view === "inside" ? "active" : ""} disabled={!photoAvailable || !selectedAsset} onClick={() => selectView("inside")}>View selected inside</button><button className={view === "model" ? "active" : ""} onClick={() => selectView("model")}>3D model</button></div>

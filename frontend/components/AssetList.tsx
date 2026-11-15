@@ -27,7 +27,7 @@ export function AssetList({ assets, scenario, damageByAsset, selectedAssetId, me
   const possible = contentsAssets.filter((asset) => damageByAsset.get(asset.id)?.status === "possible").length;
   return (
     <div className="asset-tab">
-      <div className="tab-heading"><span className="eyebrow">Interior survey</span><h2>Asset inventory</h2><p>Exposure at {scenario.depth_ft.toFixed(2)} ft</p></div>
+      <div className="tab-heading"><h2>Asset inventory</h2><p>Exposure at {scenario.depth_ft.toFixed(2)} ft</p></div>
       <div className="asset-summary">
         <span><b>{likely}</b> Likely</span>
         <span><b>{possible}</b> Possible</span>

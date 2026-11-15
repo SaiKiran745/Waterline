@@ -275,3 +275,8 @@ export async function approveAndSend(buildingId: string, recipient: string) {
   if (!response.ok) throw new Error(result.detail || result.message || "The playbook could not be sent.");
   return { ok: true, message: result.reason || result.message || `Backend send status: ${result.status ?? "accepted"}.` };
 }
+
+export async function resetDemo(): Promise<void> {
+  // Backend demo reset (localhost only): restores the starting state and clears agent sessions.
+  await api<unknown>("/demo/reset", { method: "POST" });
+}

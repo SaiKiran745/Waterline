@@ -321,7 +321,7 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
       {status === "loading" ? <div className="photo-real-loading" role="status"><i /><b>{loadingStage}</b><span>{elapsedSeconds}s elapsed · large spaces can take longer on first load</span></div> : null}
       <div className="photo-floor-control">
         <button className="photo-settings-button" aria-label="Photo-real settings" title="Floor-level settings" onClick={() => setCalibrating((value) => !value)}>⚙</button>
-        {calibrating ? <div><input aria-label="Photo-real floor level in metres" type="number" step="0.01" value={floorDraft} onChange={(event) => setFloorDraft(event.target.value)} /><button onClick={applyFloor}>APPLY</button><button onClick={resetFloor}>AUTO</button>{currentPuckLevel != null ? <button onClick={() => setFloorDraft(currentPuckLevel.toFixed(3))}>CURRENT PUCK</button> : null}</div> : null}
+        {calibrating ? <div><input aria-label="Photo-real floor level in metres" type="number" step="0.01" value={floorDraft} onChange={(event) => setFloorDraft(event.target.value)} /><button onClick={applyFloor}>Apply</button><button onClick={resetFloor}>Automatic</button>{currentPuckLevel != null ? <button onClick={() => setFloorDraft(currentPuckLevel.toFixed(3))}>Use current position</button> : null}</div> : null}
       </div>
       {error ? <div className="photo-real-error"><b>Photo-real view issue</b><span>{error}</span><small>Returning to the offline 3D model.</small></div> : null}
     </div>

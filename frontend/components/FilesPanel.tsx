@@ -59,7 +59,7 @@ export function FilesPanel({ buildingId, live, refreshVersion, dataSource }: { b
   const file = dossier.files.find((item) => item.path === selected) ?? dossier.files[0];
   return (
     <div className="files-tab">
-      <div className="tab-heading"><span className="eyebrow">Agent dossier</span><h2>Files</h2><p>{dossier.files.length} files {live ? "· updating live" : "· last written state"}</p></div>
+      <div className="tab-heading"><h2>Files</h2><p>{dossier.files.length} files {live ? "· updating live" : "· last written state"}</p></div>
       {error ? <p className="panel-inline-error">{error}</p> : null}
       <div className="dossier-files">
         <nav aria-label="Dossier files">

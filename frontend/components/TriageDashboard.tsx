@@ -19,20 +19,22 @@ export function TriageDashboard({ rows, mode, depth, offset, dataSource }: { row
   const outsideCount = rows.filter((item) => item.building.in_mapped_flood_zone === false).length;
   const highestIsOutside = rows[0]?.building.in_mapped_flood_zone === false;
   const stormLabel = offset === 0 ? "FEMA’s 1% flood level" : `FEMA’s 1% flood level + ${offset} ft`;
+  const wetCount = rows.filter((item) => isElevation(item.triage) && item.triage.elevation === "ok" && (item.triage.interior_depth_ft ?? 0) > 0).length;
   return (
     <main className="landing-stage">
       <section className="landing-map"><BuildingMap rows={rows} mode={mode} depth={depth} selectedId={selectedId} onSelect={setSelectedId} /></section>
       <header className="landing-topline"><Brand /><span><i className={`live-dot ${dataSource}`} />Houston portfolio</span></header>
       <section className="landing-story">
-        <span className="eyebrow">Portfolio flood triage · {mode === "fema" ? stormLabel : `${depth.toFixed(2)} ft inside`}</span>
-        <h1><b>{outsideCount} of {rows.length}</b> buildings sit outside the 1% flood zone.<br />The highest-loss building {highestIsOutside ? "is one of them." : "is inside it."}</h1>
-        <p>One outside water level, translated through each building’s measured floor—or one shared depth inside.</p>
+        {mode === "fema"
+          ? <h1>At {stormLabel}, water gets inside <b>{wetCount} of {rows.length}</b> buildings.</h1>
+          : <h1><b>{outsideCount} of {rows.length}</b> buildings sit outside the 1% flood zone.<br />The highest-loss building {highestIsOutside ? "is one of them." : "is inside it."}</h1>}
+        <p>{mode === "fema" ? "One outside water level, set against each building’s estimated floor." : `The same ${depth} ft of water inside every building.`}</p>
         <div className="ranking-mode" role="group" aria-label="Portfolio comparison mode"><Link className={mode === "fema" ? "active" : ""} href="/?mode=fema&offset_ft=0">Same storm</Link><Link className={mode === "depth" ? "active" : ""} href={`/?mode=depth&depth_ft=${depth}`}>Same depth</Link></div>
         {mode === "fema" ? <div className="landing-depth" aria-label="Offset above FEMA level">{([0, 1, 2, 3] as const).map((value) => <Link key={value} className={value === offset ? "active" : ""} href={`/?mode=fema&offset_ft=${value}`}>{value === 0 ? "FEMA 1%" : `+${value} ft`}</Link>)}</div> : <div className="landing-depth" aria-label="Portfolio water depth">{([1, 2, 4, 6] as const).map((value) => <Link key={value} className={value === depth ? "active" : ""} href={`/?mode=depth&depth_ft=${value}`}>{value} ft</Link>)}</div>}
         <div className="landing-key"><span><i className="outside" />Outside 1% zone</span><span><i className="inside" />Inside 1% zone</span><span><i className="size" />Size shows median loss</span></div>
       </section>
       {rows.length === 0 ? <div className="state-card"><h2>No buildings in this data source.</h2><p>Connect the API or add a valid contract fixture.</p></div> : <aside className={`landing-rail mode-${mode}`}>
-        <header><div><span className="eyebrow">Risk order</span><h2>{mode === "fema" ? "Same storm" : "Same depth"}</h2></div><b>{rows.length} buildings</b></header>
+        <header><div><h2>{mode === "fema" ? "Same storm" : "Same depth"}</h2></div><b>{rows.length} buildings</b></header>
         <div className="landing-ranks">{rows.map((item) => {
           const active = item.building.id === selectedId; const flood = floodZoneLabel(item.building); const loss = depthLoss(item, depth); const elevation = isElevation(item.triage) ? item.triage : null; const hasWater = elevation?.interior_depth_ft != null && elevation.interior_depth_ft > 0;
           return <Link href={`/building/${item.building.id}`} className={`landing-rank ${active ? "active" : ""}`} key={item.building.id} onMouseEnter={() => setSelectedId(item.building.id)} onFocus={() => setSelectedId(item.building.id)}>

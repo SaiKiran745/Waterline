@@ -33,7 +33,7 @@ export function ApprovePanel({ building, currentDepth, dataSource, session }: { 
   const playbookUrl = getArtifactUrl(building.id, "playbook", currentDepth);
   return (
     <div className="approve-tab">
-      <div className="tab-heading"><span className="eyebrow">Human checkpoint</span><h2>Review and send</h2><p>The backend owns delivery. Nothing leaves Waterline until you approve it here.</p></div>
+      <div className="tab-heading"><h2>Review and send</h2><p>The backend owns delivery. Nothing leaves Waterline until you approve it here.</p></div>
       <section className="playbook-sheet">
         <header><div><span>Pre-storm playbook</span><b>{buildingTitle(building)}</b></div><small>{currentDepth.toFixed(2)} ft scenario · {artifactState}</small></header>
         {dataSource === "api" ? <iframe key={playbookUrl} src={playbookUrl} title="Pre-storm playbook" onLoad={() => setArtifactState("ready")} onError={() => setArtifactState("error")} /> : <p>Connect the backend to render the playbook.</p>}
