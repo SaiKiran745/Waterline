@@ -19,7 +19,7 @@ Built for HackPrinceton Fall 2026 (CoStar track).
 
 A FEMA map says whether a site is in a flood zone. It does not say which equipment and stock sit low enough to flood, what that would cost, or which fixes pay back first.
 - Building E is outside the mapped flood zone, and at 1 ft of water inside it still loses about $93,600 (80% range $73,500–117,000).
-- FEMA's 1% flood level on the creek beside it stays only about 1.3 ft below its floor, within the elevation uncertainty.
+- FEMA's 1% flood level on the stream 62 m away stays only about 1.3 ft below its floor, within the elevation uncertainty.
 
 - Brief for coding agents: `AGENTS.md` (copied to `CLAUDE.md`)
 - Data shapes: `contracts/README.md`
@@ -33,7 +33,7 @@ A FEMA map says whether a site is in a flood zone. It does not say which equipme
                       +---------------------------- Next.js front end ----------------------------+
                       |  triage map | aerial view | 3D scan + water | slider | fixes | trace | Approve |
                       +-----------------------------------^-----------------------------------------+
-                                                          | REST + SSE (contracts/ v1.2)
+                                                          | REST + SSE (contracts/ v1.3)
 +---------------------------------------------- FastAPI backend ----------------------------------------------+
 |                                                                                                             |
 |   deepagents orchestrator (Gemini 3.6 Flash): plan -> delegate -> memory -> re-plan -> approval             |
@@ -119,11 +119,31 @@ Each layer changes the result; take one away and a number changes or disappears.
 - **Live trace.** Every plan, delegation, tool call, decision, re-plan, file write, skill load and approval wait is an AgentEvent, streamed over SSE and saved for replay.
 - **Numbers guard.** Every dollar figure the orchestrator writes, and every one in the report and playbook, must match a figure from a tool result or dossier file. An unmatched figure is removed and the removal is logged in the trace.
 
-A full run on E reads all 49 scan positions (cached), in three batches, largest area first. Then it prices at 1 ft, re-plans at 4 ft, drafts and waits for approval. The pinned demo run took 48 s, 29 model calls and $0.13 (`docs/DEMO_FACTS.md`).
+A full run on E reads all 49 scan positions (cached), in three batches, largest area first. Then it prices at 1 ft, re-plans at 4 ft, drafts and waits for approval. The pinned demo run took 54.6 s, 28 model calls and $0.117 (`docs/DEMO_FACTS.md`).
 
 ## Run it
 
 Needs Python 3.11 or newer, Node.js with npm, the sponsor toolkit in `data/toolkit/` and keys in `.env` (copy `.env.example`; names only, no values).
+
+This repository holds no sponsor data. A fresh clone cannot rebuild the eight buildings without the CoStar toolkit and the Matterport, Vexcel and Gemini keys.
+
+### Demo (cache already pulled)
+
+```bash
+# terminal 1: API from cache
+cd backend
+.venv/bin/python -m app.demo reset
+DEMO_MODE=1 .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+
+# terminal 2: front end, production build
+cd frontend
+npm install && npm run bundle:download   # first time only: Matterport Bundle SDK into the git-ignored public/matterport-bundle/
+npm run build && npm run start           # http://localhost:3000
+```
+
+Open a building by clicking its card in the ranked list on the right. A dot on the map only highlights the building.
+
+### Full pipeline
 
 ```bash
 # backend
@@ -144,7 +164,7 @@ python3.14 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
 
 # front end, in another terminal
-cd frontend && npm install && npm run dev        # http://localhost:3000
+cd frontend && npm install && npm run bundle:download && npm run dev   # http://localhost:3000
 ```
 
 - **Demo:** `python -m app.demo reset` (or `POST /demo/reset`) restores the starting state: full stored surveys, one human correction on E, no agent session, depth 1 ft. `python -m app.demo pin building-e` pins the latest run as the demo replay.
