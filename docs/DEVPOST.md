@@ -20,6 +20,9 @@ Waterline is an AI agent for a commercial building's owner, manager, lender or i
   - E sits outside FEMA's zone, yet the 1% level on the creek 62 m away stays only about 1.3 ft below its floor, within the uncertainty.
   - On B the 1% level sits about 0.2 ft above the floor.
   - The ground in front of each door shows where water collects first.
+- **Ranks a portfolio at the same storm, not just the same depth.** The map can put every building at FEMA's 1% flood level, plus 0 to 3 ft. Each building gets its own depth inside from its estimated floor, with a range.
+  - **At FEMA's 1% level:** water gets inside 3 of 8 buildings. At +2 ft it is 7 of 8.
+  - **The ranking changes with the question:** G loses most at the same depth inside, but ranks last at the same storm, because its dock-high floor sits 3.9 ft above the nearest FEMA level.
 - **Ranks fixes by payback, and re-plans when the scenario changes.** When the depth moves from 1 ft to 4 ft, the agent re-plans and says what moved. On E, the 2 ft barriers stop helping, and moving office stock onto racking rises from rank 3 to rank 2.
 - **Writes a resilience report and a room-by-room pre-storm playbook.** It sends the playbook only after a person clicks Approve, and only to an allowed address.
 - **Learns from corrections.** When a person corrects an asset ("desks here are steel-frame on legs; the wooden drawers start 1.5 ft up"), the agent remembers it. On the next run it applies it to the matching desks and says which look-alikes it skipped and why.
@@ -58,6 +61,17 @@ Waterline is an AI agent for a commercial building's owner, manager, lender or i
 - **A full four-turn run on E costs about $0.12 and takes 55 seconds.** That covers assessing, re-planning, drafting and approval.
 - **Honest numbers.** Every figure is a median with its 80% interval and its assumption ids; the worst-case sums are kept only as extreme bounds. Team-set values are shown as "assumed range, editable", and an audit lists the source of every number.
 
+## Limits
+
+- **Scanned area only.** Contents loss counts what the scan positions show. Four of the eight buildings are fully surveyed; the others read 13 to 15 positions, so their contents loss is a floor.
+- **Assumptions:**
+  - **Value ranges:** item values come from 15 team-set value classes, shown as "assumed range, editable", and a person can correct any of them.
+  - **Simulation:** the 0.5 correlation within a class is a team-set assumption too. The 80% interval covers the stated value, height and structure uncertainty, not items the survey missed.
+- **Elevation is approximate.** USGS states an accuracy of 0.53 m (1.74 ft) for its ground elevation. The floor is that ground plus an assumed slab allowance, so FEMA's level can fall either side of the floor for most buildings.
+  - For buildings outside the zone, the FEMA level is the nearest mapped one; for H it is 1.4 km away.
+- **No flood model.** The depth is a scenario tied to elevation. Waterline does not simulate rainfall, drainage or how water arrives.
+- **One scan has no dollhouse view.** D's Matterport space refuses the dollhouse view, so the app opens its 3D model instead.
+
 ## What we learned
 
 - Showing where a number comes from matters as much as the number.
@@ -85,6 +99,7 @@ Python, FastAPI, LangChain, deepagents, LangGraph, langchain-google-genai, Gemin
   - The Matterport scan supplies the inventory and measured heights. Without it, a building falls back to "structure only" and is labelled so on the map.
   - CoStar supplies the assessor improvement value, the property type that picks the Hazus curve, and the door counts. The agent checks those counts against the aerial imagery, and they pick the slab allowance for the floor elevation.
   - Vexcel supplies the openings that set which barriers are offered and what they cost.
+  - FEMA's flood levels and USGS ground elevations, on one datum (NAVD 88), turn the slider's depth into a water level outside. They also give the same-storm ranking, where the order of the buildings changes.
 - **Agentic depth:** the agent plans, delegates, re-looks and re-plans, all visible in the live trace.
 - **Usefulness:** the output is a ranked list of fixes with costs and a room-by-room playbook that a facilities manager could act on before a storm. It works for buildings outside the mapped flood zone, where no one is looking.
 

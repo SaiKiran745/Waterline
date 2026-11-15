@@ -8,6 +8,7 @@ These are the real figures for the pitch. They were checked against the backend 
 ## The one-liner numbers
 
 - **E is outside FEMA's 1% annual-chance flood area (zone X), and at 1 ft of water inside it still loses about $93,600 (80% interval $73,500–117,000).** The old worst-case range was $24,758–219,063.
+- **Same storm: at FEMA's 1% flood level, water gets inside 3 of 8 buildings** (D, C, B). At +1 ft it is 4 of 8; at +2 ft and +3 ft, 7 of 8. G, first at the same depth inside, is last at the same storm.
 - **FEMA's 1% flood level on the creek 62 m from E stays only about 1.3 ft below E's floor** (range −3.6 to +1.0 ft, within the uncertainty). FEMA maps E outside the zone, so this level is a reference, not a claim that it applies at E.
 - **Measured, with no dollar assumption:** at 1 ft the water reaches 55–66 of E's 71 contents items.
 - **E's survey:** all 49 of 49 scan positions read. It found 71 contents items worth about $225,000 (80% interval $176,000–292,000), plus 14 road vehicles listed separately (movable, not in the loss).
@@ -153,6 +154,7 @@ Each run was recorded live after a demo reset (1 ft, then 4 ft, then draft, then
 - **D's run re-looked a wire shelving rack** from a neighbouring position, live. The new view raised its height range from 0–2.2 ft to 0–6.5 ft. The demo baseline was retaken with that update: the stored survey never shrinks.
 - **The figures match.** After a reset (and, for E, the run's correction), each replay's totals at 1 and 4 ft equal the API's exactly.
 - **A, C, F and H have no pinned run.** In demo mode, "Run agent" on them returns 404.
+- **D's scan refuses Matterport's dollhouse view.** The app opens D's 3D model at once and shows "Dollhouse isn't available for this scan"; "View selected inside" still opens the photo-real inside view.
 
 ## Ranking at 2 ft (by median total)
 

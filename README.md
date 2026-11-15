@@ -8,7 +8,8 @@ Waterline is an AI agent that estimates what a flood would destroy inside a comm
 2. walks the building's 3D scan and lists what sits low enough to flood, with a height and a confidence for each item;
 3. prices the loss at a water depth the user chooses, using CoStar building data;
 4. ranks fixes by payback;
-5. writes a resilience report and a room-by-room pre-storm playbook, and sends the playbook only after a person approves.
+5. writes a resilience report and a room-by-room pre-storm playbook, and sends the playbook only after a person approves;
+6. ranks a portfolio two ways: the same depth inside every building, or the same storm outside (FEMA's 1% flood level plus 0 to 3 ft), set against each building's estimated floor.
 
 Built for HackPrinceton Fall 2026 (CoStar track).
 
@@ -16,7 +17,9 @@ Built for HackPrinceton Fall 2026 (CoStar track).
 - People who own, manage or lend against light-industrial and flex buildings.
 - Their insurers.
 
-A FEMA map says whether a site is in a flood zone. It does not say which equipment and stock sit low enough to flood, what that would cost, or which fixes pay back first. Building E is outside the mapped flood zone, and at 1 ft of water inside it still loses $24,412–215,850.
+A FEMA map says whether a site is in a flood zone. It does not say which equipment and stock sit low enough to flood, what that would cost, or which fixes pay back first.
+- Building E is outside the mapped flood zone, and at 1 ft of water inside it still loses about $93,600 (80% range $73,500–117,000).
+- FEMA's 1% flood level on the creek beside it stays only about 1.3 ft below its floor, within the elevation uncertainty.
 
 - Brief for coding agents: `AGENTS.md` (copied to `CLAUDE.md`)
 - Data shapes: `contracts/README.md`
@@ -86,7 +89,16 @@ Each layer changes the result; take one away and a number changes or disappears.
   - The old "every item at its low end" and "every item at its high end" sums are kept only as extreme bounds in the assumptions list.
   - Every assumption id appears in the UI and the report.
 - **Measured, with no dollar assumption:** how many items the water reaches at each step, and the depths where it first reaches an item, half of them, 80% of them, and the first electrical and IT item.
-- **Standard method beside ours:** the Hazus 6.1 default contents and inventory curves applied to the same item values.
+- **Standard method beside ours:** the Hazus 6.1 default contents and inventory curves applied to the same item values. On E and B ours is higher, 1.5 to 2.3 times, because Hazus averages over all contents, including stock stored high, while the survey prices each item from its own height.
+
+### Ranking the portfolio
+
+- **Same depth inside** (`/triage?depth_ft=`): every building gets the same water depth over its slab and is ranked by median loss. At 2 ft, G ranks first.
+- **Same storm outside** (`/triage?mode=fema&offset_ft=`): every building gets the same outside water level, FEMA's 1% flood level at that building plus 0 to 3 ft.
+  - Each building's interior depth is that level minus its estimated floor, never below zero, with a range from the elevation uncertainty. Buildings are ranked by median loss at that depth.
+  - At FEMA's 1% level, water gets inside 3 of 8 buildings (D, C and B). At +1 ft it is 4 of 8; at +2 ft and +3 ft, 7 of 8.
+  - G drops to last: it is dock-high, and its floor sits 3.9 ft above the nearest FEMA level.
+- Both rankings show the median with its 80% range, and label each building "surveyed" with "N of M positions read".
 
 ## How deepagents is used
 
@@ -192,6 +204,10 @@ All responses follow `contracts/`. CORS allows `http://localhost:3000`. The buil
 - **Entry points** are seen from the air. Door threshold heights are not measured: the ground in front of each door is, and the floor is that ground plus an assumed slab allowance.
 - **Elevations.** USGS ground has a stated RMSE of 0.53 m (1.74 ft), which is carried into the floor range, so FEMA's level can fall either side of the floor on E and B. The FEMA level for a building outside the zone is the nearest mapped one, a reference only. No Harvey high-water marks are used: FEMA's layer has none within 8 km, and the USGS service could not be verified in time.
 - **The depth is a scenario.** Waterline does not forecast floods or model rainfall, drainage, flow, or how water spreads between rooms.
+- **The same-storm ranking compares buildings at FEMA's level; it is not a forecast for any storm.**
+  - Its depth ranges are wide: at FEMA's level, any of the buildings outside the zone except G could take some water within its range.
+  - H's nearest FEMA level is 1.4 km away, a weak reference.
+- **Building D's scan refuses Matterport's dollhouse view.** It behaves as if the view is switched off in the space's own settings. The app opens D's 3D model and keeps the inside view.
 - **Email** goes out only when SMTP settings are configured. Without them an approved send is recorded as "draft only, not sent".
 
 ## Data and secrets
@@ -200,3 +216,4 @@ All responses follow `contracts/`. CORS allows `http://localhost:3000`. The buil
 - CoStar, Matterport and Vexcel data are proprietary and never committed. Buildings appear by letter only, and CoStar property ids stay server-side.
 - Keys are sent in headers, never in URLs or logs. The Matterport token is used read-only and server-side only.
 - Panorama faces showing identifiable people, children's spaces or personal documents are never served.
+- Screenshots (`frontend/screenshots/`) show Matterport and Vexcel imagery, so they are git-ignored and kept on disk only. They were removed from the history before the repository was first pushed.
