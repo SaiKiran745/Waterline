@@ -136,12 +136,12 @@ export function useAgentSession(buildingId: string, enabled: boolean) {
   const active = Boolean(status?.run_id && !replay);
   const busy = action !== "idle" || Boolean(status?.running);
   const statusLabel = useMemo(() => {
-    if (replay) return "REPLAY";
-    if (status?.error) return "ERROR";
-    if (status?.waiting_for_approval) return "AWAITING APPROVAL";
-    if (status?.running) return "AGENT WORKING";
-    if (status?.run_id) return "SESSION READY";
-    return "NO SESSION";
+    if (replay) return "Replay";
+    if (status?.error) return "Error";
+    if (status?.waiting_for_approval) return "Waiting for you";
+    if (status?.running) return "Agent running";
+    if (status?.run_id) return "Session ready";
+    return "No session";
   }, [replay, status]);
 
   return {

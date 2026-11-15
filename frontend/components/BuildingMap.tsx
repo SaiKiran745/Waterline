@@ -32,5 +32,5 @@ export function BuildingMap({ rows, mode, depth, selectedId, onSelect }: { rows:
       L.marker(plotted, { icon, title: `${buildingLabel(row.building)} · ${mode === "fema" ? "same storm" : "same depth"}`, riseOnHover: true }).on("click", () => onSelect(row.building.id)).addTo(layer);
     });
   }, [depth, mode, onSelect, rows, selectedId]);
-  return <><div ref={hostRef} className={`leaflet-host basemap-${basemapState}`} aria-label="Map of assessed Houston buildings" /><span className={`basemap-state ${basemapState}`}>{basemapState === "online" ? "STREET MAP" : basemapState === "offline" ? "OFFLINE GRID" : "LOADING MAP"}</span></>;
+  return <><div ref={hostRef} className={`leaflet-host basemap-${basemapState}`} aria-label="Map of assessed Houston buildings" /><span className={`basemap-state ${basemapState}`}>{basemapState === "online" ? "Street map" : basemapState === "offline" ? "Offline grid" : "Loading map"}</span></>;
 }

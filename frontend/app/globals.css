@@ -771,7 +771,7 @@ body { --mono: var(--font-body), Arial, sans-serif; --sans: var(--font-body), Ar
 .landing-depth { margin-top: 8px; }
 .landing-rank { min-height: 104px; align-items: start; }
 .landing-rank-copy { padding-top: 2px; }
-.rank-sentence { display: -webkit-box; margin-top: 3px; overflow: hidden; color: #b7c7cb; line-height: 1.25; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.rank-sentence { display: block; margin-top: 3px; color: #b7c7cb; line-height: 1.25; }
 .rank-sentence i { display: block; color: var(--amber); font-style: normal; }
 .weak-reference { color: var(--amber); font-style: normal; }
 .landing-rank-risk { align-self: stretch; align-content: start; max-width: 165px; }
@@ -808,7 +808,7 @@ body { --mono: var(--font-body), Arial, sans-serif; --sans: var(--font-body), Ar
 .leaflet-host.basemap-offline .leaflet-tile-pane { opacity: 0; }
 .leaflet-control-attribution { padding: 3px 6px !important; background: rgba(6,15,19,.82) !important; color: #708089 !important; }
 .leaflet-control-attribution a { color: #93a4aa !important; }
-.basemap-state { position: absolute; z-index: 710; top: 16px; right: 18px; padding: 5px 7px; border: 1px solid var(--line); background: rgba(5,14,18,.78); color: var(--muted); font-family: var(--mono); letter-spacing: .08em; pointer-events: none; }
+.basemap-state { position: absolute; z-index: 710; top: 16px; right: 18px; padding: 5px 7px; border: 1px solid var(--line); background: rgba(5,14,18,.78); color: var(--muted); font-family: var(--mono); letter-spacing: 0; pointer-events: none; }
 .basemap-state.online { color: var(--teal); }
 .basemap-state.offline { color: var(--amber); }
 .map-pin { width: var(--pin-size, 42px); height: var(--pin-size, 42px); border-width: 2px; }
@@ -895,3 +895,12 @@ body { --mono: var(--font-body), Arial, sans-serif; --sans: var(--font-body), Ar
 @media (max-height: 820px) {
   .stage-loss .loss-split, .stage-loss .loss-counter .scenario-note { display: none; }
 }
+/* The settings control is one small round button (the older panel rule also set bottom and a background). */
+.flood-stage .photo-floor-control { bottom: auto; max-width: none; padding: 0; border: 0; background: transparent; backdrop-filter: none; }
+/* Assumptions is a compact button beside the loss block, not a tall panel. */
+.stage-left .stage-loss .assumptions-button { height: auto; flex-direction: row; align-self: end; gap: 6px; }
+.agent-status.agent-running { color: var(--water); }
+.agent-status.waiting-for-you { color: var(--gauge); }
+.agent-status.error { color: var(--text); }
+/* The "Estimated loss at" line sat on top of the large figure. */
+.stage-left .stage-loss .loss-counter > strong { margin-top: 8px; }

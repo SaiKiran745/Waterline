@@ -77,7 +77,7 @@ export function AgentTrace({ buildingId, fixtureEvents, dataSource, session }: {
 
   return (
     <div className="trace-tab">
-      <div className="tab-heading trace-heading"><div><h2>Agent activity</h2></div><span className={`stream-state ${visibleState}`}>{visibleState === "replay" ? "Replay" : visibleState}</span></div>
+      <div className="tab-heading trace-heading"><div><h2>Agent activity</h2></div><span className={`stream-state ${visibleState}`}>{visibleState.charAt(0).toUpperCase() + visibleState.slice(1)}</span></div>
       <div className="agent-run-controls">
         <span className={`agent-status ${session.statusLabel.toLowerCase().replaceAll(" ", "-")}`}>{session.statusLabel}</span>
         <button className="files-toggle" onClick={() => setFilesOpen((value) => !value)}>{filesOpen ? "Activity" : "Files"}</button>

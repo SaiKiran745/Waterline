@@ -3,12 +3,12 @@ import { useMemo } from "react";
 import type { Grounding, Range, ScenarioThresholds } from "@/lib/contracts";
 
 const MAX_DEPTH = 8;
-type GaugeMark = { id: string; label: string; range: Range; sentence: string; kind: "reference" | "threshold" };
+type GaugeMark = { id: string; label: string; range: Range; sentence: string; kind: "reference" | "threshold"; central?: number };
 
 export function StaffGauge({ depth, grounding, thresholds, onChange, onCommit }: { depth: number; grounding: Grounding | null; thresholds: ScenarioThresholds; onChange: (depth: number) => void; onCommit: (depth: number) => void | Promise<void> }) {
   const ticks = useMemo(() => Array.from({ length: 17 }, (_, index) => index / 2), []); const percent = depth / MAX_DEPTH * 100;
   const marks = useMemo<GaugeMark[]>(() => {
-    const references = (grounding?.reference_levels ?? []).map((level) => ({ id: level.id, label: level.label.replace("annual-chance ", ""), range: [level.depth_above_floor_ft_low, level.depth_above_floor_ft_high] as Range, sentence: level.sentence, kind: "reference" as const }));
+    const references = (grounding?.reference_levels ?? []).map((level) => ({ id: level.id, label: level.label.replace("annual-chance ", ""), range: [level.depth_above_floor_ft_low, level.depth_above_floor_ft_high] as Range, sentence: level.sentence, kind: "reference" as const, central: level.depth_above_floor_ft }));
     const gaugeThresholds: GaugeMark[] = [
       { id: "first-loss", label: "First contents reached", range: thresholds.first_loss_ft, sentence: `The first surveyed contents item is reached between ${thresholds.first_loss_ft[0]} and ${thresholds.first_loss_ft[1]} ft.`, kind: "threshold" },
       { id: "half-items", label: "Half of contents", range: thresholds.half_items_ft, sentence: `Half of surveyed contents are reached between ${thresholds.half_items_ft[0]} and ${thresholds.half_items_ft[1]} ft.`, kind: "threshold" },
@@ -17,7 +17,10 @@ export function StaffGauge({ depth, grounding, thresholds, onChange, onCommit }:
     ];
     return [...references, ...gaugeThresholds];
   }, [grounding, thresholds]);
-  const above = marks.filter((mark) => Math.max(...mark.range) >= 0); const below = marks.filter((mark) => Math.max(...mark.range) < 0);
+  // A level whose central estimate is below the floor (E's FEMA level: 1.3 ft below, range -3.6 to +1.0) is listed under
+  // the gauge with its sentence, not drawn at the zero line where the thresholds crowd.
+  const isBelow = (mark: GaugeMark) => (mark.central ?? Math.max(...mark.range)) < 0;
+  const above = marks.filter((mark) => !isBelow(mark)); const below = marks.filter(isBelow);
   const step = grounding?.steps.find((item) => Math.abs(item.depth_ft - depth) < .01);
   const commit = (value: string) => void onCommit(Number(value));
   const reserve = below.length ? below.length * 24 + 34 : 0;   // room under the gauge for marks below the floor, clear of the depth tag at 0 ft
