@@ -170,7 +170,7 @@ Decided after Phase 0 (see `docs/DECISIONS.md`).
 ## 12. Known facts versus assumptions
 
 Verified from public docs: the deepagents call shape above; the Matterport `Scene` namespace is Bundle-only; USGS elevation is available at
-`https://epqs.nationalmap.gov/v1/json?x=<lng>&y=<lat>&wkid=4326&units=Feet&includeDate=false` and returns the elevation in `value`.
+`https://epqs.nationalmap.gov/v1/json?x=<lng>&y=<lat>&wkid=4326&units=Feet&includeDate=false` and returns the elevation in `value`. It interpolates USGS 3DEP, whose elevations are NAVD 88 (verified 2026-11-14, docs/DATA_NOTES.md section 9); FEMA's NFHL elevations in Harris County are NAVD 88 too (`V_DATUM`).
 
 Not verified, settle in Phase 0: what the CoStar toolkit exposes; whether ground-floor scans exist for Houston; whether panoramas, room dimensions, mesh or depth are available; whether the SDK key allows Bundle; Vexcel resolution and any elevation product; flood-zone data access.
 

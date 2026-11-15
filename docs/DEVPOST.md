@@ -11,8 +11,15 @@ Flood risk for a commercial building is usually a single answer: is the site ins
 Waterline is an AI agent for a commercial building's owner, manager, lender or insurer. For one of eight Houston buildings (named A to H), it:
 
 - **Finds where water gets in.** It reads Vexcel aerial views, ranks the openings (grade-level drive-in doors first, dock-high doors last) and checks them against CoStar's door counts. On building E it saw 3 drive-in doors where CoStar records 4. It reports that discrepancy and lowers its confidence instead of picking one source.
-- **Inventories what a flood would damage.** It walks the Matterport scan position by position and reads each panorama with a vision model. It measures each item's lowest vulnerable part by casting a ray onto the scan's 3D mesh, and looks again from a neighbouring position when confidence is low. On E it read all 49 positions and found 71 contents items worth $81,260–431,200, plus 14 road vehicles listed separately as movable.
-- **Prices the loss at a depth the user chooses.** Drag the slider and the water rises in the 3D model, hit items turn red and the loss range updates. On E: $24,412–215,850 at 1 ft and $108,954–543,580 at 4 ft. Every figure is a low–high range, and every assumption is listed.
+- **Inventories what a flood would damage.** It walks the Matterport scan position by position and reads each panorama with a vision model. It measures each item's lowest vulnerable part by casting a ray onto the scan's 3D mesh, and looks again from a neighbouring position when confidence is low. On E it read all 49 positions and found 71 contents items worth about $225,000 (80% interval $176,000–292,000), plus 14 road vehicles listed separately as movable.
+- **Prices the loss at a depth the user chooses.** Drag the slider and the water rises in the 3D model, hit items turn red and the loss updates.
+  - **Figures:** every figure is a median with an 80% interval from 4,000 simulated draws of each item's value and height. On E: about $93,600 at 1 ft (80% interval $73,500–117,000) and about $297,000 at 4 ft ($235,000–367,000).
+  - **The measured fact beside it,** with no dollar assumption: at 1 ft the water reaches 55–66 of E's 71 contents items.
+  - **The Hazus comparison:** FEMA's Hazus contents curves on the same item values give about $37,900 at 1 ft. Ours is higher because Hazus averages over contents stored high, while the survey prices each item from its own measured height.
+- **Ties the depth to real elevations, without pretending to model the flood.** The floor elevation is USGS ground plus an assumed slab allowance (NAVD 88), and FEMA's 1% flood level goes on the same scale.
+  - E sits outside FEMA's zone, yet the 1% level on the creek 62 m away stays only about 1.3 ft below its floor, within the uncertainty.
+  - On B the 1% level sits about 0.2 ft above the floor.
+  - The ground in front of each door shows where water collects first.
 - **Ranks fixes by payback, and re-plans when the scenario changes.** When the depth moves from 1 ft to 4 ft, the agent re-plans and says what moved. On E, the 2 ft barriers stop helping, and moving office stock onto racking rises from rank 3 to rank 2.
 - **Writes a resilience report and a room-by-room pre-storm playbook.** It sends the playbook only after a person clicks Approve, and only to an allowed address.
 - **Learns from corrections.** When a person corrects an asset ("desks here are steel-frame on legs; the wooden drawers start 1.5 ft up"), the agent remembers it. On the next run it applies it to the matching desks and says which look-alikes it skipped and why.
@@ -32,6 +39,8 @@ Waterline is an AI agent for a commercial building's owner, manager, lender or i
 - **Loss model:**
   - Gradual contents damage per value class: the item's share of value lost rises with water depth until it is a total loss.
   - Structure loss from FEMA Hazus 6.1 depth-damage curves, applied to the CoStar assessor improvement value and scaled to the scanned share of the building.
+  - **Simulation:** 4,000 seeded draws give the median and 80% interval. Values are lognormal per item, items in a class move together, heights vary within their measured range, and structure varies between the Hazus curves.
+  - **Elevation:** USGS 3DEP ground around each building, FEMA NFHL cross-section flood levels, and the NAVD 88 datum checked on both sides.
 - **Front end:** Next.js, three.js for the water inside the Matterport mesh, Leaflet for the triage map.
 - **Live trace:** every plan, decision, tool call, file write and approval wait is streamed to the UI.
 - **Caching:** everything external is cached, so the whole demo runs from cache with the network off.
@@ -46,20 +55,23 @@ Waterline is an AI agent for a commercial building's owner, manager, lender or i
 
 - **All three data layers change the answer.** Matterport gives what and how high, CoStar gives what it is worth and checks the door count, and Vexcel gives where water enters.
 - **The agent visibly reasons.** It plans, splits work across six specialists, re-looks at uncertain items, re-plans when the depth changes, applies a person's correction to similar items and stops for approval.
-- **A full four-turn run on E costs about $0.13 and takes 48 seconds.** That covers assessing, re-planning, drafting and approval.
-- **Honest numbers.** Every figure is a range with its assumption ids. Team-set values are shown as "assumed range, editable", and an audit lists the source of every number.
+- **A full four-turn run on E costs about $0.12 and takes 55 seconds.** That covers assessing, re-planning, drafting and approval.
+- **Honest numbers.** Every figure is a median with its 80% interval and its assumption ids; the worst-case sums are kept only as extreme bounds. Team-set values are shown as "assumed range, editable", and an audit lists the source of every number.
 
 ## What we learned
 
 - Showing where a number comes from matters as much as the number.
 - Small models are fast and cheap for tool calls, but they should never restate figures.
 - A partial survey needs to say it is partial. "12 of 49 positions" changes how a reader should treat the total.
+- A worst-case sum is not an uncertainty range. Adding every item's low end and every item's high end gave $24,758–219,063 for E at 1 ft. Simulating the same assumptions gives $73,500–117,000.
+- A depth needs an anchor. Without the floor elevation and FEMA's level beside it, "1 ft of water" cannot be checked against anything.
 - Picking a subset of scan positions did not beat chance: on E, 12 positions found 28–34% of the full survey's contents value, about what random sets of 12 found (27–31%), so we read every position.
 
 ## What's next
 
 - Replace the assumed value ranges with sourced replacement costs and let owners upload their own asset lists.
-- Measure door thresholds and slab height from the 3D scan, so the depth inside is tied to water outside.
+- Measure door thresholds and slab height from the 3D scan, to replace the assumed slab allowance.
+- Add Hurricane Harvey high-water marks as a reference level once the USGS flood-event service can be verified.
 - Survey the remaining scan positions on the four partly surveyed buildings and add more cities.
 - Connect the playbook to calendar and email so each step becomes an assigned task.
 
@@ -71,7 +83,7 @@ Python, FastAPI, LangChain, deepagents, LangGraph, langchain-google-genai, Gemin
 
 - **Data:** Waterline combines all three CoStar-track layers, and each one changes the result.
   - The Matterport scan supplies the inventory and measured heights. Without it, a building falls back to "structure only" and is labelled so on the map.
-  - CoStar supplies the assessor improvement value, the property type that picks the Hazus curve, and the door counts the agent checks against the aerial imagery.
+  - CoStar supplies the assessor improvement value, the property type that picks the Hazus curve, and the door counts. The agent checks those counts against the aerial imagery, and they pick the slab allowance for the floor elevation.
   - Vexcel supplies the openings that set which barriers are offered and what they cost.
 - **Agentic depth:** the agent plans, delegates, re-looks and re-plans, all visible in the live trace.
 - **Usefulness:** the output is a ranked list of fixes with costs and a room-by-room playbook that a facilities manager could act on before a storm. It works for buildings outside the mapped flood zone, where no one is looking.
@@ -83,7 +95,11 @@ Python, FastAPI, LangChain, deepagents, LangGraph, langchain-google-genai, Gemin
   - A person corrects an asset's height or deletes a wrong one, and the correction goes to long-term memory.
   - The scenario and ranking update at once.
   - On the next run the agent applies the correction to similar items, explaining each item it includes or skips.
-- **Technical implementation:** the item heights come from the scan's 3D mesh, every number has a range and a source, and a guard stops the model inventing figures.
+- **Technical implementation:**
+  - the item heights come from the scan's 3D mesh
+  - every number is a simulated median with an 80% interval and a source
+  - the depth is tied to USGS and FEMA elevations on one datum
+  - a guard stops the model inventing figures
 - **User experience:** drag the slider and watch the water rise and the loss change, then approve the playbook with one click.
 
 ## For the LangChain judges (best use of deepagents)

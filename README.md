@@ -65,16 +65,28 @@ Each layer changes the result; take one away and a number changes or disappears.
 - **Vexcel → where water gets in.**
   - Gemini reads the ortho and four oblique views and ranks openings: grade-level drive-in doors and personnel doors first, dock-high doors last.
   - The entry points set which fixes are offered (barriers per opening) and what they cost.
-- **FEMA and USGS** add the mapped flood zone and ground elevation as context. Neither feeds a dollar figure.
+- **FEMA and USGS → where the water level sits.**
+  - USGS ground elevation (3DEP, NAVD 88), sampled around the walls and in front of each door, ranks the doors by where water collects first. Plus an assumed slab allowance, it gives the floor elevation.
+  - FEMA's 1% annual-chance flood level (NFHL cross-sections, NAVD 88) is placed on the same scale: "stays 1.3 ft below this floor" on E, "about 0.2 ft above it" on B.
+  - The mapped flood zone labels each building.
 
 ### The loss model
 
-- **Depth is a scenario.** The slider sets water depth above the slab, 0 to 8 ft. It is not a forecast.
+- **Depth is a scenario tied to elevation, not a forecast.**
+  - Waterline does not simulate rainfall, drainage or how water arrives.
+  - Each slider depth is tied to real elevations: the outside water surface equals the estimated floor elevation (USGS ground plus an assumed slab allowance, ft NAVD 88) plus that depth. FEMA's 1% flood level is marked on the same scale.
+  - The assumptions behind this: the slab allowance (G-SLAB-*, assumed range), the USGS ground accuracy (RMSE 0.53 m, carried into the floor range), and the datum (NAVD 88 on both sides, verified).
 - **Contents damage is gradual.** Each item loses (depth − lowest vulnerable point) ÷ its class's critical height, capped at 1.
-  - The low end uses the top of the height range and the class's low value. The high end uses the bottom and the high value.
   - Values come from 15 value classes (forklift, machine tool, racked inventory, IT, and so on). Each is a team-set "assumed range, editable", shown with its id.
 - **Structure loss** = the Hazus 6.1 curve × assessor improvement value × scan coverage.
-- **Every dollar figure is a low–high range,** and every assumption id appears in the UI and the report.
+- **Every dollar figure is a median with an 80% interval,** from 4,000 seeded draws (`backend/app/loss/sim.py`):
+  - Each item's value is lognormal between its class's low and high (10th and 90th percentiles), and items in a class move together (correlation 0.5).
+  - Each lowest vulnerable point falls anywhere in its height range.
+  - Structure moves between the Hazus low and high curves.
+  - The old "every item at its low end" and "every item at its high end" sums are kept only as extreme bounds in the assumptions list.
+  - Every assumption id appears in the UI and the report.
+- **Measured, with no dollar assumption:** how many items the water reaches at each step, and the depths where it first reaches an item, half of them, 80% of them, and the first electrical and IT item.
+- **Standard method beside ours:** the Hazus 6.1 default contents and inventory curves applied to the same item values.
 
 ## How deepagents is used
 
@@ -111,6 +123,7 @@ python3.14 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python -m app.survey.interior building-e   # vision survey (adds to the stored survey; --cached-positions-only)
 .venv/bin/python -m app.survey.site building-e       # entry points from the aerial images
 .venv/bin/python -m app.loss.rank                 # loss at 1, 2, 4, 6 ft for the triage map
+.venv/bin/python -m app.loss.grounding            # USGS ground + FEMA 1% level per building (EPQS is slow; cached)
 .venv/bin/python -m app.agent.run building-e --depth 1 --new-depth 4 --approve   # live agent run
 .venv/bin/python -m app.demo reset                # demo starting state (from cache, no model calls; repeatable)
 .venv/bin/python -m pytest -q
@@ -144,9 +157,10 @@ All responses follow `contracts/`. CORS allows `http://localhost:3000`. The buil
 |---|---|
 | `GET /buildings` | Buildings, ranked by loss at 2 ft |
 | `GET /buildings/{id}` | `{"building", "entry_points", "assets"}` |
-| `GET /triage?depth_ft=1\|2\|4\|6` | Every building ranked by total loss, with "N of M positions read" and contents count from the stored survey, labelled `surveyed` or `structure only` |
+| `GET /triage?depth_ft=1\|2\|4\|6` | Every building ranked by median total loss (with the 80% interval), with "N of M positions read" and contents count from the stored survey, labelled `surveyed` or `structure only` |
 | `GET /buildings/{id}/scenario?depth_ft=` | ScenarioResult at any depth from 0 to 8 ft |
-| `GET /buildings/{id}/scenario_table` | Every slider step (0 to 8 ft by 0.25 ft), with each asset's damage fraction |
+| `GET /buildings/{id}/scenario_table` | Every slider step (0 to 8 ft by 0.25 ft): median and 80% interval, items in the water, thresholds, top contributors, Hazus comparison, each asset's damage fraction and expected loss |
+| `GET /buildings/{id}/grounding` | Floor elevation, the outside water surface at each slider step, FEMA's 1% level and the lowest door's ground as gauge marks (ft NAVD 88) |
 | `GET /buildings/{id}/mitigations?depth_ft=` | Ranked fixes at that depth |
 | `GET /buildings/{id}/media` | Mesh, aerial images, and panorama faces cleared by the privacy screen |
 | `PATCH` / `DELETE /buildings/{id}/assets/{asset_id}` | Human correction or removal: saved, applied on every read, written to the agent's memory |
@@ -166,15 +180,17 @@ All responses follow `contracts/`. CORS allows `http://localhost:3000`. The buil
   - B, D, E and G are fully surveyed (11 of 11, 33 of 33, 49 of 49 and 27 of 27 positions). A, C, F and H read 13 to 15 positions each, so their contents loss is a floor, not an estimate of the whole building.
   - Every building shows "N of M positions read".
 - **Value ranges are assumptions.** All 15 value classes and all 5 mitigation costs are team-set, shown as "assumed range, editable" with their id. A person can correct any asset's value or height, and the correction is remembered.
-- **Comparison with Hazus.** FEMA Hazus 6.1 contents curves (COM2) are a sanity check only; they are not used in the numbers.
-  - For E (49 positions), our contents loss range contains the Hazus-style figure (0.2 to 1.6 times it).
-  - For B, a dense machine shop with a low assessed value, our range is 1.2 to 7.4 times the Hazus-style figure; the middle of the range is about 3 times.
-  - So the centre of our range is within a factor of about 2 to 3 of Hazus, and B's high end is not.
-  - Our curve is steeper than Hazus because the survey lists only low items, while Hazus averages over all contents (`docs/DATA_NOTES.md` section 15).
+- **Comparison with Hazus.** The FEMA Hazus 6.1 default contents and inventory curves (COM2), applied to the same item values, are shown beside ours and are not used in the numbers.
+  - On E and B, our median contents loss is higher: 1.5 to 2.3 times the Hazus-style figure at 1 to 6 ft.
+  - The shapes differ:
+    - Hazus applies a building-average percentage from the first inch of water (16% of contents at 1 ft) and never reaches 100% (72% at 8 ft), because a building's contents include things stored above the water.
+    - Waterline prices only the items the survey saw, from each item's own height. On E, 89% of the surveyed value sits in items whose lowest vulnerable part may be below 1 ft.
+- **The interval is about the stated uncertainty only.** It reflects the value ranges, the height ranges and the Hazus structure range. Items the survey missed and a class range that is wrong for a whole building beyond the shared class factor are not in it.
 - **A partial "quick scan" was no better than random** (development option only): on E, 12 positions split by area size found 28–34% of the full survey's contents value; random sets of 12 averaged 27–31%. Every building's survey therefore reads every position it covers.
 - **Heights.** Heights come from the mesh where it resolves the item; otherwise they are a wider visual estimate at lower confidence. Items cut off by the image edge, small or far away get lower confidence. Some low-confidence items (for example boom lifts on E) are not visible from any neighbouring position, so a re-look cannot confirm them.
-- **Entry points** are seen from the air; threshold heights are not measured, and ground elevation is context only.
-- **The depth is a scenario.** Waterline does not forecast floods or model how water spreads between rooms.
+- **Entry points** are seen from the air. Door threshold heights are not measured: the ground in front of each door is, and the floor is that ground plus an assumed slab allowance.
+- **Elevations.** USGS ground has a stated RMSE of 0.53 m (1.74 ft), which is carried into the floor range, so FEMA's level can fall either side of the floor on E and B. The FEMA level for a building outside the zone is the nearest mapped one, a reference only. No Harvey high-water marks are used: FEMA's layer has none within 8 km, and the USGS service could not be verified in time.
+- **The depth is a scenario.** Waterline does not forecast floods or model rainfall, drainage, flow, or how water spreads between rooms.
 - **Email** goes out only when SMTP settings are configured. Without them an approved send is recorded as "draft only, not sent".
 
 ## Data and secrets

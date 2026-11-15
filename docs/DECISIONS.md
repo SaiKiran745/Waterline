@@ -138,6 +138,48 @@ H is the story building outside the mapped flood zone, and the first building su
 - **Layer cross-check.** When the aerial door count disagrees with CoStar, the site scout reports a discrepancy and lowers confidence by 20%. On E: 3 drive-in doors seen, 4 recorded. On B: 2 seen, 4 recorded.
 - **Email.** `actions/send.py` sends over SMTP to `ALLOWED_RECIPIENTS` only, after approval. With no SMTP settings (as now) it records "draft only, not sent".
 
+## D19. The depth tied to real elevations (2026-11-14, judge feedback part B; contracts v1.3)
+
+The judge asked: "what about the elevation of the land; how can you say it floods the way you show?" **Waterline does not model rainfall, drainage or flow, and says so.** It ties the slider to elevations (`backend/app/loss/grounding.py`, `GET /buildings/{id}/grounding`).
+- **Datum (verified):**
+  - USGS EPQS interpolates 3DEP (USGS FAQ, updated 2025-07-18), and 3DEP elevations over the contiguous US are NAVD 88 (USGS 3DEP DEM metadata). The EPQS response itself states no datum.
+  - FEMA's NFHL records `V_DATUM` NAVD88 and `LEN_UNIT` Feet on every cross-section and BFE line used in Harris County.
+  - Same datum and unit, so they are compared directly. If the datums do not match, the FEMA mark is dropped (tested).
+- **Ground:** EPQS sampled 3 m outside the walls (12–14 points), on a 3 × 3 grid up to 40 m out, and 2 m in front of each mapped door. One source, all cached.
+  - EPQS answered in 14–19 s per point on 2026-11-14, with some calls hanging, so the sample is kept small. The client retries and never caches a failure.
+  - Stated accuracy: RMSE 0.53 m (1.74 ft), carried into the floor range.
+- **Floor** = the ground in front of the doors that set it, plus an assumed slab allowance chosen from the door types (CoStar counts and the doors the aerial survey mapped from the angled images):
+  - drive-in at grade, 0–0.5 ft (G-SLAB-GRADE)
+  - dock-high, 3.5–4.5 ft (G-SLAB-DOCK)
+  - pedestrian step, 0.5–1.5 ft (G-SLAB-STEP)
+  - All three are team-set, `placeholder: true`.
+- **FEMA 1% level:** the two nearest cross-sections (`WSEL_REG`) on the nearest flooding source, weighted by inverse distance, with the range between them. The nearest BFE line (`ELEV`) is a check.
+  - For buildings outside the zone, the level is the nearest one, with its distance. It is labelled a reference, not a claim that it applies there.
+- **Slider:** the outside water surface at each step is floor + depth (G-WSE).
+- **Reference marks:** FEMA 1% and the lowest door's ground, each as depth above the floor with a range and a sentence.
+- **B5 (Harvey high-water marks): skipped.**
+  - FEMA's NFHL High Water Marks layer (12) has no marks within 8 km of any of the eight buildings.
+  - The USGS STN services URL now redirects (301 to apps.usgs.gov/stnweb), and no documented API could be verified in the time box.
+
+## D18. Loss as a median and 80% interval (2026-11-14, judge feedback part A; contracts v1.3)
+
+The judge (a CoStar ML engineer) said the loss range was too wide to be useful. **Cause:** the range added every item's low value with the top of its height range, or every item's high value with the bottom: a worst-case interval on top of broad class ranges.
+- **Now:** 4,000 seeded draws (`backend/app/loss/sim.py`):
+  - **Values:** lognormal per item, with the class low and high as the 10th and 90th percentiles.
+  - **Shared class factor:** correlation 0.5 between log-values in a class (C-MC-CLASS-CORR, team-set).
+  - **Heights:** uniform in each item's range.
+  - **Structure:** uniform between the Hazus low and high curves, with one relative position per draw.
+  - **Every depth in each draw:** each draw is evaluated at every slider step, so the median never falls (tested).
+  - **Draws are keyed by asset id and class,** so a correction to one asset does not reshuffle the others.
+- **Reported:** the median and the 10th–90th percentile everywhere: `/scenario`, `/scenario_table`, `/triage` (ranked by the median), mitigations, report, playbook and agent text. Figures are rounded to 3 significant figures.
+- **Old sums:** listed only as `X-EXTREME-BOUNDS` in the assumptions. The reported percentiles are clamped inside them. Where one fixed-height item drives the loss, 4,000 draws land within about 1% of the true bound; the clamp removes that noise, tested within 3%.
+- **Measured, no dollar assumption:**
+  - items the water reaches at each step (count and share)
+  - the depths of first loss, half and 80% of items, and first electrical and IT item
+- **Standard method:** Hazus 6.1 default contents (COM2 195, IND2 384, COM1 90) and inventory (46, 81, 1) functions on the same simulated item values, compared at 1, 2, 4 and 6 ft.
+- **A5 (CoStar tenant anchors): not used.** The kit has no figure that turns employees, industry or area into a contents value (DATA_NOTES section 16).
+- **A6 (model-estimated item values): deferred** to keep part B inside its time box.
+
 ## D17. Demo replays for G, B and D; batch survey fix (2026-11-14)
 
 - **Replays.** In demo mode only E had a saved run, so "Run agent" failed on other buildings. After a demo reset, one live run each was recorded for G, B and D (1 ft, then 4 ft, then draft, then approve) and pinned (see `docs/DEMO_FACTS.md`).
@@ -187,7 +229,7 @@ H is the story building outside the mapped flood zone, and the first building su
 
 **Decided (human):**
 - Stop work on Vexcel elevation models and roof heights.
-- Ground elevation (USGS EPQS) is shown as context only.
+- Ground elevation (USGS EPQS) is shown as context only. **Superseded by D19 (2026-11-14):** the ground is now sampled around each building and used for the floor elevation and the door ranking by ground.
 - Entry points are ranked by type and image evidence, then cross-checked against CoStar's dock count (`loading_docks_external`) and drive-in door count (`drive_in_bays`).
 - `threshold_elevation_ft` stays null.
 
