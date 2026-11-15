@@ -1,0 +1,52 @@
+[
+  {
+    "building_id": "fixture-1",
+    "rank": 1,
+    "status": "surveyed",
+    "positions_read": 12,
+    "scan_positions": 40,
+    "contents_assets": 23,
+    "note": "FIXTURE, not real data.",
+    "elevation": "ok",
+    "missing_reason": null,
+    "offset_ft": 1,
+    "water_level_ft": 54.4,
+    "water_level_ft_low": 54.1,
+    "water_level_ft_high": 54.6,
+    "fema_level_ft": 53.4,
+    "fema_distance_m": 40,
+    "fema_at_building": true,
+    "floor_ft": 52.4,
+    "floor_ft_low": 50.4,
+    "floor_ft_high": 54.3,
+    "floor_above_fema_ft": -1.0,
+    "water_above_floor_ft": 2.0,
+    "interior_depth_ft": 2.0,
+    "interior_depth_ft_low": 0.0,
+    "interior_depth_ft_high": 4.2,
+    "depth_capped": false,
+    "loss": {
+      "contents": [
+        140000,
+        220000
+      ],
+      "contents_median": 174000,
+      "structure": [
+        206000,
+        355000
+      ],
+      "structure_median": 282000,
+      "total": [
+        374000,
+        541000
+      ],
+      "total_median": 459000
+    },
+    "total_median_at_depth_range": [
+      0,
+      724000
+    ],
+    "sentence": "Floor is 1.0 ft below FEMA's 1% level.",
+    "depth_sentence": "At FEMA's 1% level + 1 ft (54.4 ft NAVD 88) the water stands about 2.0 ft above the floor (range 0.0-4.2 ft)."
+  }
+]

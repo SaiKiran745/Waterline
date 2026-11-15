@@ -160,6 +160,7 @@ All responses follow `contracts/`. CORS allows `http://localhost:3000`. The buil
 | `GET /triage?depth_ft=1\|2\|4\|6` | Every building ranked by median total loss (with the 80% interval), with "N of M positions read" and contents count from the stored survey, labelled `surveyed` or `structure only` |
 | `GET /buildings/{id}/scenario?depth_ft=` | ScenarioResult at any depth from 0 to 8 ft |
 | `GET /buildings/{id}/scenario_table` | Every slider step (0 to 8 ft by 0.25 ft): median and 80% interval, items in the water, thresholds, top contributors, Hazus comparison, each asset's damage fraction and expected loss |
+| `GET /triage?mode=fema&offset_ft=0\|1\|2\|3` | Elevation-aware ranking: every building at FEMA's 1% level + offset; each gets its own interior depth (water level − its floor, with a range) and is ranked by median loss at that depth |
 | `GET /buildings/{id}/grounding` | Floor elevation, the outside water surface at each slider step, FEMA's 1% level and the lowest door's ground as gauge marks (ft NAVD 88) |
 | `GET /buildings/{id}/mitigations?depth_ft=` | Ranked fixes at that depth |
 | `GET /buildings/{id}/media` | Mesh, aerial images, and panorama faces cleared by the privacy screen |

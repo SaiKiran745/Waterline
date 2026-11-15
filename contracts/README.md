@@ -14,6 +14,7 @@ This folder is the source of truth for data shapes. Where it differs from the sk
 | `agent_event.schema.json` | `fixtures/agent_events.json` | One agent step on the SSE stream |
 | `scenario_table.schema.json` | `fixtures/scenario_table.json` | Every slider step (0 to 8 ft by 0.25 ft) for one building, with each asset's damage fraction per step |
 | `triage.schema.json` | `fixtures/triage.json` | The triage ranking: every building, labelled `surveyed` or `structure only` |
+| `triage_elevation.schema.json` | `fixtures/triage_elevation.json` (offset 1 ft) | v1.3: the elevation-aware triage ranking, every building at FEMA's 1% level + an offset |
 | `grounding.schema.json` | `fixtures/grounding.json` | v1.3: one building's floor elevation, the outside water surface at each slider step, and reference levels (FEMA 1% flood level, lowest door ground), ft NAVD 88 |
 
 All schemas are JSON Schema draft 2020-12 with `additionalProperties: false`. Every field is required; unknown values are `null`, never omitted. Each schema property's `description` names the source field it comes from.
@@ -196,6 +197,25 @@ The loss range was a worst-case sum (every item at its low end, or every item at
 9. Show the outside water surface for the current step (`steps[i].water_surface_ft`, ft NAVD 88) beside the depth, and `method` near the slider.
 10. On the aerial panel, order the entry points by `grounding.entry_points[].rank` and show `first_door.sentence`.
 11. Badge the `G-SLAB-*` and `G-LEVEL-TOL` assumptions "assumed range, editable".
+
+**Part C: elevation-aware triage (`GET /triage?mode=fema&offset_ft=0|1|2|3`, schema `triage_elevation.schema.json`)**
+- **The scenario:** every building at the same outside water level, FEMA's 1% annual-chance flood level at that building plus `offset_ft`, instead of the same interior depth.
+- **Each building's depth:** `interior_depth_ft` = water level − its estimated floor, never below 0 and capped at 8 ft. `interior_depth_ft_low`/`_high` come from the FEMA range and the floor range (USGS accuracy and slab allowance).
+- **Ranking:** by `loss.total_median` at that depth. Ties, such as several buildings with no water inside, go to the building whose floor the water comes closest to (`water_above_floor_ft`). Buildings without elevation (`elevation: "missing"`, with `missing_reason`) rank last. All eight have it today.
+- **Also per row:**
+  - the survey fields, as in Triage
+  - `water_level_ft` (with low and high), `fema_level_ft`, `fema_distance_m`, `fema_at_building`
+  - `floor_ft` (with low and high), `floor_above_fema_ft`
+  - `loss` (the same shape as a ScenarioResult: median and 80% interval)
+  - `total_median_at_depth_range` (median total at the low and high depths)
+  - `sentence` ("Floor is 1.3 ft above FEMA's 1% level (the nearest mapped level, 62 m away).") and `depth_sentence`
+- **Unchanged:** `GET /triage?depth_ft=` (or `mode=depth`) keeps the same-interior-depth Triage shape.
+- **Computed with the ranking:** `python -m app.loss.rank`, a demo reset and a replay outcome all recompute it, from cache.
+
+**What Codex must change (part C)**
+12. Add a toggle on the triage map: "Same depth inside" (`/triage?depth_ft=`) or "Same flood level outside" (`/triage?mode=fema&offset_ft=`, with a 0/1/2/3 ft offset control labelled "FEMA 1% level + N ft").
+13. In the flood-level mode, show each building's `interior_depth_ft` with its range, `sentence`, `fema_distance_m`, and the loss median with its 80% interval. Rank and colour by `loss.total_median`. Show buildings with `interior_depth_ft` 0 as "water stays below the floor", not as zero risk.
+14. When `fema_at_building` is false, say the FEMA level is the nearest mapped one. The sentence already does.
 
 ### 1.2.2 (2026-11-14, requested by Codex; no schema changed)
 

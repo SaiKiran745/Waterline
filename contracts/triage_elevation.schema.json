@@ -1,0 +1,283 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "waterline/contracts/triage_elevation.schema.json",
+  "title": "TriageElevation",
+  "description": "GET /triage?mode=fema&offset_ft=0|1|2|3 (contracts v1.3): every building at the same OUTSIDE water level, FEMA's 1% annual-chance flood level at that building plus offset_ft. Each gets its own interior depth (water level minus its estimated floor, never below 0) and is ranked by median total loss at that depth. Ties go to the building whose floor the water comes closest to. GET /triage without mode (or mode=depth) is the same-interior-depth ranking (Triage), unchanged.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "building_id",
+      "rank",
+      "status",
+      "positions_read",
+      "scan_positions",
+      "contents_assets",
+      "note",
+      "elevation",
+      "missing_reason",
+      "offset_ft",
+      "water_level_ft",
+      "water_level_ft_low",
+      "water_level_ft_high",
+      "fema_level_ft",
+      "fema_distance_m",
+      "fema_at_building",
+      "floor_ft",
+      "floor_ft_low",
+      "floor_ft_high",
+      "floor_above_fema_ft",
+      "water_above_floor_ft",
+      "interior_depth_ft",
+      "interior_depth_ft_low",
+      "interior_depth_ft_high",
+      "depth_capped",
+      "loss",
+      "total_median_at_depth_range",
+      "sentence",
+      "depth_sentence"
+    ],
+    "properties": {
+      "building_id": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+      },
+      "rank": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "surveyed",
+          "structure only"
+        ],
+        "description": "structure only = no interior survey yet; its loss is the structure curve alone and is not comparable with surveyed buildings."
+      },
+      "positions_read": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "Scan positions the stored interior survey has read. The stored survey never shrinks: agent runs add to it. Show as \"N of M positions read\" with scan_positions."
+      },
+      "scan_positions": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "Scan positions (panoramas) in the Matterport model."
+      },
+      "contents_assets": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "Surveyed contents assets: not building fabric (A-FIN) and not road vehicles (V-VEHICLE, movable, not in contents loss). The same count the agent reports."
+      },
+      "note": {
+        "type": "string"
+      },
+      "elevation": {
+        "type": "string",
+        "enum": [
+          "ok",
+          "missing"
+        ],
+        "description": "missing = no floor estimate, no FEMA 1% level nearby, or datums differ: not ranked by elevation (ranked last)."
+      },
+      "missing_reason": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "offset_ft": {
+        "type": "number",
+        "enum": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "description": "The scenario: FEMA's 1% level plus this many feet, the same for every building."
+      },
+      "water_level_ft": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "description": "Outside water surface, ft NAVD 88: FEMA's 1% level + offset_ft."
+      },
+      "water_level_ft_low": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "water_level_ft_high": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "fema_level_ft": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "description": "FEMA's 1% annual-chance water surface used (Grounding.fema_1pct.elevation_ft)."
+      },
+      "fema_distance_m": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "description": "Distance to the nearest FEMA cross-section or BFE line used."
+      },
+      "fema_at_building": {
+        "type": [
+          "boolean",
+          "null"
+        ],
+        "description": "true = the building is in FEMA's mapped 1% area; false = the level is the nearest mapped one, a reference."
+      },
+      "floor_ft": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "description": "Estimated floor elevation, ft NAVD 88 (Grounding.floor)."
+      },
+      "floor_ft_low": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "floor_ft_high": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "floor_above_fema_ft": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "description": "Floor minus FEMA's 1% level (central). Negative = floor below the level."
+      },
+      "water_above_floor_ft": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "description": "water_level_ft minus floor_ft, may be negative (water stays below the floor). Breaks ties between buildings with no water inside."
+      },
+      "interior_depth_ft": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "minimum": 0,
+        "maximum": 8,
+        "description": "max(0, water_level_ft - floor_ft), capped at the slider's 8 ft: the depth the loss is priced at."
+      },
+      "interior_depth_ft_low": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "minimum": 0,
+        "maximum": 8,
+        "description": "From the low end of FEMA's range and the high end of the floor range (USGS accuracy and slab allowance), never below 0."
+      },
+      "interior_depth_ft_high": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "minimum": 0,
+        "maximum": 8
+      },
+      "depth_capped": {
+        "type": "boolean",
+        "description": "true when the high end of the depth range exceeds 8 ft and was capped."
+      },
+      "loss": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "additionalProperties": false,
+        "required": [
+          "contents",
+          "contents_median",
+          "structure",
+          "structure_median",
+          "total",
+          "total_median"
+        ],
+        "description": "Loss at interior_depth_ft (as ScenarioResult: median and 80% interval). null when elevation is missing.",
+        "properties": {
+          "contents": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "minimum": 0
+            },
+            "minItems": 2,
+            "maxItems": 2,
+            "description": "[low, high] USD: the 80% interval (10th and 90th percentile)."
+          },
+          "contents_median": {
+            "type": "number"
+          },
+          "structure": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "minimum": 0
+            },
+            "minItems": 2,
+            "maxItems": 2,
+            "description": "[low, high] USD: the 80% interval (10th and 90th percentile)."
+          },
+          "structure_median": {
+            "type": "number"
+          },
+          "total": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "minimum": 0
+            },
+            "minItems": 2,
+            "maxItems": 2,
+            "description": "[low, high] USD: the 80% interval (10th and 90th percentile)."
+          },
+          "total_median": {
+            "type": "number"
+          }
+        }
+      },
+      "total_median_at_depth_range": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "items": {
+          "type": "number",
+          "minimum": 0
+        },
+        "minItems": 2,
+        "maxItems": 2,
+        "description": "Median total loss at interior_depth_ft_low and interior_depth_ft_high: what the elevation uncertainty does to the loss."
+      },
+      "sentence": {
+        "type": "string",
+        "description": "Plain sentence, e.g. \"Floor is 1.3 ft above FEMA's 1% level (the nearest mapped level, 62 m away).\""
+      },
+      "depth_sentence": {
+        "type": "string",
+        "description": "Plain sentence for this offset, e.g. \"At FEMA's 1% level + 2 ft (34.4 ft NAVD 88) the water stands about 0.7 ft above the floor (range 0.0-3.0 ft).\""
+      }
+    }
+  }
+}

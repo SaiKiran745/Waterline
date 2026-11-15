@@ -172,6 +172,29 @@ Each run was recorded live after a demo reset (1 ft, then 4 ft, then draft, then
 - **B, D, E and G are fully surveyed.** For A, C, F and H, contents loss covers only the positions read: a floor, not a whole-building estimate.
 - **The bottom four now rank** C, H, A, F, ordered by the median. Before v1.3 they were ranked by the high end.
 
+## Ranking at the same flood level outside (elevation mode)
+
+`GET /triage?mode=fema&offset_ft=` puts every building at the same outside water level: FEMA's 1% level at that building, plus 0 to 3 ft.
+- Each building's interior depth = that level − its estimated floor, never below 0.
+- The range comes from the FEMA range and the floor range.
+- All eight buildings have a floor estimate and a FEMA level on the same datum.
+
+| Rank at +0 / +2 ft | Building | Floor vs FEMA 1% level | At FEMA 1% + 0 ft: depth inside, total | At FEMA 1% + 2 ft: depth inside, total |
+|---|---|---|---|---|
+| 1 / 1 | D (AE) | 2.7 ft below | 2.7 ft (0–6.1); $348,000 ($262,000–469,000) | 4.7 ft (1.3–8.0); $460,000 ($341,000–609,000) |
+| 2 / 3 | C (AE) | 1.8 ft below | 1.8 ft (0–5.2); $151,000 ($110,000–190,000) | 3.8 ft (0.7–7.2); $226,000 ($186,000–265,000) |
+| 3 / 2 | B (AE) | 0.2 ft below | 0.2 ft (0–2.3); $11,500 ($7,840–17,000) | 2.2 ft (0–4.3); $334,000 ($244,000–484,000) |
+| 4 / 4 | F (X) | 0.4 ft above (nearest level 11 m away) | none inside (up to 2.4) | 1.6 ft (0–4.4); $90,300 ($69,700–122,000) |
+| 5 / 5 | E (X) | 1.3 ft above (62 m away) | none inside (up to 1.0) | 0.7 ft (0–3.0); $63,200 ($48,900–79,500) |
+| 6 / 6 | A (X) | 1.3 ft above (99 m away) | none inside (up to 1.4) | 0.7 ft (0–3.4); $38,700 ($22,400–54,200) |
+| 7 / 7 | H (X) | 1.5 ft above (1,433 m away: weak reference) | none inside (up to 1.4) | 0.5 ft (0–3.4); $37,000 ($20,200–53,800) |
+| 8 / 8 | G (X) | 3.9 ft above (108 m away) | none inside, across the whole range | none inside (up to 0.5) |
+
+- **The order changes with the question.** At the same depth inside, G ranks first, because its loss per foot is largest. At the same flood level outside, G ranks last: it is dock-high, and its floor sits 3.9 ft above the nearest FEMA level.
+- **D ranks first at every offset** (0 to 3 ft): its floor is 2.7 ft below FEMA's 1% level.
+- **E's case:** at FEMA's level E stays dry (central estimate). At +2 ft, it takes about 0.7 ft inside, about $63,200.
+- **The elevation uncertainty is large.** At +0 ft, any of the zone X buildings except G could take water within its range: up to 1.0 ft for E.
+
 ## Say carefully
 
 - **The value ranges are team-set assumptions** ("assumed range, editable"), and so is the 0.5 correlation within a class. A person can correct any of them.
@@ -180,3 +203,4 @@ Each run was recorded live after a demo reset (1 ft, then 4 ft, then draft, then
 - **Depths are scenarios tied to elevation.** Waterline does not forecast floods or simulate how water arrives.
 - **The FEMA level for E is the nearest mapped one,** 62 m away on a tributary. Treat it as a reference.
 - **The floor elevation is an estimate:** ground plus an assumed slab allowance, ±1.74 ft from the USGS accuracy alone.
+- **The flood-level ranking compares buildings at FEMA's level, not a forecast for any storm.** Its depth ranges are wide, so quote the central depth together with its range.

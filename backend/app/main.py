@@ -64,9 +64,22 @@ def list_buildings(fixture: int = 0):
 
 
 @app.get("/triage")
-def triage(depth_ft: int = Query(2), fixture: int = 0):
-    """Triage ranking (contracts v1.3): every building ranked by median total loss at 1, 2, 4 or 6 ft, each labelled
-    "surveyed" (with positions read and contents count) or "structure only"."""
+def triage(depth_ft: int = Query(2), fixture: int = 0, mode: str = Query("depth"), offset_ft: int = Query(0)):
+    """Triage ranking (contracts v1.3).
+    mode=depth (default): every building at the same interior depth (1, 2, 4 or 6 ft), ranked by median total loss.
+    mode=fema: every building at the same outside water level, FEMA's 1% level + offset_ft (0, 1, 2 or 3), giving each
+    its own interior depth over its estimated floor (TriageElevation)."""
+    if mode == "fema":
+        if offset_ft not in rank.OFFSETS:
+            raise HTTPException(422, f"offset_ft must be one of {list(rank.OFFSETS)}")
+        if fixture:
+            return fixtures.triage_elevation(offset_ft)
+        rows = rank.triage_elevation(str(offset_ft))
+        if not rows:
+            raise HTTPException(503, "no elevation ranking yet: run python -m app.loss.grounding, then python -m app.loss.rank")
+        return rows
+    if mode != "depth":
+        raise HTTPException(422, "mode must be depth or fema")
     if str(depth_ft) not in map(str, rank.DEPTHS):
         raise HTTPException(422, f"depth_ft must be one of {list(rank.DEPTHS)}")
     if fixture:

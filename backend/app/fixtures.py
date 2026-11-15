@@ -166,3 +166,13 @@ def grounding() -> dict:
     g["computed_at"] = "2026-11-14T00:00:00+00:00"
     g["method"] = "FIXTURE, not real data. " + g["method"]
     return g
+
+
+def triage_elevation(offset_ft: int = 0) -> list[dict]:
+    """FIXTURE elevation-mode triage: one row, the FIXTURE building at FEMA's 1% level + offset (shape of
+    GET /triage?mode=fema)."""
+    from app.loss import rank
+    rows = assets()
+    entry = rank.elevation_entry(building(), grounding(), offset_ft, scenario)
+    return [{"building_id": FIXTURE_ID, "rank": 1, "status": "surveyed", "positions_read": 12, "scan_positions": 40,
+             "contents_assets": sum(1 for a in rows if a["category"] != "finishes"), "note": "FIXTURE, not real data.", **entry}]
