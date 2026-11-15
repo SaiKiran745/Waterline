@@ -12,6 +12,8 @@ loadEnvConfig(
 );
 
 const nextConfig: NextConfig = {
+  // NEXT_DIST_DIR lets a check build run without replacing the .next/ that a running `next start` serves.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   reactStrictMode: true,
   devIndicators: false,
   turbopack: {
