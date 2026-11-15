@@ -7,6 +7,17 @@ from app.loss import mitigations as engine
 e = html.escape
 
 
+def _level(bid: str, depth_ft: float) -> str:
+    from app.loss import grounding as ground
+    g = ground.load(bid)
+    if not g:
+        return ""
+    f = g["floor"]
+    fema_ref = next((r["sentence"] for r in g["reference_levels"] if r["id"] == "fema-1pct"), "")
+    return (f"At this depth the outside water surface is about {f['elevation_ft'] + depth_ft:.1f} ft {g['datum']['name']} "
+            f"(floor about {f['elevation_ft']:.1f} ft). {fema_ref} {g['first_door']['sentence']} ")
+
+
 def render(building: dict, assets: list[dict], entry_points: list[dict], depth_ft: float) -> str:
     from app.loss import model, sim
     s = model.scenario(building, assets, depth_ft)
@@ -42,7 +53,8 @@ def render(building: dict, assets: list[dict], entry_points: list[dict], depth_f
         lead += (f"<h2>Movable assets at risk</h2><p>{e(move['action'])}. {e(move['payback_note'])}.</p>"
                  f"<ul>{names}</ul>")
     return (f"<article><h1>Pre-storm playbook: {e(building['name'] or building['address'])}</h1>"
-            f"<p>Planned for {depth_ft:g} ft of water above the ground-floor slab (a scenario, not a forecast). "
+            f"<p>Planned for {depth_ft:g} ft of water above the ground-floor slab: a scenario tied to elevation, not a "
+            f"forecast; Waterline does not simulate how water arrives. {e(_level(building['id'], depth_ft))}"
             f"Expected loss at this depth: {report.central(s['total_usd_low'], s['total_usd_median'], s['total_usd_high'])} "
             f"(median and 80% interval). Rooms are ordered by the loss their actions avoid. "
             f"{e(report.survey_line(building['id'], assets))}</p>{lead}{''.join(sections) or '<p>No surveyed assets yet.</p>'}</article>")

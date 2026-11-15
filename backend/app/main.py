@@ -100,6 +100,20 @@ def scenario_table(bid: str):
     return model.scenario_table(_real(bid), buildings.get_assets(bid))
 
 
+@app.get("/buildings/{bid}/grounding")
+def grounding(bid: str):
+    """Scenario grounding (contracts v1.3): floor elevation, the outside water surface for each slider step, and
+    reference levels (FEMA 1% flood level, lowest door ground), all in ft NAVD 88. Precomputed, read from cache."""
+    if bid == FIX:
+        return fixtures.grounding()
+    _real(bid)
+    from app.loss import grounding as ground
+    g = ground.load(bid)
+    if g is None:
+        raise HTTPException(503, "no grounding yet: run python -m app.loss.grounding")
+    return g
+
+
 @app.get("/buildings/{bid}/mitigations")
 def mitigations(bid: str, depth_ft: float = Query(2, ge=0, le=8)):
     """Ranked at exactly the requested depth; mitigation ids are stable across depths."""

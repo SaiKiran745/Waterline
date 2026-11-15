@@ -1,4 +1,5 @@
 """FEMA National Flood Hazard Layer (public ArcGIS REST, no key). -9999 means no value."""
+import time
 from datetime import datetime, timezone
 
 import httpx
@@ -34,3 +35,25 @@ def flood_zone(lat: float, lng: float) -> dict:
         "flood_zone_subtype": z.get("ZONE_SUBTY") or None,
         "flood_zone_source": (f"FEMA NFHL, panel {p.get('FIRM_PAN')}, effective {eff_s}" if p else "FEMA NFHL") if z else None,
     }
+
+
+def nearby(layer: int, lat: float, lng: float, fields: str, distance_m: float) -> list[dict]:
+    """Features of an NFHL layer within distance_m of a point, with geometry in WGS84 (cached)."""
+    url = f"{BASE}/{layer}/query"
+    params = {"geometry": f"{lng},{lat}", "geometryType": "esriGeometryPoint", "inSR": 4326,
+              "spatialRel": "esriSpatialRelIntersects", "distance": distance_m, "units": "esriSRUnit_Meter",
+              "outFields": fields, "returnGeometry": "true", "outSR": 4326, "f": "json"}
+
+    def send():
+        """Up to 3 tries; a non-JSON or error answer is returned as status 599 so it is never cached."""
+        for i in range(3):
+            try:
+                r = httpx.get(url, params=params, timeout=180)
+                if r.status_code == 200:
+                    return 200, r.json()
+            except (httpx.HTTPError, ValueError):
+                pass
+            time.sleep(2 + 3 * i)
+        return 599, None
+    rec = cached_json("fema", "GET", url, send, params=params)
+    return (rec["response"] or {}).get("features") or [] if rec["status"] == 200 else []

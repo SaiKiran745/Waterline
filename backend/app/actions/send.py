@@ -58,7 +58,8 @@ def send_playbook(bid: str, recipient: str, depth_ft: float, html: str, approved
         msg["Subject"] = f"Waterline pre-storm playbook ({depth_ft:g} ft scenario)"
         msg["From"] = os.environ["EMAIL_FROM"]
         msg["To"] = r
-        msg.set_content("The pre-storm playbook is attached as HTML. The depth is a scenario, not a forecast.")
+        msg.set_content("The pre-storm playbook is attached as HTML. The depth is a scenario tied to elevation, not a "
+                        "forecast: Waterline does not simulate how water arrives.")
         msg.add_alternative(html, subtype="html")
         host, port = os.environ["SMTP_HOST"], int(os.environ["SMTP_PORT"])
         try:

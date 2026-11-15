@@ -14,6 +14,7 @@ This folder is the source of truth for data shapes. Where it differs from the sk
 | `agent_event.schema.json` | `fixtures/agent_events.json` | One agent step on the SSE stream |
 | `scenario_table.schema.json` | `fixtures/scenario_table.json` | Every slider step (0 to 8 ft by 0.25 ft) for one building, with each asset's damage fraction per step |
 | `triage.schema.json` | `fixtures/triage.json` | The triage ranking: every building, labelled `surveyed` or `structure only` |
+| `grounding.schema.json` | `fixtures/grounding.json` | v1.3: one building's floor elevation, the outside water surface at each slider step, and reference levels (FEMA 1% flood level, lowest door ground), ft NAVD 88 |
 
 All schemas are JSON Schema draft 2020-12 with `additionalProperties: false`. Every field is required; unknown values are `null`, never omitted. Each schema property's `description` names the source field it comes from.
 
@@ -178,6 +179,23 @@ The loss range was a worst-case sum (every item at its low end, or every item at
 5. Show `top_contributors` at the current step.
 6. List `X-EXTREME-BOUNDS*` with the other assumptions only. Never show them as the range.
 7. The fixtures are regenerated. `scenarios.json` now holds simulated percentiles, and the FIXTURE structure curve is in `backend/app/fixtures.py`.
+
+**Part B: the depth tied to real elevations (new endpoint `GET /buildings/{id}/grounding`, schema `grounding.schema.json`)**
+- Waterline does not model rainfall, drainage or flow. Each slider step's outside water surface is the estimated floor elevation plus the depth (`steps[]`, ft NAVD 88, with a range).
+- `floor`: USGS EPQS ground (3DEP, NAVD 88) in front of the doors that set the floor, plus a slab allowance chosen from the door types: `G-SLAB-GRADE` (drive-in, 0–0.5 ft), `G-SLAB-DOCK` (dock-high, 3.5–4.5 ft) or `G-SLAB-STEP` (0.5–1.5 ft). These are team-set ("assumed range, editable"). The range includes 1 RMSE (0.53 m) of the USGS ground.
+- `entry_points[]`: mapped doors ranked by the ground in front of them, lowest first. `first_door.sentence` says which door water reaches first and by how much.
+- `fema_1pct`: FEMA's 1% annual-chance water surface from NFHL cross-sections (layer 14 `WSEL_REG`), with the nearest BFE line (layer 16 `ELEV`) as a check. It carries `V_DATUM` and distance, and `relative_to_floor_ft` (> 0 is depth inside, < 0 stays below the floor) with a plain `sentence`.
+- `reference_levels[]`: gauge marks with `depth_above_floor_ft` (and low/high), `source` and `sentence`: `fema-1pct`, and `lowest-door-ground` (or `lowest-adjacent-ground` when no door is mapped).
+- `datum`: NAVD 88 on both sides. `match: false` drops the FEMA mark.
+- `method`: the two-sentence method statement. `assumptions`: the `G-*` ids.
+- `Building.ground_elevation_ft` is NAVD 88 (confirmed from USGS documentation). It is still the single EPQS value at the CoStar point.
+- Returns 503 until `python -m app.loss.grounding` has run for the building. The result is cached, so `DEMO_MODE` serves it.
+
+**What Codex must change (part B)**
+8. Mark `reference_levels` on the depth gauge at `depth_above_floor_ft`. A negative value means "stays N ft below this floor": show it under the zero mark with its `sentence`.
+9. Show the outside water surface for the current step (`steps[i].water_surface_ft`, ft NAVD 88) beside the depth, and `method` near the slider.
+10. On the aerial panel, order the entry points by `grounding.entry_points[].rank` and show `first_door.sentence`.
+11. Badge the `G-SLAB-*` and `G-LEVEL-TOL` assumptions "assumed range, editable".
 
 ### 1.2.2 (2026-11-14, requested by Codex; no schema changed)
 

@@ -90,7 +90,7 @@ def _avoided(m: dict) -> str:
 
 @tool(parse_docstring=True)
 def get_site_context(building_id: str) -> str:
-    """Flood and site context: FEMA zone, ground elevation (context only), CoStar door counts.
+    """Flood and site context: FEMA zone, ground elevation (ft NAVD 88), CoStar door counts.
 
     Args:
         building_id: Building slug, for example building-e.
@@ -102,7 +102,7 @@ def get_site_context(building_id: str) -> str:
            "costar_docks": b.get("loading_docks_external")}
     events.emit("site-scout", "observation",
                 f"FEMA zone {out['fema_zone']} ({'inside' if out['in_1pct_zone'] else 'outside'} the 1% annual-chance "
-                f"area); ground {out['ground_ft']} ft (context only); CoStar: {out['costar_drive_in']} drive-in bays, "
+                f"area); ground {out['ground_ft']} ft NAVD 88 at the CoStar point; CoStar: {out['costar_drive_in']} drive-in bays, "
                 f"{out['costar_docks']} docks.", data=out)
     return json.dumps(out)
 
@@ -117,7 +117,7 @@ def find_entry_points(building_id: str, tool_call_id: Annotated[str, InjectedToo
     b = _check(building_id)
     events.emit("site-scout", "observation",
                 f"FEMA zone {b.get('flood_zone')} ({'inside' if b.get('in_mapped_flood_zone') else 'outside'} the 1% "
-                f"annual-chance area); ground {b.get('ground_elevation_ft')} ft (context only); CoStar: "
+                f"annual-chance area); ground {b.get('ground_elevation_ft')} ft NAVD 88 at the CoStar point; CoStar: "
                 f"{b.get('drive_in_bays')} drive-in bays, {b.get('loading_docks_external')} docks.")
     _call("site-scout", "find_entry_points", {"building_id": building_id},
           "find_entry_points on the ortho and oblique aerial images")
@@ -129,6 +129,13 @@ def find_entry_points(building_id: str, tool_call_id: Annotated[str, InjectedToo
     for d in log.get("discrepancies") or []:
         events.emit("site-scout", "observation", f"Layer discrepancy: {d['text']}",
                     refs=[e["id"] for e in eps if e["kind"] == d["kind"]], data=d)
+    from app.loss import grounding as ground
+    g = ground.load(building_id)
+    if g and g["entry_points"]:
+        events.emit("site-scout", "decision",
+                    f"Doors ranked by the ground in front of them (USGS 3DEP, NAVD 88): {g['first_door']['sentence']} "
+                    + "; ".join(f"{r['rank']}. {r['entry_point_id']} {r['kind']} {r['ground_ft']:.1f} ft" for r in g["entry_points"][:5]),
+                    refs=[r["entry_point_id"] for r in g["entry_points"]], data={"first_door": g["first_door"]})
     doc = [f"# Entry points: {building_id}", "", "| Rank | Id | Kind | View | Confidence | Evidence |",
            "|---|---|---|---|---|---|"]
     doc += [f"| {i} | {e['id']} | {e['kind']} | {e['image_kind']} | {e['confidence']:.2f} | {e['evidence']} |"
@@ -140,6 +147,8 @@ def find_entry_points(building_id: str, tool_call_id: Annotated[str, InjectedToo
         "lowest_door": f"{eps[0]['id']} {eps[0]['kind']}" if eps else None,
         "entry_points": [f"{e['id']} {e['kind']} conf {e['confidence']:.2f}" for e in eps],
         "discrepancies": [d["text"] for d in log.get("discrepancies") or []],
+        "water_reaches_first": g["first_door"]["sentence"] if g else None,
+        "ground_around": g["ground"]["sentence"] if g else None,
         "details": f"/dossier/{building_id}/entry-points.md"}, {f"/dossier/{building_id}/entry-points.md": "\n".join(doc)})
 
 
@@ -434,7 +443,7 @@ def run_scenario(building_id: str, depth_ft: float, tool_call_id: Annotated[str,
 
     Args:
         building_id: Building slug.
-        depth_ft: Interior water depth in feet (a scenario the user chose, not a forecast).
+        depth_ft: Interior water depth in feet (a scenario the user chose, tied to elevation, not a forecast).
     """
     b = _check(building_id)
     d = float(depth_ft)
@@ -457,13 +466,26 @@ def run_scenario(building_id: str, depth_ft: float, tool_call_id: Annotated[str,
                     + (f", {ratio:.1f} times" if ratio is not None and v != "about the same" else "") + ").")
     else:
         std_text = ""
+    from app.loss import grounding as ground
+    g = ground.load(building_id)
+    if g:
+        f = g["floor"]
+        level = (f"At {d:g} ft inside, the outside water surface is about {f['elevation_ft'] + d:.1f} ft NAVD 88 "
+                 f"(floor about {f['elevation_ft']:.1f} ft, range {f['elevation_ft_low']:.1f}-{f['elevation_ft_high']:.1f}).")
+        fema_ref = next((r["sentence"] for r in g["reference_levels"] if r["id"] == "fema-1pct"), "")
+        events.emit("scenario-builder", "observation",
+                    f"Scenario, tied to elevation, not a forecast: {level} {fema_ref}".strip(),
+                    data={"depth_ft": d, "water_surface_ft": round(f["elevation_ft"] + d, 1), "floor": f})
+    else:
+        level, fema_ref = "", ""
     events.emit("scenario-builder", "observation",
                 f"At {d:g} ft: total {tot}; contents {c}; structure {st}. Water reaches {reach} of {w['of']} contents "
                 f"items (from item heights, no dollar assumption); {vehicles} vehicles at risk. {std_text}".strip(),
                 refs=[x["asset_id"] for x in top],
                 data={"depth_ft": d, "total_usd": [s["total_usd_low"], s["total_usd_high"]],
                       "total_usd_median": s["total_usd_median"], "items_in_water": w})
-    doc = [f"# Scenario {d:g} ft: {building_id}", "", "Median and 80% interval from 4,000 simulated draws (C-MC-*).", "",
+    doc = [f"# Scenario {d:g} ft: {building_id}", "", "A scenario tied to elevation, not a forecast. Median and 80% interval "
+           "from 4,000 simulated draws (C-MC-*).", "", *([f"- Elevation: {level} {fema_ref}".strip()] if level else []),
            f"- Total: {tot}", f"- Contents: {c}", f"- Structure: {st}",
            f"- Contents items reached: {reach} of {w['of']} (measured heights, no dollar assumption)",
            f"- Assets hit: {sum(1 for h in s['assets_hit'] if h['status'] == 'likely')} likely, "
@@ -481,6 +503,7 @@ def run_scenario(building_id: str, depth_ft: float, tool_call_id: Annotated[str,
         "contents_items_reached": f"{reach} of {w['of']}",
         "top_expected_losses": [f"{labels[x['asset_id']]['label'][:40]}: about ${x['expected_loss_usd']:,.0f}" for x in top],
         "standard_method": std_text, "vehicles_at_risk": vehicles,
+        "elevation": f"{level} {fema_ref}".strip() or None,
         "placeholders": sorted({x["id"] for x in s["assumptions"] if x["placeholder"]}), "details": path},
         {path: "\n".join(doc)})
 

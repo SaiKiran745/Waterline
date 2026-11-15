@@ -89,7 +89,8 @@ def document_sources(building: dict, assets: list[dict], depth_ft: float) -> lis
     eps = buildings.get_entry_points(building["id"])
     ms = engine.ranked(building["id"], engine.candidates(building["id"], assets, eps), assets, depth_ft,
                        engine.building_loss_fn(building))
+    from app.loss import grounding as ground
     table = model.scenario_table(building, assets)
-    return [building, assets, model.scenario(building, assets, depth_ft), ms,
+    return [building, assets, model.scenario(building, assets, depth_ft), ms, ground.load(building["id"]) or {},
             sim.expected_by_asset(building, assets, depth_ft),
             {"thresholds": table["thresholds"], "standard_method": table["standard_method"]}]

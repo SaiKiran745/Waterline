@@ -10,7 +10,7 @@ from app.config import CONTRACTS, FIXTURES
 PAIRS = [("building", "building.json"), ("entry_point", "entry_points.json"), ("asset", "assets.json"),
          ("scenario_result", "scenario_2ft.json"), ("scenario_result", "scenarios.json"),
          ("mitigation", "mitigations.json"), ("agent_event", "agent_events.json"),
-         ("scenario_table", "scenario_table.json"), ("triage", "triage.json")]
+         ("scenario_table", "scenario_table.json"), ("triage", "triage.json"), ("grounding", "grounding.json")]
 
 
 @pytest.mark.parametrize("schema,fixture", PAIRS)

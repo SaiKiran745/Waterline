@@ -211,3 +211,29 @@ def test_agent_status_reports_memory_and_last_delivery(monkeypatch, tmp_path):
     assert s["memory"]["applied_this_session"] == 1 and s["memory"]["applied_this_session_asset_ids"] == [f"{bid}-a3"]
     d = s["last_delivery"]
     assert d["status"] == "draft_only" and d["recipient"] == "ops@example.com" and d["at"] and d["detail"]
+
+
+def test_grounding_endpoint():
+    r = local.get(f"/buildings/{FIX}/grounding")
+    assert r.status_code == 200
+    buildings.validate("grounding", r.json())
+    from app.loss import grounding as ground
+    for bid in sorted(buildings.building_ids()):
+        r = local.get(f"/buildings/{bid}/grounding")
+        if ground.load(bid) is None:
+            assert r.status_code == 503
+            continue
+        g = r.json()
+        buildings.validate("grounding", g)
+        assert "samples" not in g and len(g["steps"]) == 33
+
+
+def test_real_scenario_under_100ms_warm():
+    bid = "building-e"
+    if bid not in buildings.building_ids():
+        pytest.skip("no cached building")
+    local.get(f"/buildings/{bid}/scenario", params={"depth_ft": 2})
+    t = time.perf_counter()
+    r = local.get(f"/buildings/{bid}/scenario", params={"depth_ft": 2.5})
+    assert r.status_code == 200 and (time.perf_counter() - t) < 0.1
+    buildings.validate("scenario_result", r.json())

@@ -40,6 +40,23 @@ def measured_lines(table: dict, s: dict, depth_ft: float) -> list[str]:
     return lines
 
 
+def elevation_lines(bid: str, depth_ft: float) -> tuple[list[str], list[dict]]:
+    """The scenario tied to real elevations (contracts v1.3 grounding): lines for the documents and the G-* assumptions."""
+    from app.loss import grounding as ground
+    g = ground.load(bid)
+    if not g:
+        return ["Elevation grounding has not been computed for this building."], []
+    f = g["floor"]
+    lines = [g["method"],
+             f"Floor: about {f['elevation_ft']:.1f} ft {g['datum']['name']} (range {f['elevation_ft_low']:.1f}-"
+             f"{f['elevation_ft_high']:.1f}): {f['basis']}",
+             f"At {depth_ft:g} ft inside, the outside water surface is about {f['elevation_ft'] + depth_ft:.1f} ft "
+             f"{g['datum']['name']} (range {f['elevation_ft_low'] + depth_ft:.1f}-{f['elevation_ft_high'] + depth_ft:.1f})."]
+    lines += [r["sentence"] for r in g["reference_levels"]]
+    lines += [g["first_door"]["sentence"], g["ground"]["sentence"], f"Datum: {g['datum']['note']}"]
+    return lines, g["assumptions"]
+
+
 def standard_lines(table: dict, s: dict, depth_ft: float) -> list[str]:
     from app.loss import sim
     sm = table.get("standard_method")
@@ -93,13 +110,18 @@ def render(building: dict, assets: list[dict], entry_points: list[dict], depth_f
         f"<li><b>{e(a['id'])}</b>{' (assumed range, editable)' if a['placeholder'] else ''}: {e(a['text'])} <i>Source: {e(a['source'])}</i></li>"
         for a in s["assumptions"])
     measured = "".join(f"<li>{e(x)}</li>" for x in measured_lines(table, s, depth_ft))
+    elev_lines, elev_assumptions = elevation_lines(building["id"], depth_ft)
+    elev = "".join(f"<li>{e(x)}</li>" for x in elev_lines)
+    assumptions += "".join(
+        f"<li><b>{e(a['id'])}</b>{' (assumed range, editable)' if a['placeholder'] else ''}: {e(a['text'])} <i>Source: {e(a['source'])}</i></li>"
+        for a in elev_assumptions)
     standard = "".join(f"<p>{e(x)}</p>" for x in standard_lines(table, s, depth_ft)) or "<p>No Hazus occupancy mapping for this building.</p>"
     return f"""<article>
 <h1>Flood resilience report: {e(building['name'] or building['address'])}</h1>
 <p>{e(building['address'])}. {e(building['property_subtype'] or building['property_type'])}, {building['size_sqft']:,.0f} sq ft (GBA),
 built {building['year_built'] or 'unknown'}, {building['stories']} storey. FEMA zone {e(building['flood_zone'] or 'unknown')}
 ({'inside' if building['in_mapped_flood_zone'] else 'outside'} the 1% annual-chance area; {e(building['flood_zone_source'] or '')}).</p>
-<p><b>Scenario:</b> {depth_ft:g} ft of water above the ground-floor slab. This is a scenario chosen by the user, not a prediction.</p>
+<p><b>Scenario:</b> {depth_ft:g} ft of water above the ground-floor slab. This is a scenario chosen by the user and tied to real elevations, not a forecast: Waterline does not simulate rainfall, drainage or how water arrives.</p>
 <p><b>Total loss:</b> {central(s['total_usd_low'], s['total_usd_median'], s['total_usd_high'])}.
 <b>Contents:</b> {central(s['loss_usd_low'], s['loss_usd_median'], s['loss_usd_high'])}.
 <b>Structure:</b> {central(s['structure_loss_usd_low'], s['structure_loss_usd_median'], s['structure_loss_usd_high'])}.
@@ -107,6 +129,7 @@ The median and 80% interval come from 4,000 simulated draws of every item's valu
 The extreme bounds (every item at one end of its ranges) are in the assumptions.</p>
 <p><b>Scope:</b> the 3D scan covers {building['scan_area_sqft'] or 0:,.0f} sq ft, {cov:.0%} of the building. {e(survey_line(building['id'], assets))}
 Structure loss is scaled to the scanned share.</p>
+<h2>Water level and elevation</h2><ul>{elev}</ul>
 <h2>What the scan measures (no dollar assumption)</h2><ul>{measured}</ul>
 <h2>Largest contributors at {depth_ft:g} ft</h2><ol>{top}</ol>
 <h2>Standard-method comparison</h2>{standard}
@@ -115,5 +138,5 @@ Structure loss is scaled to the scanned share.</p>
 <h2>Ranked mitigations at {depth_ft:g} ft</h2><table><tr><th>#</th><th>Action</th><th>Cost</th><th>Avoided loss</th><th>Payback</th></tr>{mit_rows}</table>
 <h2>Assumptions</h2><ul>{assumptions}</ul>
 <h2>Limitations</h2><ul><li>Asset heights come from the 3D mesh where it resolves the item, otherwise from a visual estimate with lower confidence.</li>
-<li>Values marked "assumed range, editable" are team-set assumptions without a cited source; any asset's value or height can be corrected.</li><li>Ground elevation is context only and is not used in any number.</li></ul>
+<li>Values marked "assumed range, editable" are team-set assumptions without a cited source; any asset's value or height can be corrected.</li><li>Elevations: the floor is the USGS ground elevation (RMSE 0.53 m) plus an assumed slab allowance; FEMA's 1% flood level is a reference on the same NAVD 88 scale. No rainfall, drainage or flow is modelled.</li></ul>
 </article>"""

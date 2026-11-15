@@ -6,7 +6,9 @@ description: How Waterline prices flood loss and ranks fixes. Use before running
 # Loss method
 
 ## The depth
-The depth is interior water above the ground-floor slab, 0 to 8 ft. It is a scenario the user chose, never a forecast. Always say "at N ft".
+The depth is interior water above the ground-floor slab, 0 to 8 ft. It is a scenario the user chose, tied to elevation, never a forecast. Always say "at N ft".
+- Tied to elevation: the floor elevation (USGS ground, NAVD 88, plus an assumed slab allowance) plus the depth is the outside water level. FEMA's 1% flood level is placed on the same scale (`run_scenario` returns both as `elevation`).
+- Waterline does not simulate rainfall, drainage or how water arrives. Never say it does.
 
 ## Contents loss
 - Assumption `C-CONTENTS-DEPTH`: each asset loses a fraction of its value.

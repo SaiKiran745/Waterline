@@ -137,3 +137,32 @@ def triage() -> list[dict]:
     return [{"building_id": FIXTURE_ID, "rank": 1, "status": "surveyed", "positions_read": 12, "scan_positions": 40,
              "contents_assets": sum(1 for a in rows if a["category"] != "finishes"),
              "note": "FIXTURE, not real data.", "loss_by_depth_ft": {str(d): at(d) for d in (1, 2, 4, 6)}}]
+
+
+def grounding() -> dict:
+    """FIXTURE grounding (shape of GET /buildings/{id}/grounding): fake ground points and a fake FEMA level run
+    through the same assembly as real buildings. FIXTURE, not real data."""
+    from app.loss import grounding as ground
+    b = building()
+    sides = ["north", "east", "south", "west"]
+    adjacent = [{"lat_lng": [b["lat"], b["lng"]], "side": sides[i % 4], "ground_ft": round(52.0 + 0.2 * (i % 5), 2)}
+                for i in range(12)]
+    around = [{"lat_lng": [b["lat"], b["lng"]], "side": sides[i % 4], "ground_ft": round(51.0 + 0.5 * i, 2)} for i in range(8)]
+    ground_at = {"drive_in": 52.1, "dock": 48.6, "door": 52.9}
+    doors = [{"entry_point_id": e["id"], "kind": e["kind"], "lat_lng": [b["lat"], b["lng"]], "side": sides[i],
+              "moved_m": 1.0, "ground_ft": ground_at[e["kind"]]} for i, e in enumerate(load("entry_points.json"))]
+    fl = {"found": True, "elevation_ft": 53.4, "elevation_ft_low": 53.1, "elevation_ft_high": 53.6,
+          "stream": "FIXTURE BAYOU", "basis": "the two nearest cross-sections on FIXTURE BAYOU (40 m, 120 m away), weighted by inverse distance",
+          "cross_sections": [{"layer": "Cross-Sections (14)", "field": "WSEL_REG", "elevation_ft": 53.6, "stream": "FIXTURE BAYOU",
+                              "stream_station": 1000.0, "distance_m": 40, "v_datum": "NAVD88", "len_unit": "Feet"},
+                             {"layer": "Cross-Sections (14)", "field": "WSEL_REG", "elevation_ft": 53.1, "stream": "FIXTURE BAYOU",
+                              "stream_station": 1500.0, "distance_m": 120, "v_datum": "NAVD88", "len_unit": "Feet"}],
+          "bfe_line_check": {"layer": "Base Flood Elevations (16)", "field": "ELEV", "elevation_ft": 53.0, "distance_m": 90,
+                             "v_datum": "NAVD88", "len_unit": "Feet"},
+          "nearest_distance_m": 40, "v_datum": ["NAVD88"], "len_unit": ["Feet"], "search_radius_m": 3000,
+          "source": "FIXTURE, not real data"}
+    g = ground.assemble(b, {"adjacent": adjacent, "around": around, "doors": doors, "footprint_perimeter_m": 300}, fl)
+    g.pop("samples", None)
+    g["computed_at"] = "2026-11-14T00:00:00+00:00"
+    g["method"] = "FIXTURE, not real data. " + g["method"]
+    return g

@@ -239,7 +239,7 @@
         "number",
         "null"
       ],
-      "description": "Ground elevation at (lat, lng) in feet. Vertical datum not stated by the source; do not compare with FEMA BFE."
+      "description": "Ground elevation at (lat, lng) in feet, NAVD 88 (USGS EPQS interpolates 3DEP, whose elevations over the contiguous US are NAVD 88; the response itself states no datum). Same datum as FEMA's NFHL elevations in Harris County (V_DATUM NAVD88). A single point; GET /buildings/{id}/grounding has the sampled ground around the building (v1.3)."
     },
     "ground_elevation_source": {
       "type": [
