@@ -83,23 +83,40 @@ export type ScenarioResult = {
   depth_ft: number;
   depth_reference: "interior water depth above ground-floor slab";
   loss_usd_low: number;
+  loss_usd_median: number;
   loss_usd_high: number;
   assets_hit: Array<{ asset_id: string; status: HitStatus }>;
   structure_loss_usd_low: number;
+  structure_loss_usd_median: number;
   structure_loss_usd_high: number;
+  total_usd_low: number;
+  total_usd_median: number;
+  total_usd_high: number;
+  items_in_water: ItemsInWater;
+  top_contributors: TopContributor[];
+  standard_contents_usd_median: number | null;
   assumptions: Assumption[];
 };
 
 export type ScenarioTableRow = {
   depth_ft: number;
   loss_usd_low: number;
+  loss_usd_median: number;
   loss_usd_high: number;
   structure_loss_usd_low: number;
+  structure_loss_usd_median: number;
   structure_loss_usd_high: number;
   total_usd_low: number;
+  total_usd_median: number;
   total_usd_high: number;
   assets_hit: Array<{ asset_id: string; status: HitStatus }>;
+  items_in_water: ItemsInWater;
+  top_contributors: TopContributor[];
+  standard_contents_usd_median: number | null;
 };
+
+export type ItemsInWater = { of: number; count_low: number; count_high: number; share_low: number; share_high: number };
+export type TopContributor = { asset_id: string; expected_loss_usd: number; share: number };
 
 export type ScenarioTableAsset = {
   asset_id: string;
@@ -108,6 +125,7 @@ export type ScenarioTableAsset = {
   value_usd_high: number;
   critical_ft: number;
   movable: boolean;
+  expected_loss_usd: number[];
   fraction_low: number[];
   fraction_high: number[];
 };
@@ -120,6 +138,31 @@ export type ScenarioTable = {
   rows: ScenarioTableRow[];
   assets: ScenarioTableAsset[];
   assumptions: Assumption[];
+  thresholds: ScenarioThresholds;
+  standard_method: StandardMethod;
+};
+
+export type Range = [number, number];
+export type ScenarioThresholds = {
+  contents_items: number;
+  heights_from_mesh: number;
+  heights_estimated: number;
+  first_loss_ft: Range;
+  half_items_ft: Range;
+  most_items_ft: Range;
+  critical_systems: Array<{ system: string; name: string; items: number; first_reached_ft: Range }>;
+};
+
+export type StandardMethod = {
+  method: string;
+  functions: Array<{ kind: string; function_id: number; description: string; source: string; pct_at_1_2_4_6_ft: number[] }>;
+  citation: string;
+  source_url: string;
+  value_basis: string;
+  compare: Array<{ depth_ft: number; ours_median_usd: number; standard_median_usd: number; ratio: number; verdict: string }>;
+  statement: string;
+  why_shapes_differ: string;
+  share_of_value_below_1ft: number;
 };
 
 export type AssetDamage = {
@@ -133,6 +176,9 @@ export type TriageLoss = {
   contents: [number, number];
   structure: [number, number];
   total: [number, number];
+  contents_median: number;
+  structure_median: number;
+  total_median: number;
 };
 
 export type TriageRow = {
@@ -146,6 +192,38 @@ export type TriageRow = {
   loss_by_depth_ft: Record<"1" | "2" | "4" | "6", TriageLoss>;
 };
 
+export type TriageElevationRow = {
+  building_id: string;
+  rank: number;
+  status: "surveyed" | "structure only";
+  positions_read: number;
+  scan_positions: number;
+  contents_assets: number;
+  note: string;
+  elevation: "ok" | "missing";
+  missing_reason: string | null;
+  offset_ft: 0 | 1 | 2 | 3;
+  water_level_ft: number | null;
+  water_level_ft_low: number | null;
+  water_level_ft_high: number | null;
+  fema_level_ft: number | null;
+  fema_distance_m: number | null;
+  fema_at_building: boolean | null;
+  floor_ft: number | null;
+  floor_ft_low: number | null;
+  floor_ft_high: number | null;
+  floor_above_fema_ft: number | null;
+  water_above_floor_ft: number | null;
+  interior_depth_ft: number | null;
+  interior_depth_ft_low: number | null;
+  interior_depth_ft_high: number | null;
+  depth_capped: boolean;
+  loss: TriageLoss | null;
+  total_median_at_depth_range: Range | null;
+  sentence: string;
+  depth_sentence: string;
+};
+
 export type Mitigation = {
   id: string;
   building_id: string;
@@ -157,6 +235,7 @@ export type Mitigation = {
   cost_usd_low: number;
   cost_usd_high: number;
   avoided_loss_usd_low: number;
+  avoided_loss_usd_median: number;
   avoided_loss_usd_high: number;
   payback_note: string;
   basis: string;
@@ -280,6 +359,34 @@ export type MediaManifest = {
   notes?: string[];
 };
 
+export type GroundingEntryPoint = { entry_point_id: string; kind: string; side: string; ground_ft: number; rank: number; above_lowest_door_ft: number };
+export type GroundingReferenceLevel = {
+  id: string;
+  label: string;
+  elevation_ft: number;
+  elevation_ft_low: number;
+  elevation_ft_high: number;
+  depth_above_floor_ft: number;
+  depth_above_floor_ft_low: number;
+  depth_above_floor_ft_high: number;
+  source: string;
+  sentence: string;
+};
+export type Grounding = {
+  building_id: string;
+  computed_at: string;
+  method: string;
+  datum: { name: string; units: string; match: boolean; note: string };
+  ground: { source: string; accuracy_rmse_ft: number; points: number; lowest_adjacent_ft: number; highest_adjacent_ft: number; low_side: string; high_side: string; around_min_ft: number; around_max_ft: number; sentence: string };
+  entry_points: GroundingEntryPoint[];
+  first_door: { entry_point_id: string | null; lead_ft: number | null; sentence: string };
+  floor: { elevation_ft: number; elevation_ft_low: number; elevation_ft_high: number; ground_ft: Range; allowance_id: string; allowance_ft: Range; basis: string; chosen_because: string };
+  fema_1pct: { found: boolean; elevation_ft?: number; elevation_ft_low?: number; elevation_ft_high?: number; nearest_distance_m?: number; relative_to_floor_ft?: number; relative_to_floor_ft_low?: number; relative_to_floor_ft_high?: number; sentence?: string; source?: string };
+  reference_levels: GroundingReferenceLevel[];
+  steps: Array<{ depth_ft: number; water_surface_ft: number; water_surface_ft_low: number; water_surface_ft_high: number }>;
+  assumptions: Assumption[];
+};
+
 export type BuildingBundle = {
   building: Building;
   entryPoints: EntryPoint[];
@@ -290,4 +397,5 @@ export type BuildingBundle = {
   meshUrl: string | null;
   media: MediaManifest | null;
   triage: TriageRow | null;
+  grounding: Grounding | null;
 };

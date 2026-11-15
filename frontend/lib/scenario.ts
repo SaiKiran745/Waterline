@@ -17,10 +17,18 @@ export function scenarioFromTable(table: ScenarioTable, depthFt: number): Scenar
     depth_ft: row.depth_ft,
     depth_reference: "interior water depth above ground-floor slab",
     loss_usd_low: row.loss_usd_low,
+    loss_usd_median: row.loss_usd_median,
     loss_usd_high: row.loss_usd_high,
     assets_hit: row.assets_hit,
     structure_loss_usd_low: row.structure_loss_usd_low,
+    structure_loss_usd_median: row.structure_loss_usd_median,
     structure_loss_usd_high: row.structure_loss_usd_high,
+    total_usd_low: row.total_usd_low,
+    total_usd_median: row.total_usd_median,
+    total_usd_high: row.total_usd_high,
+    items_in_water: row.items_in_water,
+    top_contributors: row.top_contributors,
+    standard_contents_usd_median: row.standard_contents_usd_median,
     assumptions: table.assumptions,
   };
 }

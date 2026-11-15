@@ -45,7 +45,7 @@ export function MitigationTable({ buildingId, mitigations, currentDepth, dataSou
           <article className="mitigation-row" key={item.id}>
             <div className="mitigation-rank"><span>#{item.rank}</span><i /></div>
             <div className="mitigation-body"><span>{item.kind.replaceAll("_", " ")}</span><b>{item.action}</b><p>{item.payback_note}</p></div>
-            <dl><div><dt>Cost</dt><dd>{compact.format(item.cost_usd_low)}–{compact.format(item.cost_usd_high)}</dd></div><div><dt>Avoided</dt><dd>{compact.format(item.avoided_loss_usd_low)}–{compact.format(item.avoided_loss_usd_high)}</dd></div></dl>
+            <dl><div><dt>Cost</dt><dd>{compact.format(item.cost_usd_low)}–{compact.format(item.cost_usd_high)}</dd></div><div><dt>Avoided</dt><dd><strong>About {compact.format(item.avoided_loss_usd_median)}</strong><small>80% range {compact.format(item.avoided_loss_usd_low)}–{compact.format(item.avoided_loss_usd_high)}</small></dd></div></dl>
           </article>
         ))}
       </div>

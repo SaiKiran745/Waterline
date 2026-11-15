@@ -27,22 +27,22 @@ function dollars(value: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", notation: "compact", maximumSignificantDigits: 3 }).format(value);
 }
 
-export function LossCounter({ row, scannedPercent }: { row: ScenarioTableRow; scannedPercent: number | null }) {
-  const totalLow = useAnimatedNumber(row.total_usd_low);
-  const totalHigh = useAnimatedNumber(row.total_usd_high);
-  const contentsLow = useAnimatedNumber(row.loss_usd_low);
-  const contentsHigh = useAnimatedNumber(row.loss_usd_high);
-  const structureLow = useAnimatedNumber(row.structure_loss_usd_low);
-  const structureHigh = useAnimatedNumber(row.structure_loss_usd_high);
+export function LossCounter({ row, onExplain }: { row: ScenarioTableRow; onExplain: () => void }) {
+  const totalMedian = useAnimatedNumber(row.total_usd_median);
+  const contentsMedian = useAnimatedNumber(row.loss_usd_median);
+  const structureMedian = useAnimatedNumber(row.structure_loss_usd_median);
   return (
     <div className="loss-counter" aria-live="polite">
-      <span>Estimated total loss</span>
-      <strong>{dollars(totalLow)} <i>–</i> {dollars(totalHigh)}</strong>
+      <span>Estimated loss at {row.depth_ft.toFixed(2)} ft</span>
+      <strong>About {dollars(totalMedian)}</strong>
+      <p>80% range {dollars(row.total_usd_low)} to {dollars(row.total_usd_high)}</p>
       <div className="loss-split">
-        <span><em>Contents</em><b>{dollars(contentsLow)} – {dollars(contentsHigh)}</b></span>
-        <span><em>Structure</em><b>{dollars(structureLow)} – {dollars(structureHigh)}</b></span>
+        <span><em>Contents</em><b>About {dollars(contentsMedian)}</b><small>80% range {dollars(row.loss_usd_low)} to {dollars(row.loss_usd_high)}</small></span>
+        <span><em>Structure</em><b>About {dollars(structureMedian)}</b><small>80% range {dollars(row.structure_loss_usd_low)} to {dollars(row.structure_loss_usd_high)}</small></span>
       </div>
-      <small>scanned area only ({scannedPercent == null ? "coverage unknown" : `${scannedPercent}% of floor`}) · assumed value ranges</small>
+      <small className="measured-line">Water reaches {row.items_in_water.count_low} to {row.items_in_water.count_high} of {row.items_in_water.of} items at {row.depth_ft.toFixed(row.depth_ft % 1 ? 2 : 0)} ft, measured from the 3D scan.</small>
+      <small className="scenario-note">A scenario tied to elevation, not a forecast.</small>
+      <button className="number-explain" onClick={onExplain}>How this number is built <span>→</span></button>
     </div>
   );
 }

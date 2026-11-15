@@ -3,6 +3,8 @@ import entryPointsFixture from "../../contracts/fixtures/entry_points.json";
 import assetsFixture from "../../contracts/fixtures/assets.json";
 import scenarioTableFixture from "../../contracts/fixtures/scenario_table.json";
 import triageFixture from "../../contracts/fixtures/triage.json";
+import triageElevationFixture from "../../contracts/fixtures/triage_elevation.json";
+import groundingFixture from "../../contracts/fixtures/grounding.json";
 import mitigationsFixture from "../../contracts/fixtures/mitigations.json";
 import eventsFixture from "../../contracts/fixtures/agent_events.json";
 import type {
@@ -14,11 +16,13 @@ import type {
   BuildingBundle,
   Dossier,
   EntryPoint,
+  Grounding,
   MediaManifest,
   Mitigation,
   ReplayRun,
   ScenarioTable,
   TriageRow,
+  TriageElevationRow,
 } from "./contracts";
 
 const API_BASE = "http://localhost:8000";
@@ -77,15 +81,22 @@ export async function getTriage(depthFt: 1 | 2 | 4 | 6): Promise<TriageRow[]> {
   return triageFixture as unknown as TriageRow[];
 }
 
+export async function getElevationTriage(offsetFt: 0 | 1 | 2 | 3): Promise<TriageElevationRow[]> {
+  if (source === "api") return api<TriageElevationRow[]>(`/triage?mode=fema&offset_ft=${offsetFt}`);
+  return (triageElevationFixture as unknown as TriageElevationRow[])
+    .filter((row) => row.offset_ft === offsetFt);
+}
+
 export async function getBuildingBundle(id: string): Promise<BuildingBundle | null> {
   if (source === "api") {
     try {
-      const [detail, rawManifest, scenarioTable, mitigations, triage] = await Promise.all([
+      const [detail, rawManifest, scenarioTable, mitigations, triage, grounding] = await Promise.all([
         api<{ building: Building; entry_points: EntryPoint[]; assets: Asset[] }>(`/buildings/${encodeURIComponent(id)}`),
         optionalApi<MediaManifest>(`/media/${encodeURIComponent(id)}/manifest.json`),
         api<ScenarioTable>(`/buildings/${encodeURIComponent(id)}/scenario_table`),
         optionalApi<Mitigation[]>(`/buildings/${encodeURIComponent(id)}/mitigations?depth_ft=2`),
         api<TriageRow[]>("/triage?depth_ft=2"),
+        optionalApi<Grounding>(`/buildings/${encodeURIComponent(id)}/grounding`),
       ]);
       const media = normalizeManifest(rawManifest);
       return {
@@ -98,6 +109,7 @@ export async function getBuildingBundle(id: string): Promise<BuildingBundle | nu
         meshUrl: media?.mesh?.url ?? null,
         media,
         triage: triage.find((row) => row.building_id === id) ?? null,
+        grounding,
       };
     } catch (error) {
       if (error instanceof Error && error.message.includes("404")) return null;
@@ -112,7 +124,7 @@ export async function getBuildingBundle(id: string): Promise<BuildingBundle | nu
   const mitigations = mitigationsFixture as Mitigation[];
   const events = eventsFixture as AgentEvent[];
   if (building.id !== id) return null;
-  return { building, entryPoints, assets, scenarioTable, mitigations, events, meshUrl: null, media: null, triage: triageFixture.find((row) => row.building_id === id) as TriageRow | undefined ?? null };
+  return { building, entryPoints, assets, scenarioTable, mitigations, events, meshUrl: null, media: null, triage: triageFixture.find((row) => row.building_id === id) as TriageRow | undefined ?? null, grounding: groundingFixture as unknown as Grounding };
 }
 
 export async function forwardSend(buildingId: string, body: string) {

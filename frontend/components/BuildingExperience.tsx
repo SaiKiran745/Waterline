@@ -7,6 +7,7 @@ import { PhotoRealViewer } from "./PhotoRealViewer";
 import { StaffGauge } from "./StaffGauge";
 import { LossCounter } from "./LossCounter";
 import { DetailTabs } from "./DetailTabs";
+import type { RailView } from "./DetailTabs";
 import { AssumptionsDrawer } from "./AssumptionsDrawer";
 import { assetDamageMap, scenarioFromTable, scenarioRow } from "@/lib/scenario";
 import { correctAsset } from "@/lib/data";
@@ -30,11 +31,11 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
   const [fallbackDetail, setFallbackDetail] = useState("");
   const [insideRequest, setInsideRequest] = useState(0);
   const [traceRequest, setTraceRequest] = useState(0);
+  const [railView, setRailView] = useState<RailView>("agent");
   const [correctionState, setCorrectionState] = useState<{ kind: "idle" | "saving" | "success" | "error"; message: string }>({ kind: "idle", message: "" });
   const scenario = useMemo(() => scenarioFromTable(scenarioTable, depth), [scenarioTable, depth]);
   const row = useMemo(() => scenarioRow(scenarioTable, depth), [scenarioTable, depth]);
   const damageByAsset = useMemo(() => assetDamageMap(scenarioTable, depth), [scenarioTable, depth]);
-  const scannedPercent = bundle.building.scan_coverage == null ? null : Math.round(bundle.building.scan_coverage * 100);
   const selectedAsset = assets.find((asset) => asset.id === selectedAssetId) ?? null;
   const session = useAgentSession(bundle.building.id, dataSource === "api");
   const lastAgentDepth = useRef(STARTING_DEPTH);
@@ -80,6 +81,7 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
 
   const handleRun = async () => {
     setTraceRequest((value) => value + 1);
+    setRailView("agent");
     try { await session.start(depth); } catch { /* The trace preserves the exact endpoint response. */ }
   };
 
@@ -126,16 +128,16 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
         <details className="stage-menu"><summary aria-label="Demo menu">•••</summary><button onClick={() => window.location.reload()}>Reset demo</button></details>
       </header>
 
-      <div className="stage-gauge"><StaffGauge depth={depth} onChange={setDepth} onCommit={commitDepth} /></div>
-      <div className="stage-loss"><LossCounter row={row} scannedPercent={scannedPercent} /><button className="assumptions-button" onClick={() => setAssumptionsOpen(true)}>Assumptions <b>({scenario.assumptions.length})</b></button></div>
+      <div className="stage-gauge"><StaffGauge depth={depth} grounding={bundle.grounding} thresholds={scenarioTable.thresholds} onChange={setDepth} onCommit={commitDepth} /></div>
+      <div className="stage-loss"><LossCounter row={row} onExplain={() => setRailView("number")} /><button className="assumptions-button" onClick={() => setAssumptionsOpen(true)}>Assumptions <b>({scenario.assumptions.length + (bundle.grounding?.assumptions.length ?? 0)})</b></button></div>
       <div className="stage-controls">
         <div className="stage-key" aria-label="Asset damage key"><span><i className="key-ring clear" />Clear</span><span><i className="key-ring partial" />Partial</span><span><i className="key-ring lost" />Severe</span><span><i className="key-vehicle" />Vehicle</span></div>
         <div className="stage-view-switch" role="group" aria-label="Flood view"><button className={view === "dollhouse" ? "active" : ""} disabled={!photoAvailable} onClick={() => selectView("dollhouse")}>Dollhouse</button><button className={view === "inside" ? "active" : ""} disabled={!photoAvailable || !selectedAsset} onClick={() => selectView("inside")}>View selected inside</button><button className={view === "model" ? "active" : ""} onClick={() => selectView("model")}>3D model</button></div>
         {fallbackNotice ? <div className="stage-fallback" title={fallbackDetail}><span>{fallbackNotice}</span><button onClick={retryPhotoReal}>Retry photo-real</button></div> : null}
       </div>
 
-      <DetailTabs key={`details-${traceRequest}`} bundle={currentBundle} scenario={scenario} damageByAsset={damageByAsset} dataSource={dataSource} selectedAssetId={selectedAssetId} memoryAppliedAssetIds={memoryAppliedAssetIds} onSelectAsset={handleAssetSelect} onCorrect={handleCorrection} correctionState={correctionState} session={session} traceRequest={traceRequest} />
-      <AssumptionsDrawer open={assumptionsOpen} onClose={() => setAssumptionsOpen(false)} assumptions={scenarioTable.assumptions} />
+      <DetailTabs bundle={currentBundle} scenario={scenario} damageByAsset={damageByAsset} dataSource={dataSource} selectedAssetId={selectedAssetId} memoryAppliedAssetIds={memoryAppliedAssetIds} onSelectAsset={handleAssetSelect} onCorrect={handleCorrection} correctionState={correctionState} session={session} traceRequest={traceRequest} tab={railView} onTabChange={setRailView} />
+      <AssumptionsDrawer open={assumptionsOpen} onClose={() => setAssumptionsOpen(false)} assumptions={[...scenarioTable.assumptions, ...(bundle.grounding?.assumptions ?? [])]} />
     </main>
   );
 }
