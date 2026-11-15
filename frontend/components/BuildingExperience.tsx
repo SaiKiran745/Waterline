@@ -27,6 +27,7 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
   const [mitigations, setMitigations] = useState(bundle.mitigations);
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(bundle.assets[0]?.id ?? null);
   const [assumptionsOpen, setAssumptionsOpen] = useState(false);
+  const [dollhouseAvailable, setDollhouseAvailable] = useState(true);
   const [fallbackNotice, setFallbackNotice] = useState("");
   const [fallbackDetail, setFallbackDetail] = useState("");
   const [insideRequest, setInsideRequest] = useState(0);
@@ -64,6 +65,25 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
     return () => window.cancelAnimationFrame(frame);
   }, []);
 
+  const noDollhouseKey = `waterline-no-dollhouse-${bundle.building.matterport_model_id ?? ""}`;
+
+  useEffect(() => {
+    // A scan that refused the dollhouse view before opens the 3D model directly.
+    let known = false;
+    try { known = window.localStorage.getItem(noDollhouseKey) === "1"; } catch { /* storage unavailable */ }
+    if (!known) return;
+    const timer = window.setTimeout(() => { setDollhouseAvailable(false); setView((current) => current === "dollhouse" ? "model" : current); }, 0);
+    return () => window.clearTimeout(timer);
+  }, [noDollhouseKey]);
+
+  const handleDollhouseUnavailable = useCallback(() => {
+    setDollhouseAvailable(false);
+    setFallbackNotice("");
+    setFallbackDetail("");
+    setView("model");
+    try { window.localStorage.setItem(noDollhouseKey, "1"); } catch { /* storage unavailable */ }
+  }, [noDollhouseKey]);
+
   const handlePhotoFailure = useCallback((message: string) => {
     setFallbackNotice("Photo-real view unavailable. Offline model restored.");
     setFallbackDetail(message);
@@ -73,8 +93,8 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
   const retryPhotoReal = useCallback(() => {
     setFallbackNotice("");
     setFallbackDetail("");
-    setView("dollhouse");
-  }, []);
+    setView(dollhouseAvailable ? "dollhouse" : "model");
+  }, [dollhouseAvailable]);
 
   const handleAssetSelect = useCallback((assetId: string) => {
     setSelectedAssetId(assetId);
@@ -121,6 +141,7 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
 
   const selectView = (next: FloodView) => {
     if (next !== "model" && !photoAvailable) return;
+    if (next === "dollhouse" && !dollhouseAvailable) return;
     setFallbackNotice(""); setFallbackDetail(""); setView(next);
     if (next === "inside") setInsideRequest((value) => value + 1);
   };
@@ -128,7 +149,7 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
   return (
     <main className="flood-stage">
       <section className="flood-canvas" aria-label="Flood scenario view">
-        {view === "model" ? <Viewer3D assets={assets} damageByAsset={damageByAsset} depthFt={depth} meshUrl={bundle.meshUrl} selectedAssetId={selectedAssetId} /> : <PhotoRealViewer modelId={bundle.building.matterport_model_id} assets={assets} damageByAsset={damageByAsset} depthFt={depth} locationId={selectedAsset?.location_id ?? null} locations={bundle.media?.locations ?? []} insideRequest={insideRequest} requestedMode={view} onFailure={handlePhotoFailure} />}
+        {view === "model" ? <Viewer3D assets={assets} damageByAsset={damageByAsset} depthFt={depth} meshUrl={bundle.meshUrl} selectedAssetId={selectedAssetId} /> : <PhotoRealViewer modelId={bundle.building.matterport_model_id} assets={assets} damageByAsset={damageByAsset} depthFt={depth} locationId={selectedAsset?.location_id ?? null} locations={bundle.media?.locations ?? []} insideRequest={insideRequest} requestedMode={view} onFailure={handlePhotoFailure} dollhouseAvailable={dollhouseAvailable} onDollhouseUnavailable={handleDollhouseUnavailable} />}
       </section>
 
       <header className="stage-topline">
@@ -148,7 +169,8 @@ export function BuildingExperience({ bundle, dataSource }: { bundle: BuildingBun
       </div>
       <div className="stage-controls">
         <div className="stage-key" aria-label="Asset damage key"><span><i className="key-ring clear" />Clear</span><span><i className="key-ring partial" />Partial</span><span><i className="key-ring lost" />Severe</span><span><i className="key-vehicle" />Vehicle</span></div>
-        <div className="stage-view-switch" role="group" aria-label="Flood view"><button className={view === "dollhouse" ? "active" : ""} disabled={!photoAvailable} onClick={() => selectView("dollhouse")}>Dollhouse</button><button className={view === "inside" ? "active" : ""} disabled={!photoAvailable || !selectedAsset} onClick={() => selectView("inside")}>View selected inside</button><button className={view === "model" ? "active" : ""} onClick={() => selectView("model")}>3D model</button></div>
+        <div className="stage-view-switch" role="group" aria-label="Flood view"><button className={view === "dollhouse" ? "active" : ""} disabled={!photoAvailable || !dollhouseAvailable} title={dollhouseAvailable ? undefined : "Dollhouse isn't available for this scan"} onClick={() => selectView("dollhouse")}>Dollhouse</button><button className={view === "inside" ? "active" : ""} disabled={!photoAvailable || !selectedAsset} onClick={() => selectView("inside")}>View selected inside</button><button className={view === "model" ? "active" : ""} onClick={() => selectView("model")}>3D model</button></div>
+        {!dollhouseAvailable && photoAvailable ? <span className="stage-note">Dollhouse isn&apos;t available for this scan</span> : null}
         {fallbackNotice ? <div className="stage-fallback" title={fallbackDetail}><span>{fallbackNotice}</span><button onClick={retryPhotoReal}>Retry photo-real</button></div> : null}
       </div>
 

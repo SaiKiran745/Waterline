@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type * as Three from "three";
 import { damageColour } from "@/lib/scenario";
 import type { Asset, AssetDamage, MatterportLocation } from "@/lib/contracts";
-import { showAddresses } from "@/lib/presentation";
 
 type Vector3 = { x: number; y: number; z: number };
 type SweepData = {
@@ -82,7 +81,7 @@ function coordinateRms(locations: MatterportLocation[], sweeps: SweepData[]) {
   return { matches: errors.length, rms: errors.length ? Math.sqrt(errors.reduce((sum, value) => sum + value, 0) / errors.length) : null };
 }
 
-export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locationId, locations, insideRequest, requestedMode, onFailure }: {
+export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locationId, locations, insideRequest, requestedMode, onFailure, dollhouseAvailable = true, onDollhouseUnavailable }: {
   modelId: string | null;
   assets: Asset[];
   damageByAsset: Map<string, AssetDamage>;
@@ -92,7 +91,13 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
   insideRequest: number;
   requestedMode: ViewMode;
   onFailure: (message: string) => void;
+  dollhouseAvailable?: boolean;
+  onDollhouseUnavailable?: () => void;
 }) {
+  // Read inside the connect effect without re-running it.
+  const dollhouseAvailableRef = useRef(dollhouseAvailable);
+  const onDollhouseUnavailableRef = useRef(onDollhouseUnavailable);
+  useEffect(() => { dollhouseAvailableRef.current = dollhouseAvailable; onDollhouseUnavailableRef.current = onDollhouseUnavailable; }, [dollhouseAvailable, onDollhouseUnavailable]);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const sdkRef = useRef<BundleSdk | null>(null);
   const sceneObjectRef = useRef<SceneObject | null>(null);
@@ -112,7 +117,7 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
   const [calibrating, setCalibrating] = useState(false);
   const [currentPuckLevel, setCurrentPuckLevel] = useState<number | null>(null);
   const sdkKey = process.env.NEXT_PUBLIC_MATTERPORT_SDK_KEY ?? "";
-  const bundleUrl = useMemo(() => modelId && sdkKey ? `/matterport-bundle/showcase.html?m=${encodeURIComponent(modelId)}&play=1&qs=1&title=${showAddresses ? "1" : "0"}&applicationKey=${encodeURIComponent(sdkKey)}` : "", [modelId, sdkKey]);
+  const bundleUrl = useMemo(() => modelId && sdkKey ? `/matterport-bundle/showcase.html?m=${encodeURIComponent(modelId)}&play=1&qs=1&title=0&fp=0&measurements=0&gt=0&applicationKey=${encodeURIComponent(sdkKey)}` : "", [modelId, sdkKey]);
 
   useEffect(() => {
     if (iframeReady || !modelId || !sdkKey) return;
@@ -225,8 +230,24 @@ export function PhotoRealViewer({ modelId, assets, damageByAsset, depthFt, locat
         }), 5_000, "Matterport Scene overlay did not initialize.");
         sceneObjectRef.current = sceneObject;
         void objectRoot;
+        if (!dollhouseAvailableRef.current) {
+          // This scan refuses the dollhouse view: stay inside (the viewer starts there with qs=1).
+          setMode("inside");
+          setStatus("ready");
+          return;
+        }
         setLoadingStage("Opening dollhouse view");
-        await sdk.Mode.moveTo(sdk.Mode.Mode.DOLLHOUSE, { transition: sdk.Camera.TransitionType.FLY });
+        try {
+          await sdk.Mode.moveTo(sdk.Mode.Mode.DOLLHOUSE, { transition: sdk.Camera.TransitionType.FLY });
+        } catch (refused) {
+          const text = refused instanceof Error ? refused.message : String(refused);
+          // Matterport refuses the move when the space's dollhouse is turned off ("Mode.moveTo -> Could not move to 2").
+          if (/Could not move to/.test(text) && onDollhouseUnavailableRef.current) {
+            onDollhouseUnavailableRef.current();
+            return;
+          }
+          throw refused;
+        }
         setMode("dollhouse");
         setStatus("ready");
       } catch (caught) {

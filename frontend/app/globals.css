@@ -904,3 +904,6 @@ body { --mono: var(--font-body), Arial, sans-serif; --sans: var(--font-body), Ar
 .agent-status.error { color: var(--text); }
 /* The "Estimated loss at" line sat on top of the large figure. */
 .stage-left .stage-loss .loss-counter > strong { margin-top: 8px; }
+/* "Dollhouse isn't available for this scan": a plain note beside the view switch. */
+.stage-note { align-self: center; color: var(--muted); font-size: 13px; }
+.stage-controls .stage-note { justify-self: start; }
