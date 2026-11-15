@@ -9,11 +9,13 @@ export function StaffGauge({ depth, grounding, thresholds, onChange, onCommit }:
   const ticks = useMemo(() => Array.from({ length: 17 }, (_, index) => index / 2), []); const percent = depth / MAX_DEPTH * 100;
   const marks = useMemo<GaugeMark[]>(() => {
     const references = (grounding?.reference_levels ?? []).map((level) => ({ id: level.id, label: level.label.replace("annual-chance ", ""), range: [level.depth_above_floor_ft_low, level.depth_above_floor_ft_high] as Range, sentence: level.sentence, kind: "reference" as const, central: level.depth_above_floor_ft }));
+    // A threshold is null when the building has no surveyed items of that kind (A, B, C, G and H have no IT equipment): no mark.
+    const threshold = (id: string, label: string, range: Range | null, sentence: (range: Range) => string): GaugeMark[] => range ? [{ id, label, range, sentence: sentence(range), kind: "threshold" }] : [];
     const gaugeThresholds: GaugeMark[] = [
-      { id: "first-loss", label: "First contents reached", range: thresholds.first_loss_ft, sentence: `The first surveyed contents item is reached between ${thresholds.first_loss_ft[0]} and ${thresholds.first_loss_ft[1]} ft.`, kind: "threshold" },
-      { id: "half-items", label: "Half of contents", range: thresholds.half_items_ft, sentence: `Half of surveyed contents are reached between ${thresholds.half_items_ft[0]} and ${thresholds.half_items_ft[1]} ft.`, kind: "threshold" },
-      { id: "most-items", label: "80% of contents", range: thresholds.most_items_ft, sentence: `80% of surveyed contents are reached between ${thresholds.most_items_ft[0]} and ${thresholds.most_items_ft[1]} ft.`, kind: "threshold" },
-      ...thresholds.critical_systems.map((system) => ({ id: `critical-${system.system}`, label: system.name, range: system.first_reached_ft, sentence: `${system.name} is first reached between ${system.first_reached_ft[0]} and ${system.first_reached_ft[1]} ft.`, kind: "threshold" as const })),
+      ...threshold("first-loss", "First contents reached", thresholds.first_loss_ft, (range) => `The first surveyed contents item is reached between ${range[0]} and ${range[1]} ft.`),
+      ...threshold("half-items", "Half of contents", thresholds.half_items_ft, (range) => `Half of surveyed contents are reached between ${range[0]} and ${range[1]} ft.`),
+      ...threshold("most-items", "80% of contents", thresholds.most_items_ft, (range) => `80% of surveyed contents are reached between ${range[0]} and ${range[1]} ft.`),
+      ...thresholds.critical_systems.flatMap((system) => threshold(`critical-${system.system}`, system.name, system.first_reached_ft, (range) => `${system.name} is first reached between ${range[0]} and ${range[1]} ft.`)),
     ];
     return [...references, ...gaugeThresholds];
   }, [grounding, thresholds]);

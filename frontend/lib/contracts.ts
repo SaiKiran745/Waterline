@@ -147,10 +147,11 @@ export type ScenarioThresholds = {
   contents_items: number;
   heights_from_mesh: number;
   heights_estimated: number;
-  first_loss_ft: Range;
-  half_items_ft: Range;
-  most_items_ft: Range;
-  critical_systems: Array<{ system: string; name: string; items: number; first_reached_ft: Range }>;
+  // null when the building has no surveyed items of that kind (contracts/scenario_table.schema.json), e.g. no IT equipment.
+  first_loss_ft: Range | null;
+  half_items_ft: Range | null;
+  most_items_ft: Range | null;
+  critical_systems: Array<{ system: string; name: string; items: number; first_reached_ft: Range | null }>;
 };
 
 export type StandardMethod = {
